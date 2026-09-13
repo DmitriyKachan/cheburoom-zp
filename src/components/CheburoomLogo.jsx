@@ -3,109 +3,139 @@ import { motion } from 'framer-motion';
 import { NEON_SIGN } from './neonSignData';
 
 /**
- * Authentic Cheburoom Neon Sign Component
- * 100% vector replica drawn directly from the restaurant's iconic physical neon signage (@cheburoom.zp)
+ * Pure Neon Logo Component (Without black background plate or side text)
+ * Hand-drawn vector replica of the authentic Cheburoom restaurant neon signage (@cheburoom.zp)
+ * Specifically optimized with dual-tone contrast layers to be 100% legible on both White and Black themes.
  */
-export function CheburoomLogo({ showTagline = true, className = '' }) {
+export function CheburoomLogo({ size = 'md', className = '' }) {
+  const heightClasses = {
+    sm: 'h-9 sm:h-10',
+    md: 'h-11 sm:h-13',
+    lg: 'h-14 sm:h-16'
+  };
+
+  const heightClass = heightClasses[size] || heightClasses.md;
+
   return (
-    <div className={`flex items-center gap-3 select-none group cursor-pointer ${className}`}>
-      {/* The Illuminated Neon Sign Plate (matches the restaurant mesh wall & warm neon tubes) */}
-      <motion.div
-        whileHover={{ scale: 1.05, y: -1 }}
-        whileTap={{ scale: 0.96 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-        className="relative h-12 sm:h-13 px-2.5 py-1.5 rounded-2xl bg-[#0D0C10] border border-amber-500/40 shadow-lg shadow-amber-500/25 ring-1 ring-amber-400/30 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:border-amber-400 group-hover:shadow-amber-500/45 group-hover:ring-amber-400/50"
+    <motion.div
+      whileHover={{ scale: 1.06 }}
+      whileTap={{ scale: 0.94 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+      className={`relative inline-flex items-center justify-center select-none cursor-pointer group ${heightClass} ${className}`}
+      aria-label="Логотип ЧЕБУROOM"
+    >
+      <svg
+        viewBox={`0 0 ${NEON_SIGN.width} ${NEON_SIGN.height}`}
+        className="h-full w-auto overflow-visible transition-all duration-300 drop-shadow-[0_1px_3px_rgba(120,53,15,0.3)] dark:drop-shadow-[0_0_14px_rgba(245,158,11,0.7)] group-hover:drop-shadow-[0_2px_8px_rgba(180,83,9,0.4)] dark:group-hover:drop-shadow-[0_0_22px_rgba(245,158,11,0.95)]"
+        fill="none"
       >
-        {/* Wire mesh texture matching the real photo background */}
-        <div 
-          className="absolute inset-0 opacity-25 pointer-events-none"
-          style={{
-            backgroundImage: `linear-gradient(to right, rgba(245, 158, 11, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(245, 158, 11, 0.15) 1px, transparent 1px)`,
-            backgroundSize: '6px 6px'
-          }}
-        />
+        <defs>
+          <filter id="neon-ambient-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="7" result="glowBlur" />
+            <feMerge>
+              <feMergeNode in="glowBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
 
-        {/* Warm backlight radial glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,158,11,0.28),transparent_75%)] pointer-events-none" />
-
-        {/* Vector Neon Tubes */}
-        <svg
-          viewBox={`0 0 ${NEON_SIGN.width} ${NEON_SIGN.height}`}
-          className="h-full w-auto max-w-[85px] sm:max-w-[95px] overflow-visible relative z-10"
-          fill="none"
-          aria-label="ЧЕБУROOM"
+        {/* ========================================================================= */}
+        {/* Layer 1: Contrast Outline (Ensures razor-sharp readability on WHITE theme) */}
+        {/* ========================================================================= */}
+        <g 
+          className="text-[#7c2d12] dark:text-[#ea580c] opacity-90 dark:opacity-40 transition-colors"
+          stroke="currentColor" 
+          strokeWidth="11" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
         >
-          <defs>
-            <filter id="authentic-neon-glow" x="-25%" y="-25%" width="150%" height="150%">
-              <feGaussianBlur stdDeviation="10" result="blur2" />
-              <feGaussianBlur stdDeviation="3" result="blur1" />
-              <feMerge>
-                <feMergeNode in="blur2" />
-                <feMergeNode in="blur1" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
+          {/* ЧЕБУ */}
+          <path d={NEON_SIGN.che} />
+          <path d={NEON_SIGN.e} />
+          <path d={NEON_SIGN.b} />
+          <path d={NEON_SIGN.bDot} strokeWidth="8" />
+          <path d={NEON_SIGN.u} />
 
-          {/* Layer 1: Ambient Neon Bloom Glow */}
-          <g filter="url(#authentic-neon-glow)" opacity="0.65" className="transition-opacity duration-300 group-hover:opacity-100">
-            <path d={NEON_SIGN.che} stroke="#ea580c" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.e} stroke="#ea580c" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.b} stroke="#ea580c" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.bDot} stroke="#ea580c" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.u} stroke="#ea580c" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
+          {/* ROOM */}
+          <path d={NEON_SIGN.r} />
+          <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} />
+          <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} />
+          <path d={NEON_SIGN.m} />
+        </g>
 
-            <path d={NEON_SIGN.r} stroke="#d97706" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} stroke="#d97706" strokeWidth="14" />
-            <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} stroke="#d97706" strokeWidth="14" />
-            <path d={NEON_SIGN.m} stroke="#d97706" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
-          </g>
+        {/* ========================================================================= */}
+        {/* Layer 2: Main Warm Amber Neon Glass Tube                                   */}
+        {/* ========================================================================= */}
+        <g 
+          className="text-[#d97706] dark:text-[#f59e0b] transition-colors"
+          stroke="currentColor" 
+          strokeWidth="6.5" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          {/* ЧЕБУ */}
+          <path d={NEON_SIGN.che} />
+          <path d={NEON_SIGN.e} />
+          <path d={NEON_SIGN.b} />
+          <path d={NEON_SIGN.bDot} strokeWidth="4.5" />
+          <path d={NEON_SIGN.u} />
 
-          {/* Layer 2: Warm Amber Glass Tubes */}
-          <g>
-            <path d={NEON_SIGN.che} stroke="#f59e0b" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.e} stroke="#f59e0b" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.b} stroke="#f59e0b" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.bDot} stroke="#f59e0b" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.u} stroke="#f59e0b" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+          {/* ROOM */}
+          <path d={NEON_SIGN.r} strokeWidth="5.5" />
+          <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} strokeWidth="5.5" />
+          <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} strokeWidth="5.5" />
+          <path d={NEON_SIGN.m} strokeWidth="5.5" />
+        </g>
 
-            <path d={NEON_SIGN.r} stroke="#fbbf24" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} stroke="#fbbf24" strokeWidth="6" />
-            <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} stroke="#fbbf24" strokeWidth="6" />
-            <path d={NEON_SIGN.m} stroke="#fbbf24" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-          </g>
+        {/* ========================================================================= */}
+        {/* Layer 3: Vibrant Bright Golden Luster                                     */}
+        {/* ========================================================================= */}
+        <g 
+          stroke="#fbbf24" 
+          strokeWidth="3.5" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+          className="opacity-95 dark:opacity-100"
+        >
+          {/* ЧЕБУ */}
+          <path d={NEON_SIGN.che} />
+          <path d={NEON_SIGN.e} />
+          <path d={NEON_SIGN.b} />
+          <path d={NEON_SIGN.bDot} strokeWidth="2.5" />
+          <path d={NEON_SIGN.u} />
 
-          {/* Layer 3: Hot Glowing White Gas Core */}
-          <g opacity="0.95">
-            <path d={NEON_SIGN.che} stroke="#fffbeb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.e} stroke="#fffbeb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.b} stroke="#fffbeb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.bDot} stroke="#fffbeb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={NEON_SIGN.u} stroke="#fffbeb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          {/* ROOM */}
+          <path d={NEON_SIGN.r} strokeWidth="3" />
+          <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} strokeWidth="3" />
+          <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} strokeWidth="3" />
+          <path d={NEON_SIGN.m} strokeWidth="3" />
+        </g>
 
-            <path d={NEON_SIGN.r} stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} stroke="#ffffff" strokeWidth="2" />
-            <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} stroke="#ffffff" strokeWidth="2" />
-            <path d={NEON_SIGN.m} stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </g>
-        </svg>
+        {/* ========================================================================= */}
+        {/* Layer 4: Hot Glowing White Gas Core (Pure Neon Light Center)              */}
+        {/* ========================================================================= */}
+        <g 
+          stroke="#ffffff" 
+          strokeWidth="1.6" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          opacity="0.95"
+        >
+          {/* ЧЕБУ */}
+          <path d={NEON_SIGN.che} />
+          <path d={NEON_SIGN.e} />
+          <path d={NEON_SIGN.b} />
+          <path d={NEON_SIGN.bDot} strokeWidth="1.2" />
+          <path d={NEON_SIGN.u} />
 
-        {/* Hover shimmer sheen */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
-      </motion.div>
-
-      {/* Brand Name & Location Tagline */}
-      {showTagline && (
-        <div className="flex flex-col text-left">
-          <span className="font-display font-black text-xl sm:text-2xl tracking-wide leading-none text-zinc-950 dark:text-white group-hover:text-amber-500 transition-colors">
-            ЧЕБУ<span className="text-amber-500">ROOM</span>
-          </span>
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-wider uppercase mt-1 leading-none">
-            Крафтова чебуречна • Запоріжжя
-          </span>
-        </div>
-      )}
-    </div>
+          {/* ROOM */}
+          <path d={NEON_SIGN.r} strokeWidth="1.3" />
+          <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} strokeWidth="1.3" />
+          <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} strokeWidth="1.3" />
+          <path d={NEON_SIGN.m} strokeWidth="1.3" />
+        </g>
+      </svg>
+    </motion.div>
   );
 }
 
