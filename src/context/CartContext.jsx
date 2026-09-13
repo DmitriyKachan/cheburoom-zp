@@ -21,6 +21,47 @@ export function CartProvider({ children }) {
   const [successOrder, setSuccessOrder] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Page Routing State ('menu' | 'checkout')
+  const [currentPage, setCurrentPage] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#checkout' || hash === '#cart' || hash === '#order') {
+        return 'checkout';
+      }
+    }
+    return 'menu';
+  });
+
+  const navigateTo = (page) => {
+    setCurrentPage(page);
+    if (typeof window !== 'undefined') {
+      if (page === 'checkout') {
+        window.history.pushState({ page: 'checkout' }, '', '#checkout');
+      } else {
+        window.history.pushState({ page: 'menu' }, '', '#menu');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    const handleHashOrPopState = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#checkout' || hash === '#cart' || hash === '#order') {
+        setCurrentPage('checkout');
+      } else {
+        setCurrentPage('menu');
+      }
+    };
+
+    window.addEventListener('popstate', handleHashOrPopState);
+    window.addEventListener('hashchange', handleHashOrPopState);
+    return () => {
+      window.removeEventListener('popstate', handleHashOrPopState);
+      window.removeEventListener('hashchange', handleHashOrPopState);
+    };
+  }, []);
+
   // Theme management
   const [darkMode, setDarkMode] = useState(() => {
     try {
@@ -129,8 +170,15 @@ export function CartProvider({ children }) {
     return MENU_DATA.info.deliveryCost;
   };
 
+  const getDiscount = (type = 'delivery') => {
+    if (type === 'pickup') {
+      return Math.round(subtotal * 0.10);
+    }
+    return 0;
+  };
+
   const getTotal = (type = 'delivery') => {
-    return subtotal + getDeliveryFee(type);
+    return Math.max(0, subtotal - getDiscount(type) + getDeliveryFee(type));
   };
 
   return (
@@ -144,7 +192,11 @@ export function CartProvider({ children }) {
         itemCount,
         subtotal,
         getDeliveryFee,
+        getDiscount,
         getTotal,
+        currentPage,
+        setCurrentPage,
+        navigateTo,
         isCartOpen,
         setIsCartOpen,
         selectedDishForModal,

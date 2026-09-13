@@ -4,7 +4,7 @@ import { ShoppingBag, Sun, Moon, Phone, MapPin, Clock, ChevronDown, Sparkles } f
 import { InstagramIcon } from './InstagramIcon';
 
 export function Header() {
-  const { itemCount, subtotal, setIsCartOpen, darkMode, toggleTheme } = useCart();
+  const { itemCount, subtotal, currentPage, navigateTo, darkMode, toggleTheme } = useCart();
 
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-[#09090B] border-b border-zinc-200 dark:border-[#23232E] transition-colors">
@@ -20,7 +20,12 @@ export function Header() {
         
         {/* Left: Brand Logo & Location */}
         <div className="flex items-center gap-4 sm:gap-6">
-          <a href="#" className="flex items-center gap-2.5 group focus:outline-none" aria-label="Головна ЧЕБУROOM">
+          <button
+            type="button"
+            onClick={() => navigateTo('menu')}
+            className="flex items-center gap-2.5 group focus:outline-none cursor-pointer text-left"
+            aria-label="Головна ЧЕБУROOM"
+          >
             <div className="w-11 h-11 rounded-2xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-display font-black text-base shadow-sm group-hover:scale-105 transition-transform">
               ЧР
             </div>
@@ -34,7 +39,7 @@ export function Header() {
                 Крафтова чебуречна
               </p>
             </div>
-          </a>
+          </button>
 
           {/* City / Location selector (Glovo / RnR style) */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] text-xs">
@@ -91,26 +96,37 @@ export function Header() {
           </button>
 
           {/* Glovo / RnR Cart Button */}
-          <button
-            type="button"
-            onClick={() => setIsCartOpen(true)}
-            className="h-11 px-4 sm:px-5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-95 text-zinc-950 font-display font-bold text-xs sm:text-sm shadow-md shadow-amber-400/20 transition-all flex items-center gap-2.5"
-            aria-label="Відкрити кошик замовлення"
-          >
-            <div className="relative">
-              <ShoppingBag className="w-5 h-5 text-zinc-950" />
-              {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-zinc-950 text-white text-[10px] font-black rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
-                  {itemCount}
-                </span>
-              )}
-            </div>
-            
-            <div className="flex flex-col text-left">
-              <span className="text-[10px] uppercase font-semibold text-zinc-700 leading-tight">Кошик</span>
-              <span className="font-extrabold text-xs sm:text-sm leading-tight">{subtotal} ₴</span>
-            </div>
-          </button>
+          {currentPage === 'checkout' ? (
+            <button
+              type="button"
+              onClick={() => navigateTo('menu')}
+              className="h-11 px-4 sm:px-5 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-[#121215] dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white font-display font-bold text-xs sm:text-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+              aria-label="Повернутися до меню"
+            >
+              <span>← До меню</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigateTo('checkout')}
+              className="h-11 px-4 sm:px-5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-95 text-zinc-950 font-display font-bold text-xs sm:text-sm shadow-md shadow-amber-400/20 transition-all flex items-center gap-2.5 cursor-pointer"
+              aria-label="Відкрити кошик замовлення"
+            >
+              <div className="relative">
+                <ShoppingBag className="w-5 h-5 text-zinc-950" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-zinc-950 text-white text-[10px] font-black rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
+                    {itemCount}
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] uppercase font-semibold text-zinc-700 leading-tight">Кошик</span>
+                <span className="font-extrabold text-xs sm:text-sm leading-tight">{subtotal} ₴</span>
+              </div>
+            </button>
+          )}
         </div>
 
       </div>

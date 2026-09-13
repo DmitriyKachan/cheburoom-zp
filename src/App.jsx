@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from './context/CartContext';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -8,6 +9,7 @@ import { DishCard } from './components/DishCard';
 import { DishModal } from './components/DishModal';
 import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
+import { CartCheckoutPage } from './components/CartCheckoutPage';
 import { SuccessModal } from './components/SuccessModal';
 import { LocationInfo } from './components/LocationInfo';
 import { Footer } from './components/Footer';
@@ -17,7 +19,7 @@ import { ShoppingBag, ChevronRight, Check } from 'lucide-react';
 import { PromoBanners } from './components/PromoBanners';
 
 export function App() {
-  const { itemCount, subtotal, setIsCartOpen, toastMessage } = useCart();
+  const { itemCount, subtotal, currentPage, navigateTo, toastMessage } = useCart();
   
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,76 +54,98 @@ export function App() {
       <Header />
       
       <main className="flex-1">
-        <Hero />
-        <PromoBanners />
-        <MarqueeRibbon />
+        <AnimatePresence mode="wait">
+          {currentPage === 'menu' ? (
+            <motion.div
+              key="page-menu"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16, transition: { duration: 0.2 } }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Hero />
+              <PromoBanners />
+              <MarqueeRibbon />
 
-        <section id="menu-catalog" className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-4">
-            <span className="text-xs font-black text-amber-500 uppercase tracking-wider block mb-1">
-              Швидке замовлення їжі
-            </span>
-            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-black text-zinc-950 dark:text-white">
-              Меню ресторану
-            </h2>
-          </div>
+              <section id="menu-catalog" className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="mb-4">
+                  <span className="text-xs font-black text-amber-500 uppercase tracking-wider block mb-1">
+                    Швидке замовлення їжі
+                  </span>
+                  <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-black text-zinc-950 dark:text-white">
+                    Меню ресторану
+                  </h2>
+                </div>
 
-          <CategoryNav
-            activeCategory={activeCategory}
-            onSelectCategory={setActiveCategory}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            activeTag={activeTag}
-            onSelectTag={setActiveTag}
-          />
+                <CategoryNav
+                  activeCategory={activeCategory}
+                  onSelectCategory={setActiveCategory}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  activeTag={activeTag}
+                  onSelectTag={setActiveTag}
+                />
 
-          {filteredItems.length === 0 ? (
-            <div className="py-16 text-center">
-              <h3 className="font-display font-bold text-lg text-zinc-900 dark:text-white mb-2">
-                Страв не знайдено
-              </h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4 max-w-sm mx-auto">
-                Спробуйте змінити пошуковий запит або скинути фільтри.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveCategory('all');
-                  setActiveTag(null);
-                  setSearchQuery('');
-                }}
-                className="px-5 py-2.5 rounded-2xl bg-glovo-yellow text-zinc-950 text-xs font-bold shadow-sm"
-              >
-                Показати всі страви
-              </button>
-            </div>
+                {filteredItems.length === 0 ? (
+                  <div className="py-16 text-center">
+                    <h3 className="font-display font-bold text-lg text-zinc-900 dark:text-white mb-2">
+                      Страв не знайдено
+                    </h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4 max-w-sm mx-auto">
+                      Спробуйте змінити пошуковий запит або скинути фільтри.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveCategory('all');
+                        setActiveTag(null);
+                        setSearchQuery('');
+                      }}
+                      className="px-5 py-2.5 rounded-2xl bg-glovo-yellow text-zinc-950 text-xs font-bold shadow-sm cursor-pointer"
+                    >
+                      Показати всі страви
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+                    {filteredItems.map(dish => (
+                      <DishCard key={dish.id} dish={dish} />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <LocationInfo />
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
-              {filteredItems.map(dish => (
-                <DishCard key={dish.id} dish={dish} />
-              ))}
-            </div>
+            <motion.div
+              key="page-checkout"
+              initial={{ opacity: 0, y: 24, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.99, transition: { duration: 0.25 } }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <CartCheckoutPage />
+            </motion.div>
           )}
-        </section>
-
-        <LocationInfo />
+        </AnimatePresence>
       </main>
 
       <Footer />
 
-      {/* Floating Mobile Cart Bar (Glovo style) */}
-      {itemCount > 0 && (
+      {/* Floating Mobile Cart Bar (Glovo style) - only shown on menu page */}
+      {itemCount > 0 && currentPage === 'menu' && (
         <div className="fixed bottom-4 inset-x-4 z-30 lg:hidden">
           <button
             type="button"
-            onClick={() => setIsCartOpen(true)}
-            className="w-full h-14 bg-glovo-yellow text-zinc-950 rounded-2xl shadow-xl flex items-center justify-between px-5 font-bold transition-transform active:scale-98"
+            onClick={() => navigateTo('checkout')}
+            className="w-full h-14 bg-glovo-yellow text-zinc-950 rounded-2xl shadow-xl flex items-center justify-between px-5 font-bold transition-transform active:scale-98 cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
               <span className="w-7 h-7 rounded-xl bg-zinc-950 text-white text-xs font-black flex items-center justify-center">
                 {itemCount}
               </span>
-              <span className="font-display font-black text-sm">Переглянути замовлення</span>
+              <span className="font-display font-black text-sm">Оформити замовлення</span>
             </div>
             
             <div className="flex items-center gap-1 font-display font-black text-base">
@@ -132,10 +156,8 @@ export function App() {
         </div>
       )}
 
-      {/* Modals & Drawers */}
+      {/* Modals */}
       <DishModal />
-      <CartDrawer />
-      <CheckoutModal />
       <SuccessModal />
 
       {/* Toast */}
