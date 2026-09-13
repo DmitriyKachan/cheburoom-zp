@@ -98,11 +98,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .animate-marquee-infinite {
   display: flex;
   width: max-content;
-  animation: marquee-infinite 30s linear infinite;
-}
-
-.animate-marquee-infinite:hover {
-  animation-play-state: paused;
+  animation: marquee-infinite 38s linear infinite;
+  pointer-events: none;
 }
 
 /* Tactile Push Feedback (UI/UX Pro Max & Magic UI standard) */
