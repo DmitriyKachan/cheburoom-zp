@@ -1,0 +1,385 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Unbounded:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  /* Craft Culinary Palette (frontend-design principles) */
+  --bg-primary: #F7F5F0;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #FAF8F5;
+  --text-primary: #17171A;
+  --text-secondary: #6B6860;
+  --border-subtle: #E8E4DA;
+  --border-strong: #D5CFC2;
+  
+  --ember: #D97706;
+  --ember-dark: #B45309;
+  --ember-glow: rgba(217, 119, 6, 0.12);
+  --flame: #DC2626;
+  --flame-dark: #B91C1C;
+  --herb: #15803D;
+
+  --spotlight-color: rgba(217, 119, 6, 0.09);
+  --spotlight-border: rgba(217, 119, 6, 0.35);
+
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-full: 9999px;
+
+  --shadow-subtle: 0 2px 8px rgba(28, 25, 23, 0.04);
+  --shadow-card: 0 8px 24px -4px rgba(28, 25, 23, 0.07);
+  --shadow-elevated: 0 20px 40px -8px rgba(28, 25, 23, 0.12);
+}
+
+.dark {
+  --bg-primary: #111113;
+  --bg-surface: #18181C;
+  --bg-surface-elevated: #202025;
+  --text-primary: #F4F4F6;
+  --text-secondary: #9B9AA0;
+  --border-subtle: #27272D;
+  --border-strong: #383842;
+
+  --spotlight-color: rgba(245, 158, 11, 0.08);
+  --spotlight-border: rgba(245, 158, 11, 0.4);
+
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 8px 28px -4px rgba(0, 0, 0, 0.45);
+  --shadow-elevated: 0 20px 40px -8px rgba(0, 0, 0, 0.65);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.55;
+  transition: background-color 200ms ease, color 200ms ease;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+  font-feature-settings: "ss01" on, "cv01" on;
+}
+
+/* Base interactive standards */
+button, a, input[type="radio"] + label, input[type="checkbox"] + label, select, .cursor-pointer {
+  cursor: pointer;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 3px;
+}
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================
+   MAGIC UI ANIMATIONS (THEMATIC & TARGETED)
+   ========================================================== */
+
+/* 1. MAGIC CARD — Spotlight Effect following cursor */
+.magic-card {
+  position: relative;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease, border-color 220ms ease;
+  will-change: transform;
+}
+
+.magic-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+  border-color: var(--border-strong);
+}
+
+/* Spotlight overlay */
+.magic-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    400px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    var(--spotlight-color),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.magic-card:hover::before {
+  opacity: 1;
+}
+
+/* 2. BORDER BEAM — Continuous traveling light on featured card */
+.border-beam-container {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.border-beam {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1.5px;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  z-index: 5;
+}
+
+.border-beam::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    var(--ember) 40deg,
+    #FBBF24 60deg,
+    transparent 80deg,
+    transparent 360deg
+  );
+  animation: border-beam-spin 5s linear infinite;
+}
+
+@keyframes border-beam-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 3. CRAFT MARQUEE — Infinite smooth horizontal ribbon */
+.marquee-wrapper {
+  overflow: hidden;
+  display: flex;
+  user-select: none;
+  gap: 1.5rem;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.marquee-content {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1.5rem;
+  min-width: 100%;
+  animation: marquee-scroll 28s linear infinite;
+}
+
+.marquee-wrapper:hover .marquee-content {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-100% - 1.5rem)); }
+}
+
+/* 4. INTERACTIVE HOVER BUTTON — expanding circle on hover */
+.interactive-hover-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  padding: 0.75rem 1.6rem;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.interactive-hover-btn .btn-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: var(--flame);
+  transition: transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.interactive-hover-btn .btn-text {
+  display: inline-block;
+  transition: transform 300ms ease, opacity 300ms ease;
+}
+
+.interactive-hover-btn .btn-hover-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--flame);
+  color: #FFFFFF;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 250ms ease;
+}
+
+.interactive-hover-btn:hover .btn-hover-layer {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Primary Flame CTA Button */
+.btn-flame {
+  background-color: var(--flame);
+  color: #FFFFFF;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 14px -2px rgba(220, 38, 38, 0.35);
+  transition: background-color 180ms ease, transform 150ms ease, box-shadow 180ms ease;
+}
+
+.btn-flame:hover {
+  background-color: var(--flame-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px -2px rgba(220, 38, 38, 0.45);
+}
+
+.btn-flame:active {
+  transform: scale(0.98);
+}
+
+/* 5. TACTILE SKILLET SWITCH (Deep fry vs Yantyk dry skillet) */
+.skillet-switch-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-surface);
+  transition: all 180ms ease;
+}
+
+.skillet-switch-label:hover {
+  border-color: var(--ember);
+}
+
+.skillet-switch-label:has(input:checked) {
+  border-color: var(--ember);
+  background: var(--ember-glow);
+  box-shadow: 0 0 0 1px var(--ember);
+}
+
+/* Category Filter Active Pill */
+.category-pill {
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.category-pill.active {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Drawer Backdrop Blur */
+.drawer-backdrop {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-color: rgba(18, 18, 20, 0.65);
+}
+
+/* Flying item animation */
+.flying-particle {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--ember);
+  box-shadow: 0 0 14px var(--ember);
+  transition: all 500ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Toast alert */
+.toast-alert {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  box-shadow: var(--shadow-elevated);
+  font-size: 13px;
+  font-weight: 600;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1), opacity 250ms ease;
+}
+
+.toast-alert.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Subtle background grain / parchment texture */
+.bg-parchment-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgba(28, 25, 23, 0.05) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+
+.dark .bg-parchment-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0);
+}
+
+/* Accessible reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .marquee-content {
+    animation: none !important;
+  }
+  .border-beam::after {
+    animation: none !important;
+  }
+}

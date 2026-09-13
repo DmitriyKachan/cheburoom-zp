@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Unbounded:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #F8F9FA;
+  --bg-surface: #FFFFFF;
+  --text-primary: #09090B;
+  --text-secondary: #4B5563;
+  --border-subtle: #E5E7EB;
+  --border-strong: #D1D5DB;
+  --brand-yellow: #FFC244;
+  --brand-green: #00A082;
+}
+
+.dark {
+  --bg-primary: #09090B;
+  --bg-surface: #121215;
+  --text-primary: #F8FAFC;
+  --text-secondary: #9CA3AF;
+  --border-subtle: #23232E;
+  --border-strong: #2E2E3D;
+  --brand-yellow: #FFC244;
+  --brand-green: #00A082;
+}
+
+html {
+  color-scheme: light;
+  background-color: var(--bg-primary);
+}
+
+html.dark {
+  color-scheme: dark;
+  background-color: var(--bg-primary);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 100vh;
+}
+
+/* Bulletproof safety fallbacks: ensure no white-on-white text in dark mode */
+.dark .bg-white:not([data-keep-white]) {
+  background-color: #121215;
+}
+.dark .bg-zinc-50 {
+  background-color: #09090B;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: 'Unbounded', system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D5C9B7;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #383842;
+}
+
+/* Minimal touch target standard */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Accessible focus */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid #D97706;
+  outline-offset: 2px;
+}
+
+/* Single Motivated Marquee Animation */
+@keyframes marquee-infinite {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee-infinite {
+  display: flex;
+  width: max-content;
+  animation: marquee-infinite 30s linear infinite;
+}
+
+.animate-marquee-infinite:hover {
+  animation-play-state: paused;
+}
+
+/* Tactile Push Feedback */
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Background Subtle Canvas Grain */
+.bg-grid-subtle {
+  background-image: radial-gradient(circle at 1px 1px, rgba(20, 20, 23, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+.dark .bg-grid-subtle {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-marquee-infinite {
+    animation: none !important;
+  }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

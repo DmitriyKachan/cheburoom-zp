@@ -1,0 +1,179 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { useCart } from '../context/CartContext';
+import { Sparkles, Plus, Clock, Bike, ShieldCheck, ArrowRight } from 'lucide-react';
+import { MENU_DATA } from '../data/menuData';
+
+export function Hero() {
+  const { addItem, setSelectedDishForModal } = useCart();
+  const signatureDish = MENU_DATA.items.find(i => i.id === 'cheb-beef');
+
+  return (
+    <section className="relative pt-6 pb-10 sm:py-12 bg-[#F8F9FA] dark:bg-[#09090B] border-b border-zinc-200 dark:border-[#23232E] overflow-hidden transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          
+          {/* Left: Headline & Delivery Badges */}
+          <div className="lg:col-span-7 text-center lg:text-left">
+            
+            {/* Quick Delivery Tag */}
+            <motion.div 
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-glovo-yellow text-zinc-950 font-bold text-xs mb-5 shadow-xs"
+            >
+              <Bike className="w-4 h-4 text-zinc-950" />
+              <span>Швидка доставка по Запоріжжю за 25–40 хв</span>
+            </motion.div>
+
+            {/* Headline */}
+            <motion.h1 
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-zinc-950 dark:text-white leading-[1.12] mb-4 tracking-tight"
+            >
+              Гарячі крафтові чебуреки прямо до дверей
+            </motion.h1>
+
+            {/* Subtext */}
+            <motion.p 
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              className="text-base sm:text-lg text-zinc-600 dark:text-zinc-300 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed mb-6"
+            >
+              Тонке пухирчасте тісто, багато соковитого рубаного м'яса та ароматного бульйону. Готуємо під ваше замовлення!
+            </motion.p>
+
+            {/* Delivery Info Chips (Glovo / RnR style) */}
+            <div className="grid grid-cols-3 gap-2 max-w-lg mx-auto lg:mx-0 mb-8 text-left">
+              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs">
+                <Clock className="w-4 h-4 text-amber-500 mb-1" />
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Час доставки</div>
+                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">25-40 хв</div>
+              </div>
+
+              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs">
+                <Bike className="w-4 h-4 text-emerald-500 mb-1" />
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Доставка</div>
+                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">від 0 ₴</div>
+              </div>
+
+              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs">
+                <ShieldCheck className="w-4 h-4 text-blue-500 mb-1" />
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Фермерське</div>
+                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">100% м'ясо</div>
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <motion.div 
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5"
+            >
+              <a
+                href="#menu-catalog"
+                className="h-12 px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-98 text-zinc-950 font-display font-extrabold text-sm shadow-md shadow-amber-400/20 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
+              >
+                <span>Перейти до вибору страв</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+
+              <a
+                href="tel:+380951991599"
+                className="h-12 px-6 rounded-2xl bg-white dark:bg-[#121215] hover:bg-zinc-100 dark:hover:bg-[#1A1A22] text-zinc-900 dark:text-white border border-zinc-200 dark:border-[#23232E] text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-xs"
+              >
+                <span>Зателефонувати у заклад</span>
+              </a>
+            </motion.div>
+
+          </div>
+
+          {/* Right Column: Hero Signature Dish Showcase */}
+          <div className="lg:col-span-5">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="max-w-md mx-auto lg:max-w-none"
+            >
+              <div className="bg-white dark:bg-[#121215] p-5 sm:p-6 rounded-3xl shadow-xl border border-zinc-200/80 dark:border-[#23232E] relative overflow-hidden group">
+                
+                {/* Visual Glow */}
+                <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="flex items-center justify-between mb-4">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-zinc-950">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Хіт №1 продажу
+                  </span>
+                  <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                    180 грамів
+                  </span>
+                </div>
+
+                {/* Hero Product Image */}
+                <div 
+                  className="relative h-56 sm:h-64 rounded-2xl overflow-hidden mb-4 cursor-pointer bg-zinc-100 dark:bg-zinc-950"
+                  onClick={() => signatureDish && setSelectedDishForModal(signatureDish)}
+                >
+                  <img
+                    src="https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?auto=format&fit=crop&w=800&q=80"
+                    alt="Чебурек Класичний з яловичиною"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+                  
+                  <div className="absolute bottom-3 left-3 right-3 text-white flex items-center justify-between">
+                    <span className="text-xs font-medium bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                      Рубана яловичина &bull; Гарячий бульйон
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <div>
+                    <h3 className="font-display font-bold text-lg text-zinc-950 dark:text-white">
+                      Чебурек «Класичний»
+                    </h3>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      Тонке хрустке тісто з пухирцями
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="font-display text-2xl font-black text-zinc-950 dark:text-white">
+                      {signatureDish ? signatureDish.price : 95} ₴
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-zinc-100 dark:border-[#23232E] flex items-center justify-between gap-3">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Фритюр або Янтик без олії</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => signatureDish && addItem(signatureDish)}
+                    className="h-10 px-5 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-95 text-zinc-950 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Plus className="w-4 h-4 text-zinc-950" />
+                    <span>В кошик</span>
+                  </button>
+                </div>
+
+              </div>
+            </motion.div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+  );
+}

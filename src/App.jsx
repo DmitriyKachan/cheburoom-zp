@@ -1,0 +1,152 @@
+import React, { useState } from 'react';
+import { useCart } from './context/CartContext';
+import { Header } from './components/Header';
+import { Hero } from './components/Hero';
+import { MarqueeRibbon } from './components/MarqueeRibbon';
+import { CategoryNav } from './components/CategoryNav';
+import { DishCard } from './components/DishCard';
+import { DishModal } from './components/DishModal';
+import { CartDrawer } from './components/CartDrawer';
+import { CheckoutModal } from './components/CheckoutModal';
+import { SuccessModal } from './components/SuccessModal';
+import { LocationInfo } from './components/LocationInfo';
+import { Footer } from './components/Footer';
+import { MENU_DATA } from './data/menuData';
+import { ShoppingBag, ChevronRight, Check } from 'lucide-react';
+
+import { PromoBanners } from './components/PromoBanners';
+
+export function App() {
+  const { itemCount, subtotal, setIsCartOpen, toastMessage } = useCart();
+  
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTag, setActiveTag] = useState(null);
+
+  // Filter items
+  let filteredItems = MENU_DATA.items;
+
+  if (activeCategory !== 'all') {
+    filteredItems = filteredItems.filter(i => i.category === activeCategory);
+  }
+
+  if (activeTag === 'hit') {
+    filteredItems = filteredItems.filter(i => i.isHit);
+  } else if (activeTag === 'spicy') {
+    filteredItems = filteredItems.filter(i => i.isSpicy);
+  } else if (activeTag === 'veg') {
+    filteredItems = filteredItems.filter(i => i.isVegetarian);
+  }
+
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase().trim();
+    filteredItems = filteredItems.filter(i =>
+      i.name.toLowerCase().includes(q) ||
+      i.shortDesc.toLowerCase().includes(q) ||
+      (i.desc && i.desc.toLowerCase().includes(q))
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col selection:bg-glovo-yellow selection:text-zinc-950 bg-[#F8F9FA] dark:bg-[#09090B] text-zinc-950 dark:text-zinc-50 transition-colors duration-200">
+      <Header />
+      
+      <main className="flex-1">
+        <Hero />
+        <PromoBanners />
+        <MarqueeRibbon />
+
+        <section id="menu-catalog" className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-4">
+            <span className="text-xs font-black text-amber-500 uppercase tracking-wider block mb-1">
+              Швидке замовлення їжі
+            </span>
+            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-black text-zinc-950 dark:text-white">
+              Меню ресторану
+            </h2>
+          </div>
+
+          <CategoryNav
+            activeCategory={activeCategory}
+            onSelectCategory={setActiveCategory}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            activeTag={activeTag}
+            onSelectTag={setActiveTag}
+          />
+
+          {filteredItems.length === 0 ? (
+            <div className="py-16 text-center">
+              <h3 className="font-display font-bold text-lg text-zinc-900 dark:text-white mb-2">
+                Страв не знайдено
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4 max-w-sm mx-auto">
+                Спробуйте змінити пошуковий запит або скинути фільтри.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveCategory('all');
+                  setActiveTag(null);
+                  setSearchQuery('');
+                }}
+                className="px-5 py-2.5 rounded-2xl bg-glovo-yellow text-zinc-950 text-xs font-bold shadow-sm"
+              >
+                Показати всі страви
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+              {filteredItems.map(dish => (
+                <DishCard key={dish.id} dish={dish} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <LocationInfo />
+      </main>
+
+      <Footer />
+
+      {/* Floating Mobile Cart Bar (Glovo style) */}
+      {itemCount > 0 && (
+        <div className="fixed bottom-4 inset-x-4 z-30 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setIsCartOpen(true)}
+            className="w-full h-14 bg-glovo-yellow text-zinc-950 rounded-2xl shadow-xl flex items-center justify-between px-5 font-bold transition-transform active:scale-98"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="w-7 h-7 rounded-xl bg-zinc-950 text-white text-xs font-black flex items-center justify-center">
+                {itemCount}
+              </span>
+              <span className="font-display font-black text-sm">Переглянути замовлення</span>
+            </div>
+            
+            <div className="flex items-center gap-1 font-display font-black text-base">
+              <span>{subtotal} ₴</span>
+              <ChevronRight className="w-5 h-5" />
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Modals & Drawers */}
+      <DishModal />
+      <CartDrawer />
+      <CheckoutModal />
+      <SuccessModal />
+
+      {/* Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-castiron-950 text-white shadow-xl text-xs font-semibold border border-castiron-800">
+          <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <Check className="w-3.5 h-3.5" />
+          </div>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+    </div>
+  );
+}
