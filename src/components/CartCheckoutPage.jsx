@@ -196,14 +196,17 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
         {/* Navigation Breadcrumb / Top Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6 sm:mb-8 pb-4 border-b border-zinc-200 dark:border-[#23232E]">
           <div className="flex items-center gap-3">
-            <button
+            <motion.button
               type="button"
+              whileHover={{ scale: 1.03, x: -3 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
               onClick={() => navigateTo('menu')}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#121215] hover:bg-zinc-100 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-800 dark:text-zinc-200 text-xs sm:text-sm font-bold shadow-xs transition-all group active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#121215] hover:bg-zinc-100 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-800 dark:text-zinc-200 text-xs sm:text-sm font-bold shadow-xs transition-colors group cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 text-zinc-600 dark:text-zinc-300 group-hover:-translate-x-1 transition-transform" />
               <span>Повернутися до меню</span>
-            </button>
+            </motion.button>
             
             <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-zinc-400">
               <span>Головна</span>
@@ -248,14 +251,17 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mb-8 max-w-sm mx-auto">
               Оберіть гарячі хрусткі чебуреки з м'ясом, сирні комбо або авторські янтики у нашому каталозі.
             </p>
-            <button
+            <motion.button
               type="button"
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
               onClick={() => navigateTo('menu')}
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-sm shadow-md shadow-amber-400/20 active:scale-95 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-sm shadow-md shadow-amber-400/20 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Перейти до каталогу меню</span>
-            </button>
+            </motion.button>
           </motion.div>
         ) : (
           /* Main 2-Column Grid Layout */
@@ -311,15 +317,17 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                     </span>
                   </div>
 
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
                     onClick={clearCart}
                     className="text-xs text-zinc-400 hover:text-rose-500 transition-colors font-semibold flex items-center gap-1 cursor-pointer"
                     title="Очистити весь кошик"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Очистити</span>
-                  </button>
+                  </motion.button>
                 </div>
 
                 {/* Items */}
@@ -346,14 +354,17 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                             <h3 className="font-display font-bold text-xs sm:text-sm text-zinc-900 dark:text-white truncate">
                               {item.name}
                             </h3>
-                            <button
+                            <motion.button
                               type="button"
+                              whileHover={{ scale: 1.25, rotate: 12 }}
+                              whileTap={{ scale: 0.85 }}
+                              transition={{ type: "spring", stiffness: 400, damping: 20 }}
                               onClick={() => removeItem(item.cartItemId)}
-                              className="text-zinc-400 hover:text-rose-500 p-1.5 transition-all duration-200 hover:scale-115 hover:rotate-12 active:scale-90 rounded-lg cursor-pointer"
+                              className="text-zinc-400 hover:text-rose-500 p-1.5 transition-colors rounded-lg cursor-pointer"
                               aria-label="Видалити"
                             >
                               <Trash2 className="w-4 h-4" />
-                            </button>
+                            </motion.button>
                           </div>
 
                           {item.crust && (
@@ -380,21 +391,25 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                             <div className="flex items-center bg-zinc-100 dark:bg-[#1A1A22] rounded-xl p-1 gap-1 border border-zinc-200/50 dark:border-[#23232E] shadow-2xs">
                               <motion.button
                                 type="button"
-                                whileTap={{ scale: 0.85 }}
+                                whileHover={{ scale: 1.2 }}
+                                whileTap={{ scale: 0.8 }}
+                                transition={{ type: "spring", stiffness: 500, damping: 25 }}
                                 onClick={() => updateQuantity(item.cartItemId, -1)}
-                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors active:scale-90 shadow-xs cursor-pointer"
+                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
                                 aria-label="Зменшити кількість"
                               >
                                 <Minus className="w-3 h-3" />
                               </motion.button>
-                              <span className="px-2.5 text-xs font-black text-zinc-950 dark:text-white min-w-[20px] text-center">
+                              <span key={item.quantity} className="animate-badge-pop px-2.5 text-xs font-black text-zinc-950 dark:text-white min-w-[20px] text-center inline-block">
                                 {item.quantity}
                               </span>
                               <motion.button
                                 type="button"
-                                whileTap={{ scale: 0.85 }}
+                                whileHover={{ scale: 1.2 }}
+                                whileTap={{ scale: 0.8 }}
+                                transition={{ type: "spring", stiffness: 500, damping: 25 }}
                                 onClick={() => updateQuantity(item.cartItemId, 1)}
-                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors active:scale-90 shadow-xs cursor-pointer"
+                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
                                 aria-label="Збільшити кількість"
                               >
                                 <Plus className="w-3 h-3" />
@@ -490,11 +505,13 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                   <div className="grid grid-cols-2 p-1 rounded-2xl bg-zinc-100 dark:bg-[#1A1A22] border border-zinc-200/80 dark:border-[#23232E]">
                     <motion.button
                       type="button"
+                      whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.96 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       onClick={() => setOrderType('delivery')}
                       className={`py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         orderType === 'delivery'
-                          ? 'bg-glovo-yellow text-zinc-950 shadow-sm'
+                          ? 'bg-glovo-yellow text-zinc-950 shadow-sm ring-1 ring-amber-400/50'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                       }`}
                     >
@@ -504,11 +521,13 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
 
                     <motion.button
                       type="button"
+                      whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.96 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       onClick={() => setOrderType('pickup')}
                       className={`py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         orderType === 'pickup'
-                          ? 'bg-glovo-yellow text-zinc-950 shadow-sm'
+                          ? 'bg-glovo-yellow text-zinc-950 shadow-sm ring-1 ring-amber-400/50'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                       }`}
                     >
@@ -526,7 +545,9 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                   <div className="grid grid-cols-2 gap-2">
                     <motion.button
                       type="button"
+                      whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.96 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       onClick={() => setDeliveryTiming('asap')}
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                         deliveryTiming === 'asap'
@@ -540,7 +561,9 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
 
                     <motion.button
                       type="button"
+                      whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.96 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       onClick={() => setDeliveryTiming('preorder')}
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                         deliveryTiming === 'preorder'
@@ -720,23 +743,29 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                       <span>Прибори та серветки:</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button
+                      <motion.button
                         type="button"
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.8 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
                         onClick={() => setCutleryCount(Math.max(0, cutleryCount - 1))}
-                        className="w-6 h-6 rounded-lg bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] flex items-center justify-center text-zinc-600 dark:text-zinc-300 cursor-pointer active:scale-90 transition-transform"
+                        className="w-6 h-6 rounded-lg bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] flex items-center justify-center text-zinc-600 dark:text-zinc-300 cursor-pointer shadow-2xs"
                       >
                         -
-                      </button>
-                      <span className="text-xs font-black min-w-[14px] text-center">
+                      </motion.button>
+                      <span key={cutleryCount} className="animate-badge-pop text-xs font-black min-w-[14px] text-center inline-block">
                         {cutleryCount}
                       </span>
-                      <button
+                      <motion.button
                         type="button"
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.8 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
                         onClick={() => setCutleryCount(cutleryCount + 1)}
-                        className="w-6 h-6 rounded-lg bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] flex items-center justify-center text-zinc-600 dark:text-zinc-300 cursor-pointer active:scale-90 transition-transform"
+                        className="w-6 h-6 rounded-lg bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] flex items-center justify-center text-zinc-600 dark:text-zinc-300 cursor-pointer shadow-2xs"
                       >
                         +
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
                 </div>
@@ -773,16 +802,19 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                 </div>
 
                 {/* Submit Order CTA */}
-                <button
+                <motion.button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-14 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-98 text-zinc-950 font-display font-black text-sm sm:text-base flex items-center justify-center gap-2.5 btn-glow-yellow animate-shimmer disabled:opacity-75 cursor-pointer group/submit select-none"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className="w-full h-14 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-sm sm:text-base flex items-center justify-center gap-2.5 btn-glow-yellow animate-shimmer disabled:opacity-75 cursor-pointer group/submit select-none shadow-md shadow-amber-400/25"
                 >
-                  <CheckCircle className="w-5 h-5 text-zinc-950 group-hover/submit:scale-115 transition-transform" />
+                  <CheckCircle className="w-5 h-5 text-zinc-950 group-hover/submit:scale-120 group-hover/submit:rotate-6 transition-transform duration-300" />
                   <span>
                     {isSubmitting ? 'Оформлення...' : `Підтвердити замовлення • ${total} ₴`}
                   </span>
-                </button>
+                </motion.button>
 
                 <p className="text-[11px] text-center text-zinc-400 leading-relaxed">
                   Натискаючи кнопку, ви підтверджуєте замовлення без потреби в телефонних дзвінках.

@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Phone, MapPin, Clock } from 'lucide-react';
 import { InstagramIcon } from './InstagramIcon';
 import { MENU_DATA } from '../data/menuData';
@@ -11,10 +12,13 @@ export function LocationInfo() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           <div className="lg:col-span-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 text-pink-600 dark:text-pink-400 text-xs font-bold mb-4 border border-pink-200 dark:border-pink-900/40">
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 text-pink-600 dark:text-pink-400 text-xs font-bold mb-4 border border-pink-200 dark:border-pink-900/40 cursor-default"
+            >
               <InstagramIcon className="w-3.5 h-3.5" />
               <span>@cheburoom.zp в Instagram</span>
-            </div>
+            </motion.div>
 
             <h2 className="font-display text-3xl sm:text-4xl font-black text-zinc-950 dark:text-white mb-4">
               Вулична їжа, якою пишаються.
@@ -25,23 +29,29 @@ export function LocationInfo() {
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
-              <a
+              <motion.a
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 href={MENU_DATA.info.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-11 px-5 rounded-2xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2"
+                className="h-11 px-5 rounded-2xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold text-xs shadow-sm transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <InstagramIcon className="w-4 h-4" />
                 <span>Перейти в Instagram @cheburoom.zp</span>
-              </a>
+              </motion.a>
 
-              <a
+              <motion.a
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 href={`tel:${MENU_DATA.info.phoneRaw}`}
-                className="h-11 px-5 rounded-2xl bg-zinc-100 dark:bg-rnr-card hover:bg-zinc-200 dark:hover:bg-rnr-surface text-zinc-950 dark:text-white font-bold text-xs transition-colors flex items-center gap-2 border border-zinc-200 dark:border-rnr-border"
+                className="h-11 px-5 rounded-2xl bg-zinc-100 dark:bg-rnr-card hover:bg-zinc-200 dark:hover:bg-rnr-surface text-zinc-950 dark:text-white font-bold text-xs transition-colors flex items-center gap-2 border border-zinc-200 dark:border-rnr-border cursor-pointer shadow-xs"
               >
                 <Phone className="w-4 h-4 text-amber-500" />
                 <span>{MENU_DATA.info.phone}</span>
-              </a>
+              </motion.a>
             </div>
           </div>
 
@@ -80,15 +90,18 @@ export function LocationInfo() {
                 </div>
 
                 {/* Open in Google Maps link button */}
-                <a
+                <motion.a
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   href="https://www.google.com/maps/search/?api=1&query=пр.+Соборний+142,+Запоріжжя"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="absolute bottom-2.5 right-2.5 bg-white/90 dark:bg-zinc-900/90 hover:bg-white dark:hover:bg-zinc-800 text-zinc-900 dark:text-white text-[11px] font-bold px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-95"
+                  className="absolute bottom-2.5 right-2.5 bg-white/90 dark:bg-zinc-900/90 hover:bg-white dark:hover:bg-zinc-800 text-zinc-900 dark:text-white text-[11px] font-bold px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-md backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <MapPin className="w-3.5 h-3.5 text-amber-500" />
                   <span>Відкрити в Google Maps</span>
-                </a>
+                </motion.a>
               </div>
 
               {/* Working hours */}

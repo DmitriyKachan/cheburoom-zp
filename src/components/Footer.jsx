@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { MENU_DATA } from '../data/menuData';
 
 export function Footer() {
@@ -6,30 +7,37 @@ export function Footer() {
     <footer className="bg-[#F8F9FA] dark:bg-[#09090B] border-t border-zinc-200 dark:border-[#23232E] py-10 text-xs transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-display font-black text-xs shadow-xs">
+          <motion.div 
+            whileHover={{ scale: 1.15, rotate: 6 }}
+            className="w-8 h-8 rounded-xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-display font-black text-xs shadow-xs cursor-default"
+          >
             ЧР
-          </div>
+          </motion.div>
           <span className="text-zinc-600 dark:text-zinc-400 font-medium">
             © 2026 ЧЕБУROOM (@cheburoom.zp) — Запоріжжя
           </span>
         </div>
 
         <div className="flex items-center gap-4 text-zinc-600 dark:text-zinc-400 font-semibold">
-          <a
+          <motion.a
+            whileHover={{ scale: 1.08, y: -1 }}
+            whileTap={{ scale: 0.95 }}
             href={MENU_DATA.info.instagram}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-pink-500 transition-colors"
+            className="hover:text-pink-500 transition-colors cursor-pointer"
           >
             Instagram
-          </a>
+          </motion.a>
           <span>•</span>
-          <a
+          <motion.a
+            whileHover={{ scale: 1.08, y: -1 }}
+            whileTap={{ scale: 0.95 }}
             href={`tel:${MENU_DATA.info.phoneRaw}`}
-            className="hover:text-amber-500 transition-colors"
+            className="hover:text-amber-500 transition-colors cursor-pointer"
           >
             {MENU_DATA.info.phone}
-          </a>
+          </motion.a>
         </div>
       </div>
     </footer>

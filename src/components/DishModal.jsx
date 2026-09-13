@@ -65,14 +65,17 @@ export function DishModal() {
               alt={dish.name}
               className="w-full h-full object-cover"
             />
-            <button
+            <motion.button
               type="button"
+              whileHover={{ rotate: 90, scale: 1.15 }}
+              whileTap={{ scale: 0.85 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
               onClick={() => setSelectedDishForModal(null)}
-              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-200 hover:rotate-90 active:scale-90 backdrop-blur-sm cursor-pointer"
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer"
               aria-label="Закрити"
             >
               <X className="w-5 h-5" />
-            </button>
+            </motion.button>
             <span className="absolute bottom-3 left-3 px-2.5 py-1 text-[11px] font-bold rounded-lg bg-black/60 text-white backdrop-blur-sm">
               {dish.weight}
             </span>
@@ -97,13 +100,16 @@ export function DishModal() {
                   {dish.options.crust.map((c, idx) => {
                     const isSelected = selectedCrust === c.name;
                     return (
-                      <label
+                      <motion.label
                         key={c.name}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
                         onClick={() => setSelectedCrust(c.name)}
-                        className={`flex items-start gap-2.5 p-3 rounded-2xl border cursor-pointer transition-all duration-200 select-none active:scale-98 ${
+                        className={`flex items-start gap-2.5 p-3 rounded-2xl border cursor-pointer transition-colors select-none ${
                           isSelected
                             ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 shadow-xs ring-1 ring-glovo-yellow'
-                            : 'border-zinc-200 dark:border-[#23232E] hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-[#1A1A22]/40'
+                            : 'border-zinc-200 dark:border-[#23232E] hover:border-amber-400/50 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-[#1A1A22]/40'
                         }`}
                       >
                         <input
@@ -121,7 +127,7 @@ export function DishModal() {
                             {idx === 0 ? 'Золотиста пухирчаста скоринка' : 'Без олії + фермерське масло'}
                           </span>
                         </div>
-                      </label>
+                      </motion.label>
                     );
                   })}
                 </div>
@@ -138,12 +144,15 @@ export function DishModal() {
                   {dish.options.extras.map(extra => {
                     const isChecked = selectedExtras.some(e => e.id === extra.id);
                     return (
-                      <label
+                      <motion.label
                         key={extra.id}
-                        className={`flex items-center justify-between p-3 rounded-2xl border cursor-pointer transition-all duration-200 select-none active:scale-98 ${
+                        whileHover={{ scale: 1.015, x: 2 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        className={`flex items-center justify-between p-3 rounded-2xl border cursor-pointer transition-colors select-none ${
                           isChecked
                             ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 ring-1 ring-glovo-yellow shadow-xs'
-                            : 'border-zinc-200 dark:border-[#23232E] bg-zinc-50 dark:bg-[#1A1A22] hover:border-zinc-300'
+                            : 'border-zinc-200 dark:border-[#23232E] bg-zinc-50 dark:bg-[#1A1A22] hover:border-amber-400/50'
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
@@ -160,7 +169,7 @@ export function DishModal() {
                         <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400">
                           +{extra.price} ₴
                         </span>
-                      </label>
+                      </motion.label>
                     );
                   })}
                 </div>
@@ -178,14 +187,17 @@ export function DishModal() {
               </div>
             </div>
 
-            <button
+            <motion.button
               type="button"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
               onClick={handleAdd}
-              className="h-11 px-6 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs font-extrabold btn-glow-yellow animate-shimmer flex items-center gap-2 cursor-pointer group select-none"
+              className="h-11 px-6 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs font-extrabold btn-glow-yellow animate-shimmer flex items-center gap-2 cursor-pointer group select-none shadow-sm"
             >
-              <Plus className="w-4 h-4 text-zinc-950 group-hover:rotate-90 transition-transform duration-200" />
+              <Plus className="w-4 h-4 text-zinc-950 group-hover:rotate-90 group-hover:scale-125 transition-transform duration-200" />
               <span>Додати ({totalPrice} ₴)</span>
-            </button>
+            </motion.button>
           </div>
 
         </motion.div>

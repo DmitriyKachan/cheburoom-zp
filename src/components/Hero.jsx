@@ -49,23 +49,38 @@ export function Hero() {
 
             {/* Delivery Info Chips (Glovo / RnR style) */}
             <div className="grid grid-cols-3 gap-2.5 max-w-lg mx-auto lg:mx-0 mb-8 text-left">
-              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-amber-400/40 transition-all duration-200 cursor-default group">
-                <Clock className="w-4 h-4 text-amber-500 mb-1 group-hover:scale-115 transition-transform" />
+              <motion.div 
+                whileHover={{ y: -4, scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-amber-400/50 transition-colors cursor-pointer select-none group"
+              >
+                <Clock className="w-4 h-4 text-amber-500 mb-1 group-hover:scale-120 group-hover:rotate-12 transition-transform duration-300" />
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Час доставки</div>
                 <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">25-40 хв</div>
-              </div>
+              </motion.div>
 
-              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-emerald-400/40 transition-all duration-200 cursor-default group">
-                <Bike className="w-4 h-4 text-emerald-500 mb-1 group-hover:scale-115 transition-transform" />
+              <motion.div 
+                whileHover={{ y: -4, scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-emerald-400/50 transition-colors cursor-pointer select-none group"
+              >
+                <Bike className="w-4 h-4 text-emerald-500 mb-1 group-hover:scale-120 group-hover:-rotate-12 transition-transform duration-300" />
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Доставка</div>
                 <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">від 0 ₴</div>
-              </div>
+              </motion.div>
 
-              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-blue-400/40 transition-all duration-200 cursor-default group">
-                <ShieldCheck className="w-4 h-4 text-blue-500 mb-1 group-hover:scale-115 transition-transform" />
+              <motion.div 
+                whileHover={{ y: -4, scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-blue-400/50 transition-colors cursor-pointer select-none group"
+              >
+                <ShieldCheck className="w-4 h-4 text-blue-500 mb-1 group-hover:scale-120 group-hover:rotate-12 transition-transform duration-300" />
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Фермерське</div>
                 <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">100% м'ясо</div>
-              </div>
+              </motion.div>
             </div>
 
             {/* CTAs */}
@@ -75,20 +90,26 @@ export function Hero() {
               transition={{ duration: 0.4, delay: 0.2 }}
               className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5"
             >
-              <a
+              <motion.a
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 href="#menu-catalog"
-                className="h-12 px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-extrabold text-sm btn-glow-yellow animate-shimmer flex items-center justify-center gap-2 w-full sm:w-auto group cursor-pointer"
+                className="h-12 px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-extrabold text-sm btn-glow-yellow animate-shimmer flex items-center justify-center gap-2 w-full sm:w-auto group cursor-pointer shadow-sm"
               >
                 <span>Перейти до вибору страв</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
-              </a>
+              </motion.a>
 
-              <a
+              <motion.a
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 href="tel:+380951991599"
-                className="h-12 px-6 rounded-2xl bg-white dark:bg-[#121215] hover:bg-zinc-100 dark:hover:bg-[#1A1A22] text-zinc-900 dark:text-white border border-zinc-200 dark:border-[#23232E] hover:border-amber-400 dark:hover:border-amber-500/40 text-xs sm:text-sm font-bold btn-press flex items-center justify-center gap-2 w-full sm:w-auto shadow-xs"
+                className="h-12 px-6 rounded-2xl bg-white dark:bg-[#121215] hover:bg-zinc-100 dark:hover:bg-[#1A1A22] text-zinc-900 dark:text-white border border-zinc-200 dark:border-[#23232E] hover:border-amber-400 dark:hover:border-amber-500/40 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 w-full sm:w-auto shadow-xs cursor-pointer"
               >
                 <span>Зателефонувати у заклад</span>
-              </a>
+              </motion.a>
             </motion.div>
 
           </div>
@@ -157,14 +178,17 @@ export function Hero() {
                     <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                     <span>Фритюр або Янтик без олії</span>
                   </span>
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ scale: 1.06 }}
+                    whileTap={{ scale: 0.92 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
                     onClick={() => signatureDish && addItem(signatureDish)}
-                    className="h-10 px-5 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs font-bold btn-glow-yellow flex items-center gap-1.5 cursor-pointer group/btn"
+                    className="h-10 px-5 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs font-bold btn-glow-yellow flex items-center gap-1.5 cursor-pointer group/btn shadow-sm"
                   >
-                    <Plus className="w-4 h-4 text-zinc-950 group-hover/btn:rotate-90 transition-transform duration-200" />
+                    <Plus className="w-4 h-4 text-zinc-950 group-hover/btn:rotate-90 group-hover/btn:scale-125 transition-transform duration-200" />
                     <span>В кошик</span>
-                  </button>
+                  </motion.button>
                 </div>
 
               </div>
