@@ -349,7 +349,7 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                             <button
                               type="button"
                               onClick={() => removeItem(item.cartItemId)}
-                              className="text-zinc-400 hover:text-rose-500 p-1 transition-colors rounded-lg cursor-pointer"
+                              className="text-zinc-400 hover:text-rose-500 p-1.5 transition-all duration-200 hover:scale-115 hover:rotate-12 active:scale-90 rounded-lg cursor-pointer"
                               aria-label="Видалити"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -377,26 +377,28 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                             </div>
 
                             {/* Stepper */}
-                            <div className="flex items-center bg-zinc-100 dark:bg-[#1A1A22] rounded-xl p-1 gap-1 border border-zinc-200/50 dark:border-[#23232E]">
-                              <button
+                            <div className="flex items-center bg-zinc-100 dark:bg-[#1A1A22] rounded-xl p-1 gap-1 border border-zinc-200/50 dark:border-[#23232E] shadow-2xs">
+                              <motion.button
                                 type="button"
+                                whileTap={{ scale: 0.85 }}
                                 onClick={() => updateQuantity(item.cartItemId, -1)}
-                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors active:scale-90 shadow-xs cursor-pointer"
                                 aria-label="Зменшити кількість"
                               >
                                 <Minus className="w-3 h-3" />
-                              </button>
+                              </motion.button>
                               <span className="px-2.5 text-xs font-black text-zinc-950 dark:text-white min-w-[20px] text-center">
                                 {item.quantity}
                               </span>
-                              <button
+                              <motion.button
                                 type="button"
+                                whileTap={{ scale: 0.85 }}
                                 onClick={() => updateQuantity(item.cartItemId, 1)}
-                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors active:scale-90 shadow-xs cursor-pointer"
                                 aria-label="Збільшити кількість"
                               >
                                 <Plus className="w-3 h-3" />
-                              </button>
+                              </motion.button>
                             </div>
                           </div>
                         </div>
@@ -424,15 +426,17 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                     {crossSellItems.map((dish) => (
                       <div
                         key={dish.id}
-                        className="p-3 rounded-2xl bg-zinc-50 dark:bg-[#1A1A22]/50 border border-zinc-200/70 dark:border-[#23232E] flex flex-col justify-between group hover:border-amber-400 transition-all"
+                        className="p-3 rounded-2xl bg-zinc-50 dark:bg-[#1A1A22]/50 border border-zinc-200/70 dark:border-[#23232E] flex flex-col justify-between group card-interactive"
                       >
-                        <img
-                          src={dish.image}
-                          alt={dish.name}
-                          className="w-full h-20 rounded-xl object-cover mb-2"
-                        />
+                        <div className="overflow-hidden rounded-xl mb-2 h-20">
+                          <img
+                            src={dish.image}
+                            alt={dish.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
                         <div>
-                          <p className="font-bold text-xs text-zinc-900 dark:text-white line-clamp-1 leading-snug">
+                          <p className="font-bold text-xs text-zinc-900 dark:text-white line-clamp-1 leading-snug group-hover:text-amber-500 transition-colors">
                             {dish.name}
                           </p>
                           <span className="text-[11px] text-zinc-400 block mb-2">{dish.weight}</span>
@@ -441,14 +445,16 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                           <span className="font-display font-black text-xs text-zinc-900 dark:text-white">
                             {dish.price} ₴
                           </span>
-                          <button
+                          <motion.button
                             type="button"
+                            whileHover={{ scale: 1.15 }}
+                            whileTap={{ scale: 0.85 }}
                             onClick={() => addItem(dish)}
-                            className="w-7 h-7 rounded-xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-bold hover:bg-glovo-yellow-hover active:scale-95 transition-all shadow-xs cursor-pointer"
+                            className="w-7 h-7 rounded-xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-bold hover:bg-glovo-yellow-hover transition-all shadow-xs cursor-pointer group/plus"
                             title="Додати до кошика"
                           >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
+                            <Plus className="w-3.5 h-3.5 group-hover/plus:rotate-90 transition-transform duration-200" />
+                          </motion.button>
                         </div>
                       </div>
                     ))}
@@ -482,31 +488,33 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                     Спосіб отримання:
                   </label>
                   <div className="grid grid-cols-2 p-1 rounded-2xl bg-zinc-100 dark:bg-[#1A1A22] border border-zinc-200/80 dark:border-[#23232E]">
-                    <button
+                    <motion.button
                       type="button"
+                      whileTap={{ scale: 0.96 }}
                       onClick={() => setOrderType('delivery')}
                       className={`py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         orderType === 'delivery'
                           ? 'bg-glovo-yellow text-zinc-950 shadow-sm'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                       }`}
                     >
                       <Truck className="w-3.5 h-3.5" />
                       <span>Кур'єром</span>
-                    </button>
+                    </motion.button>
 
-                    <button
+                    <motion.button
                       type="button"
+                      whileTap={{ scale: 0.96 }}
                       onClick={() => setOrderType('pickup')}
                       className={`py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         orderType === 'pickup'
                           ? 'bg-glovo-yellow text-zinc-950 shadow-sm'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                       }`}
                     >
                       <Store className="w-3.5 h-3.5" />
                       <span>Самовивіз (-10%)</span>
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
 
@@ -516,30 +524,32 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                     Час готовності:
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    <button
+                    <motion.button
                       type="button"
+                      whileTap={{ scale: 0.96 }}
                       onClick={() => setDeliveryTiming('asap')}
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                         deliveryTiming === 'asap'
-                          ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-1 ring-glovo-yellow'
-                          : 'border-zinc-200 dark:border-[#23232E] text-zinc-500 bg-zinc-50 dark:bg-[#1A1A22]/40'
+                          ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-1 ring-glovo-yellow shadow-xs'
+                          : 'border-zinc-200 dark:border-[#23232E] text-zinc-500 bg-zinc-50 dark:bg-[#1A1A22]/40 hover:border-zinc-300'
                       }`}
                     >
                       <Clock className="w-3.5 h-3.5 text-amber-500" />
                       <span>Якнайшвидше (~35 хв)</span>
-                    </button>
+                    </motion.button>
 
-                    <button
+                    <motion.button
                       type="button"
+                      whileTap={{ scale: 0.96 }}
                       onClick={() => setDeliveryTiming('preorder')}
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                         deliveryTiming === 'preorder'
-                          ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-1 ring-glovo-yellow'
-                          : 'border-zinc-200 dark:border-[#23232E] text-zinc-500 bg-zinc-50 dark:bg-[#1A1A22]/40'
+                          ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-1 ring-glovo-yellow shadow-xs'
+                          : 'border-zinc-200 dark:border-[#23232E] text-zinc-500 bg-zinc-50 dark:bg-[#1A1A22]/40 hover:border-zinc-300'
                       }`}
                     >
                       <span>На обраний час</span>
-                    </button>
+                    </motion.button>
                   </div>
 
                   {deliveryTiming === 'preorder' && (
@@ -670,19 +680,21 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                       { id: 'Термінал кур\'єру', label: 'Термінал', Icon: CreditCard },
                       { id: 'Онлайн карткою', label: 'Онлайн', Icon: Smartphone }
                     ].map((item) => (
-                      <button
+                      <motion.button
                         type="button"
                         key={item.id}
+                        whileHover={{ y: -2, scale: 1.02 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setPayment(item.id)}
                         className={`flex flex-col items-center justify-center p-3 rounded-2xl border cursor-pointer text-center transition-all ${
                           payment === item.id
-                            ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-2 ring-glovo-yellow'
+                            ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-2 ring-glovo-yellow shadow-xs'
                             : 'border-zinc-200 dark:border-[#23232E] bg-zinc-50 dark:bg-[#1A1A22]/40 text-zinc-500 hover:border-zinc-300'
                         }`}
                       >
                         <item.Icon className="w-4 h-4 mb-1" />
                         <span className="text-[11px] font-bold">{item.label}</span>
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
@@ -711,7 +723,7 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                       <button
                         type="button"
                         onClick={() => setCutleryCount(Math.max(0, cutleryCount - 1))}
-                        className="w-6 h-6 rounded-lg bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] flex items-center justify-center text-zinc-600 dark:text-zinc-300 cursor-pointer"
+                        className="w-6 h-6 rounded-lg bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] flex items-center justify-center text-zinc-600 dark:text-zinc-300 cursor-pointer active:scale-90 transition-transform"
                       >
                         -
                       </button>
@@ -721,7 +733,7 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                       <button
                         type="button"
                         onClick={() => setCutleryCount(cutleryCount + 1)}
-                        className="w-6 h-6 rounded-lg bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] flex items-center justify-center text-zinc-600 dark:text-zinc-300 cursor-pointer"
+                        className="w-6 h-6 rounded-lg bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] flex items-center justify-center text-zinc-600 dark:text-zinc-300 cursor-pointer active:scale-90 transition-transform"
                       >
                         +
                       </button>
@@ -764,9 +776,9 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-14 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-98 text-zinc-950 font-display font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-amber-400/20 transition-all disabled:opacity-75 cursor-pointer"
+                  className="w-full h-14 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-98 text-zinc-950 font-display font-black text-sm sm:text-base flex items-center justify-center gap-2.5 btn-glow-yellow animate-shimmer disabled:opacity-75 cursor-pointer group/submit select-none"
                 >
-                  <CheckCircle className="w-5 h-5 text-zinc-950" />
+                  <CheckCircle className="w-5 h-5 text-zinc-950 group-hover/submit:scale-115 transition-transform" />
                   <span>
                     {isSubmitting ? 'Оформлення...' : `Підтвердити замовлення • ${total} ₴`}
                   </span>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { MENU_DATA } from '../data/menuData';
 import { Search, X, LayoutGrid, Flame, Sparkles, Package, Utensils, Droplet, Coffee } from 'lucide-react';
 
@@ -30,25 +31,27 @@ export function CategoryNav({
           const isActive = cat.id === activeCategory;
 
           return (
-            <button
+            <motion.button
               key={cat.id}
               type="button"
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => onSelectCategory(cat.id)}
-              className={`group px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 select-none ${
+              className={`group px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2.5 shrink-0 select-none cursor-pointer ${
                 isActive
-                  ? 'bg-glovo-yellow text-zinc-950 shadow-sm'
+                  ? 'bg-glovo-yellow text-zinc-950 shadow-md shadow-amber-400/30'
                   : 'bg-white dark:bg-[#121215] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-[#1A1A22] border border-zinc-200/90 dark:border-[#23232E]'
               }`}
             >
-              <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${
+              <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all group-hover:scale-110 ${
                 isActive 
                   ? 'bg-zinc-950 text-white' 
-                  : 'bg-zinc-100 dark:bg-[#1A1A22] text-zinc-600 dark:text-zinc-400'
+                  : 'bg-zinc-100 dark:bg-[#1A1A22] text-zinc-600 dark:text-zinc-400 group-hover:bg-amber-100 dark:group-hover:bg-amber-950/40 group-hover:text-amber-600'
               }`}>
                 <IconComp className="w-4 h-4" />
               </div>
               <span className="font-semibold text-xs whitespace-nowrap">{cat.name}</span>
-            </button>
+            </motion.button>
           );
         })}
       </div>
@@ -58,47 +61,53 @@ export function CategoryNav({
         
         {/* Quick Tag Chips */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
-          <button
+          <motion.button
             type="button"
+            whileHover={{ y: -1.5, scale: 1.03 }}
+            whileTap={{ scale: 0.94 }}
             onClick={() => onSelectTag(activeTag === 'hit' ? null : 'hit')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors shrink-0 flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer select-none ${
               activeTag === 'hit'
-                ? 'bg-amber-500 text-zinc-950 font-bold'
+                ? 'bg-amber-500 text-zinc-950 font-black shadow-sm shadow-amber-500/30'
                 : 'bg-zinc-100 dark:bg-[#121215] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E]'
             }`}
           >
             <span>🔥 Хіти продажу</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             type="button"
+            whileHover={{ y: -1.5, scale: 1.03 }}
+            whileTap={{ scale: 0.94 }}
             onClick={() => onSelectTag(activeTag === 'spicy' ? null : 'spicy')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors shrink-0 flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer select-none ${
               activeTag === 'spicy'
-                ? 'bg-rose-500 text-white font-bold'
+                ? 'bg-rose-500 text-white font-black shadow-sm shadow-rose-500/30'
                 : 'bg-zinc-100 dark:bg-[#121215] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E]'
             }`}
           >
             <span>🌶️ З гостринкою</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             type="button"
+            whileHover={{ y: -1.5, scale: 1.03 }}
+            whileTap={{ scale: 0.94 }}
             onClick={() => onSelectTag(activeTag === 'veg' ? null : 'veg')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors shrink-0 flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer select-none ${
               activeTag === 'veg'
-                ? 'bg-emerald-500 text-white font-bold'
+                ? 'bg-emerald-500 text-white font-black shadow-sm shadow-emerald-500/30'
                 : 'bg-zinc-100 dark:bg-[#121215] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E]'
             }`}
           >
             <span>🧀 Сирні</span>
-          </button>
+          </motion.button>
 
           {activeTag && (
             <button
               type="button"
               onClick={() => onSelectTag(null)}
-              className="text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 underline ml-1 shrink-0 font-medium"
+              className="text-xs text-zinc-500 hover:text-amber-500 dark:text-zinc-400 dark:hover:text-amber-400 underline ml-1 shrink-0 font-bold transition-colors cursor-pointer"
             >
               Скинути
             </button>

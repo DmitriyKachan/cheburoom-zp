@@ -53,17 +53,17 @@ export function Header() {
 
         {/* Center: Hours & Phone Call Center (RnR style) */}
         <div className="hidden lg:flex items-center gap-6 text-xs">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100/70 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 font-bold">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100/70 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 font-bold transition-transform hover:scale-105">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Відчинено: 09:00 — 20:00</span>
           </div>
 
           <a
             href="tel:+380951991599"
-            className="flex items-center gap-2.5 font-bold text-zinc-950 dark:text-white hover:text-amber-500 transition-colors"
+            className="flex items-center gap-2.5 font-bold text-zinc-950 dark:text-white hover:text-amber-500 transition-all group hover:-translate-y-0.5"
           >
-            <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center text-amber-600">
-              <Phone className="w-3.5 h-3.5" />
+            <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 group-hover:bg-glovo-yellow group-hover:text-zinc-950 transition-colors">
+              <Phone className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
             </div>
             <div>
               <span className="text-xs font-black block leading-tight text-zinc-950 dark:text-white">+380 (95) 199 15 99</span>
@@ -75,9 +75,9 @@ export function Header() {
             href="https://www.instagram.com/cheburoom.zp/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 font-bold text-zinc-600 dark:text-zinc-300 hover:text-pink-600 transition-colors"
+            className="flex items-center gap-1.5 font-bold text-zinc-600 dark:text-zinc-300 hover:text-pink-600 transition-all hover:-translate-y-0.5 group"
           >
-            <InstagramIcon className="w-4 h-4 text-pink-500" />
+            <InstagramIcon className="w-4 h-4 text-pink-500 group-hover:scale-115 transition-transform" />
             <span>@cheburoom.zp</span>
           </a>
         </div>
@@ -88,7 +88,7 @@ export function Header() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-[#121215] hover:bg-zinc-200 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-800 dark:text-zinc-200 transition-colors flex items-center justify-center cursor-pointer shadow-xs"
+            className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-[#121215] hover:bg-zinc-200 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-800 dark:text-zinc-200 transition-all duration-200 flex items-center justify-center cursor-pointer shadow-xs hover:rotate-45 active:scale-90"
             aria-label="Перемкнути тему"
             title={darkMode ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
           >
@@ -100,7 +100,7 @@ export function Header() {
             <button
               type="button"
               onClick={() => navigateTo('menu')}
-              className="h-11 px-4 sm:px-5 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-[#121215] dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white font-display font-bold text-xs sm:text-sm active:scale-95 transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+              className="h-11 px-4 sm:px-5 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-[#121215] dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white font-display font-bold text-xs sm:text-sm active:scale-95 hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer shadow-xs"
               aria-label="Повернутися до меню"
             >
               <span>← До меню</span>
@@ -109,13 +109,16 @@ export function Header() {
             <button
               type="button"
               onClick={() => navigateTo('checkout')}
-              className="h-11 px-4 sm:px-5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-95 text-zinc-950 font-display font-bold text-xs sm:text-sm shadow-md shadow-amber-400/20 transition-all flex items-center gap-2.5 cursor-pointer"
+              className="h-11 px-4 sm:px-5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-bold text-xs sm:text-sm btn-glow-yellow animate-shimmer flex items-center gap-2.5 cursor-pointer select-none group"
               aria-label="Відкрити кошик замовлення"
             >
               <div className="relative">
-                <ShoppingBag className="w-5 h-5 text-zinc-950" />
+                <ShoppingBag className="w-5 h-5 text-zinc-950 group-hover:scale-110 transition-transform" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-zinc-950 text-white text-[10px] font-black rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
+                  <span
+                    key={itemCount}
+                    className="absolute -top-2 -right-2 bg-zinc-950 text-white text-[10px] font-black rounded-full h-4 min-w-4 px-1 flex items-center justify-center animate-badge-pop shadow-xs"
+                  >
                     {itemCount}
                   </span>
                 )}

@@ -68,7 +68,7 @@ export function DishModal() {
             <button
               type="button"
               onClick={() => setSelectedDishForModal(null)}
-              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors backdrop-blur-sm"
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-200 hover:rotate-90 active:scale-90 backdrop-blur-sm cursor-pointer"
               aria-label="Закрити"
             >
               <X className="w-5 h-5" />
@@ -100,10 +100,10 @@ export function DishModal() {
                       <label
                         key={c.name}
                         onClick={() => setSelectedCrust(c.name)}
-                        className={`flex items-start gap-2.5 p-3 rounded-2xl border cursor-pointer transition-all ${
+                        className={`flex items-start gap-2.5 p-3 rounded-2xl border cursor-pointer transition-all duration-200 select-none active:scale-98 ${
                           isSelected
-                            ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 shadow-2xs'
-                            : 'border-zinc-200 dark:border-[#23232E] hover:border-zinc-300 dark:hover:border-zinc-700'
+                            ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 shadow-xs ring-1 ring-glovo-yellow'
+                            : 'border-zinc-200 dark:border-[#23232E] hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-[#1A1A22]/40'
                         }`}
                       >
                         <input
@@ -140,9 +140,9 @@ export function DishModal() {
                     return (
                       <label
                         key={extra.id}
-                        className={`flex items-center justify-between p-3 rounded-2xl border cursor-pointer transition-all ${
+                        className={`flex items-center justify-between p-3 rounded-2xl border cursor-pointer transition-all duration-200 select-none active:scale-98 ${
                           isChecked
-                            ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 ring-1 ring-glovo-yellow'
+                            ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 ring-1 ring-glovo-yellow shadow-xs'
                             : 'border-zinc-200 dark:border-[#23232E] bg-zinc-50 dark:bg-[#1A1A22] hover:border-zinc-300'
                         }`}
                       >
@@ -151,7 +151,7 @@ export function DishModal() {
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleExtraToggle(extra)}
-                            className="rounded text-amber-500 focus:ring-glovo-yellow w-4 h-4"
+                            className="rounded text-amber-500 focus:ring-glovo-yellow w-4 h-4 cursor-pointer"
                           />
                           <span className="text-xs font-bold text-zinc-950 dark:text-white">
                             {extra.name}
@@ -181,9 +181,9 @@ export function DishModal() {
             <button
               type="button"
               onClick={handleAdd}
-              className="h-11 px-6 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-95 text-zinc-950 text-xs font-extrabold transition-all flex items-center gap-2 shadow-md shadow-amber-400/20"
+              className="h-11 px-6 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs font-extrabold btn-glow-yellow animate-shimmer flex items-center gap-2 cursor-pointer group select-none"
             >
-              <Plus className="w-4 h-4 text-zinc-950" />
+              <Plus className="w-4 h-4 text-zinc-950 group-hover:rotate-90 transition-transform duration-200" />
               <span>Додати ({totalPrice} ₴)</span>
             </button>
           </div>

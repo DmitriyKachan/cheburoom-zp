@@ -44,8 +44,10 @@ export function PromoBanners() {
             key={banner.id}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-            className={`relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-br ${banner.bgGradient} shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]`}
+            whileHover={{ y: -6, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.3, delay: index * 0.08 }}
+            className={`relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-br ${banner.bgGradient} shadow-md hover:shadow-xl transition-shadow cursor-pointer group flex flex-col justify-between min-h-[170px] select-none`}
             onClick={() => {
               const el = document.getElementById('menu-catalog');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -53,7 +55,7 @@ export function PromoBanners() {
           >
             {/* Top row with tags */}
             <div className="flex items-center justify-between z-10">
-              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${banner.tagBg}`}>
+              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-xs transition-transform group-hover:scale-105 ${banner.tagBg}`}>
                 {banner.tag}
               </span>
               <span className="text-xs font-extrabold px-2 py-0.5 rounded-md bg-black/30 backdrop-blur-md text-white">
@@ -72,13 +74,13 @@ export function PromoBanners() {
             </div>
 
             {/* Bottom action link */}
-            <div className="z-10 mt-4 flex items-center gap-1.5 text-xs font-bold group-hover:translate-x-1 transition-transform">
+            <div className="z-10 mt-4 flex items-center gap-1.5 text-xs font-bold text-current opacity-90 group-hover:opacity-100 transition-all">
               <span>Замовити зараз</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-2 transition-transform duration-200" />
             </div>
 
             {/* Right food graphic cut-out */}
-            <div className="absolute -right-6 -bottom-6 w-36 h-36 rounded-full overflow-hidden border-4 border-white/20 shadow-xl pointer-events-none group-hover:scale-110 transition-transform duration-300">
+            <div className="absolute -right-6 -bottom-6 w-36 h-36 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-white/25 shadow-2xl pointer-events-none group-hover:scale-115 group-hover:rotate-6 transition-all duration-500 ease-out">
               <img
                 src={banner.image}
                 alt={banner.title}

@@ -21,7 +21,7 @@ export function Hero() {
             <motion.div 
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-glovo-yellow text-zinc-950 font-bold text-xs mb-5 shadow-xs"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-glovo-yellow text-zinc-950 font-bold text-xs mb-5 shadow-sm animate-float select-none"
             >
               <Bike className="w-4 h-4 text-zinc-950" />
               <span>Швидка доставка по Запоріжжю за 25–40 хв</span>
@@ -48,21 +48,21 @@ export function Hero() {
             </motion.p>
 
             {/* Delivery Info Chips (Glovo / RnR style) */}
-            <div className="grid grid-cols-3 gap-2 max-w-lg mx-auto lg:mx-0 mb-8 text-left">
-              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs">
-                <Clock className="w-4 h-4 text-amber-500 mb-1" />
+            <div className="grid grid-cols-3 gap-2.5 max-w-lg mx-auto lg:mx-0 mb-8 text-left">
+              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-amber-400/40 transition-all duration-200 cursor-default group">
+                <Clock className="w-4 h-4 text-amber-500 mb-1 group-hover:scale-115 transition-transform" />
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Час доставки</div>
                 <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">25-40 хв</div>
               </div>
 
-              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs">
-                <Bike className="w-4 h-4 text-emerald-500 mb-1" />
+              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-emerald-400/40 transition-all duration-200 cursor-default group">
+                <Bike className="w-4 h-4 text-emerald-500 mb-1 group-hover:scale-115 transition-transform" />
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Доставка</div>
                 <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">від 0 ₴</div>
               </div>
 
-              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs">
-                <ShieldCheck className="w-4 h-4 text-blue-500 mb-1" />
+              <div className="bg-white dark:bg-[#121215] p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:-translate-y-1 hover:shadow-md hover:border-blue-400/40 transition-all duration-200 cursor-default group">
+                <ShieldCheck className="w-4 h-4 text-blue-500 mb-1 group-hover:scale-115 transition-transform" />
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Фермерське</div>
                 <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white">100% м'ясо</div>
               </div>
@@ -77,15 +77,15 @@ export function Hero() {
             >
               <a
                 href="#menu-catalog"
-                className="h-12 px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-98 text-zinc-950 font-display font-extrabold text-sm shadow-md shadow-amber-400/20 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
+                className="h-12 px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-extrabold text-sm btn-glow-yellow animate-shimmer flex items-center justify-center gap-2 w-full sm:w-auto group cursor-pointer"
               >
                 <span>Перейти до вибору страв</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </a>
 
               <a
                 href="tel:+380951991599"
-                className="h-12 px-6 rounded-2xl bg-white dark:bg-[#121215] hover:bg-zinc-100 dark:hover:bg-[#1A1A22] text-zinc-900 dark:text-white border border-zinc-200 dark:border-[#23232E] text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-xs"
+                className="h-12 px-6 rounded-2xl bg-white dark:bg-[#121215] hover:bg-zinc-100 dark:hover:bg-[#1A1A22] text-zinc-900 dark:text-white border border-zinc-200 dark:border-[#23232E] hover:border-amber-400 dark:hover:border-amber-500/40 text-xs sm:text-sm font-bold btn-press flex items-center justify-center gap-2 w-full sm:w-auto shadow-xs"
               >
                 <span>Зателефонувати у заклад</span>
               </a>
@@ -101,14 +101,14 @@ export function Hero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="max-w-md mx-auto lg:max-w-none"
             >
-              <div className="bg-white dark:bg-[#121215] p-5 sm:p-6 rounded-3xl shadow-xl border border-zinc-200/80 dark:border-[#23232E] relative overflow-hidden group">
+              <div className="bg-white dark:bg-[#121215] p-5 sm:p-6 rounded-3xl shadow-xl border border-zinc-200/80 dark:border-[#23232E] relative overflow-hidden group card-interactive">
                 
                 {/* Visual Glow */}
-                <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/10 rounded-full blur-2xl pointer-events-none group-hover:bg-amber-400/20 transition-colors" />
 
                 <div className="flex items-center justify-between mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-zinc-950">
-                    <Sparkles className="w-3.5 h-3.5" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-zinc-950 shadow-xs group-hover:scale-105 transition-transform">
+                    <Sparkles className="w-3.5 h-3.5 animate-spin-slow" />
                     Хіт №1 продажу
                   </span>
                   <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
@@ -124,9 +124,9 @@ export function Hero() {
                   <img
                     src="https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?auto=format&fit=crop&w=800&q=80"
                     alt="Чебурек Класичний з яловичиною"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
                   
                   <div className="absolute bottom-3 left-3 right-3 text-white flex items-center justify-between">
                     <span className="text-xs font-medium bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-lg">
@@ -137,7 +137,7 @@ export function Hero() {
 
                 <div className="flex items-center justify-between pt-1">
                   <div>
-                    <h3 className="font-display font-bold text-lg text-zinc-950 dark:text-white">
+                    <h3 className="font-display font-bold text-lg text-zinc-950 dark:text-white group-hover:text-amber-500 transition-colors">
                       Чебурек «Класичний»
                     </h3>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
@@ -160,9 +160,9 @@ export function Hero() {
                   <button
                     type="button"
                     onClick={() => signatureDish && addItem(signatureDish)}
-                    className="h-10 px-5 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover active:scale-95 text-zinc-950 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                    className="h-10 px-5 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs font-bold btn-glow-yellow flex items-center gap-1.5 cursor-pointer group/btn"
                   >
-                    <Plus className="w-4 h-4 text-zinc-950" />
+                    <Plus className="w-4 h-4 text-zinc-950 group-hover/btn:rotate-90 transition-transform duration-200" />
                     <span>В кошик</span>
                   </button>
                 </div>
