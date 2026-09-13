@@ -144,7 +144,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: false,
       isVegetarian: false,
-      image: "/images/dishes/cheb-pulled-beef.jpg",
+      image: "/images/dishes/cheb-veal.jpg",
       customizable: true,
       options: {
         crust: [
@@ -176,7 +176,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "/images/dishes/cheb-four-cheese.jpg",
+      image: "/images/dishes/cheb-cheese.jpg",
       customizable: true,
       options: {
         crust: [
@@ -208,7 +208,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cheb-pork.jpg",
       customizable: true,
       options: {
         crust: [
@@ -240,7 +240,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cheb-chicken.jpg",
       customizable: true,
       options: {
         crust: [
@@ -297,7 +297,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "/images/dishes/cheb-cherry.jpg",
+      image: "/images/dishes/cheb-cherry-cheese.jpg",
       customizable: true,
       options: {
         crust: [
@@ -320,7 +320,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cheb-pumpkin.jpg",
       customizable: true,
       options: {
         crust: [
@@ -345,7 +345,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: false,
       isVegetarian: false,
-      image: "/images/dishes/cheb-pulled-beef.jpg",
+      image: "/images/dishes/cheb-set-6.jpg",
       customizable: false
     },
 
@@ -379,7 +379,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/wok-bacon.jpg",
       customizable: false
     },
     {
@@ -395,7 +395,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/wok-chicken-cream.jpg",
       customizable: false
     },
     {
@@ -411,7 +411,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/wok-seafood.jpg",
       customizable: false
     },
 
@@ -429,7 +429,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/fry-fries.jpg",
       customizable: false
     },
     {
@@ -445,7 +445,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1531749668029-2db88e4276c7?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/fry-mozzarella.jpg",
       customizable: false
     },
     {
@@ -461,7 +461,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: true,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/fry-wings.jpg",
       customizable: false
     },
     {
@@ -477,7 +477,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/fry-nuggets.jpg",
       customizable: false
     },
 
@@ -511,7 +511,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/brk-potato-egg.jpg",
       customizable: false
     },
     {
@@ -527,7 +527,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/brk-omelet.jpg",
       customizable: false
     },
     {
@@ -543,7 +543,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/brk-fried-bacon.jpg",
       customizable: false
     },
 
@@ -577,7 +577,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/sal-avocado-salmon.jpg",
       customizable: false
     },
     {
@@ -593,7 +593,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/sal-caesar.jpg",
       customizable: false
     },
     {
@@ -609,7 +609,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/sal-vinegret.jpg",
       customizable: false
     },
     {
@@ -625,7 +625,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/sal-crab.jpg",
       customizable: false
     },
     {
@@ -641,7 +641,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/sal-shuba.jpg",
       customizable: false
     },
     {
@@ -657,7 +657,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/sal-olivie.jpg",
       customizable: false
     },
     {
@@ -673,7 +673,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: false,
-      image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/sal-chicken-pineapple.jpg",
       customizable: false
     },
 
@@ -691,7 +691,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-espresso.jpg",
       customizable: false
     },
     {
@@ -707,7 +707,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-americano.jpg",
       customizable: false
     },
     {
@@ -723,7 +723,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-americano-milk.jpg",
       customizable: false
     },
     {
@@ -739,7 +739,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-cappuccino.jpg",
       customizable: false
     },
     {
@@ -755,7 +755,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-latte.jpg",
       customizable: false
     },
     {
@@ -771,7 +771,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-flat-white.jpg",
       customizable: false
     },
     {
@@ -787,7 +787,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-raf.jpg",
       customizable: false
     },
     {
@@ -803,7 +803,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-cacao.jpg",
       customizable: false
     },
     {
@@ -819,7 +819,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-ice-latte.jpg",
       customizable: false
     },
     {
@@ -851,7 +851,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-tea-isla.jpg",
       customizable: false
     },
     {
@@ -867,7 +867,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-tea-maribel.jpg",
       customizable: false
     },
     {
@@ -883,7 +883,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-latte-lactose-free.jpg",
       customizable: false
     },
     {
@@ -899,7 +899,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-cappuccino-lactose-free.jpg",
       customizable: false
     },
     {
@@ -915,7 +915,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/cof-ice-latte-lactose-free.jpg",
       customizable: false
     },
 
@@ -949,7 +949,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "/images/dishes/dessert-gorishki.jpg",
+      image: "/images/dishes/des-gorishki-assorti.jpg",
       customizable: false
     },
     {
@@ -965,7 +965,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "/images/dishes/dessert-gorishki.jpg",
+      image: "/images/dishes/des-gorishok-ferrero.jpg",
       customizable: false
     },
     {
@@ -981,7 +981,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "/images/dishes/dessert-gorishki.jpg",
+      image: "/images/dishes/des-gorishok-choco-iryska.jpg",
       customizable: false
     },
     {
@@ -997,7 +997,7 @@ export const MENU_DATA = {
       isHit: true,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/des-trubochka.jpg",
       customizable: false
     },
     {
@@ -1013,7 +1013,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/des-carrot-cake.jpg",
       customizable: false
     },
     {
@@ -1029,7 +1029,7 @@ export const MENU_DATA = {
       isHit: false,
       isSpicy: false,
       isVegetarian: true,
-      image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80",
+      image: "/images/dishes/des-madlen.jpg",
       customizable: false
     }
   ],
