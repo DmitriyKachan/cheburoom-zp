@@ -1,24 +1,44 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { NEON_PATHS } from './neonPaths';
+import { NEON_SIGN } from './neonSignData';
 
 /**
- * Authentic Cheburoom Neon Logo
- * Hand-drawn vector replica based directly on the restaurant's physical neon signage (@cheburoom.zp)
+ * Authentic Cheburoom Neon Sign Component
+ * 100% vector replica drawn directly from the restaurant's iconic physical neon signage (@cheburoom.zp)
  */
-export function CheburoomLogo({ variant = 'horizontal', showSubtitle = true, className = '' }) {
-  if (variant === 'stacked') {
-    return (
-      <div className={`flex flex-col items-center select-none ${className}`}>
+export function CheburoomLogo({ showTagline = true, className = '' }) {
+  return (
+    <div className={`flex items-center gap-3 select-none group cursor-pointer ${className}`}>
+      {/* The Illuminated Neon Sign Plate (matches the restaurant mesh wall & warm neon tubes) */}
+      <motion.div
+        whileHover={{ scale: 1.05, y: -1 }}
+        whileTap={{ scale: 0.96 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+        className="relative h-12 sm:h-13 px-2.5 py-1.5 rounded-2xl bg-[#0D0C10] border border-amber-500/40 shadow-lg shadow-amber-500/25 ring-1 ring-amber-400/30 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:border-amber-400 group-hover:shadow-amber-500/45 group-hover:ring-amber-400/50"
+      >
+        {/* Wire mesh texture matching the real photo background */}
+        <div 
+          className="absolute inset-0 opacity-25 pointer-events-none"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(245, 158, 11, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(245, 158, 11, 0.15) 1px, transparent 1px)`,
+            backgroundSize: '6px 6px'
+          }}
+        />
+
+        {/* Warm backlight radial glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,158,11,0.28),transparent_75%)] pointer-events-none" />
+
+        {/* Vector Neon Tubes */}
         <svg
-          viewBox={`0 0 ${NEON_PATHS.stackedWidth} ${NEON_PATHS.stackedHeight}`}
-          className="w-full h-auto max-w-[220px] drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]"
+          viewBox={`0 0 ${NEON_SIGN.width} ${NEON_SIGN.height}`}
+          className="h-full w-auto max-w-[85px] sm:max-w-[95px] overflow-visible relative z-10"
           fill="none"
+          aria-label="ЧЕБУROOM"
         >
           <defs>
-            <filter id="neon-glow-stacked" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="8" result="blur2" />
-              <feGaussianBlur stdDeviation="2.5" result="blur1" />
+            <filter id="authentic-neon-glow" x="-25%" y="-25%" width="150%" height="150%">
+              <feGaussianBlur stdDeviation="10" result="blur2" />
+              <feGaussianBlur stdDeviation="3" result="blur1" />
               <feMerge>
                 <feMergeNode in="blur2" />
                 <feMergeNode in="blur1" />
@@ -27,112 +47,63 @@ export function CheburoomLogo({ variant = 'horizontal', showSubtitle = true, cla
             </filter>
           </defs>
 
-          {/* Ambient Glow */}
-          <g filter="url(#neon-glow-stacked)" opacity="0.8">
-            {NEON_PATHS.stackedPaths.map((d, i) => (
-              <path key={`glow-${i}`} d={d} stroke="#d97706" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-            ))}
+          {/* Layer 1: Ambient Neon Bloom Glow */}
+          <g filter="url(#authentic-neon-glow)" opacity="0.65" className="transition-opacity duration-300 group-hover:opacity-100">
+            <path d={NEON_SIGN.che} stroke="#ea580c" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.e} stroke="#ea580c" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.b} stroke="#ea580c" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.bDot} stroke="#ea580c" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.u} stroke="#ea580c" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" />
+
+            <path d={NEON_SIGN.r} stroke="#d97706" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} stroke="#d97706" strokeWidth="14" />
+            <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} stroke="#d97706" strokeWidth="14" />
+            <path d={NEON_SIGN.m} stroke="#d97706" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
           </g>
 
-          {/* Warm Amber Tube */}
+          {/* Layer 2: Warm Amber Glass Tubes */}
           <g>
-            {NEON_PATHS.stackedPaths.map((d, i) => (
-              <path key={`tube-${i}`} d={d} stroke="#f59e0b" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
-            ))}
+            <path d={NEON_SIGN.che} stroke="#f59e0b" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.e} stroke="#f59e0b" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.b} stroke="#f59e0b" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.bDot} stroke="#f59e0b" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.u} stroke="#f59e0b" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+
+            <path d={NEON_SIGN.r} stroke="#fbbf24" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} stroke="#fbbf24" strokeWidth="6" />
+            <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} stroke="#fbbf24" strokeWidth="6" />
+            <path d={NEON_SIGN.m} stroke="#fbbf24" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
           </g>
 
-          {/* Bright Hot Core */}
+          {/* Layer 3: Hot Glowing White Gas Core */}
           <g opacity="0.95">
-            {NEON_PATHS.stackedPaths.map((d, i) => (
-              <path key={`core-${i}`} d={d} stroke="#fffbeb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            ))}
+            <path d={NEON_SIGN.che} stroke="#fffbeb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.e} stroke="#fffbeb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.b} stroke="#fffbeb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.bDot} stroke="#fffbeb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={NEON_SIGN.u} stroke="#fffbeb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+            <path d={NEON_SIGN.r} stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx={NEON_SIGN.o1.cx} cy={NEON_SIGN.o1.cy} r={NEON_SIGN.o1.r} stroke="#ffffff" strokeWidth="2" />
+            <circle cx={NEON_SIGN.o2.cx} cy={NEON_SIGN.o2.cy} r={NEON_SIGN.o2.r} stroke="#ffffff" strokeWidth="2" />
+            <path d={NEON_SIGN.m} stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </g>
         </svg>
 
-        {showSubtitle && (
-          <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 tracking-[0.2em] uppercase mt-1 text-center">
+        {/* Hover shimmer sheen */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+      </motion.div>
+
+      {/* Brand Name & Location Tagline */}
+      {showTagline && (
+        <div className="flex flex-col text-left">
+          <span className="font-display font-black text-xl sm:text-2xl tracking-wide leading-none text-zinc-950 dark:text-white group-hover:text-amber-500 transition-colors">
+            ЧЕБУ<span className="text-amber-500">ROOM</span>
+          </span>
+          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-wider uppercase mt-1 leading-none">
             Крафтова чебуречна • Запоріжжя
           </span>
-        )}
-      </div>
-    );
-  }
-
-  // Default: Horizontal header brand logo
-  return (
-    <div className={`flex flex-col select-none group cursor-pointer ${className}`}>
-      <div className="flex items-center gap-2">
-        {/* The Drawn Vector Neon Sign */}
-        <div className="relative h-9 sm:h-10 w-auto flex items-center">
-          <svg
-            viewBox={`0 0 ${NEON_PATHS.horizWidth} ${NEON_PATHS.horizHeight}`}
-            className="h-full w-auto overflow-visible transition-all duration-300 group-hover:scale-[1.02]"
-            fill="none"
-            aria-label="ЧЕБУROOM"
-          >
-            <defs>
-              <filter id="neon-glow-horiz" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="8" result="blur2" />
-                <feGaussianBlur stdDeviation="2" result="blur1" />
-                <feMerge>
-                  <feMergeNode in="blur2" />
-                  <feMergeNode in="blur1" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-
-            {/* Ambient Background Glow */}
-            <g filter="url(#neon-glow-horiz)" opacity="0.75" className="transition-opacity duration-300 group-hover:opacity-100">
-              {/* ЧЕБУ glow */}
-              {NEON_PATHS.chebuPaths.map((d, i) => (
-                <path key={`chebu-glow-${i}`} d={d} stroke="#d97706" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-              ))}
-              {/* ROOM glow */}
-              {NEON_PATHS.roomPaths.map((d, i) => (
-                <path key={`room-glow-${i}`} d={d} stroke="#b45309" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-              ))}
-            </g>
-
-            {/* Neon Tube Outline Body */}
-            <g>
-              {/* ЧЕБУ: warm golden amber bubble tube */}
-              {NEON_PATHS.chebuPaths.map((d, i) => (
-                <path key={`chebu-tube-${i}`} d={d} stroke="#f59e0b" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
-              ))}
-              {/* ROOM: sleek illuminated tube (adaptive in dark/light) */}
-              {NEON_PATHS.roomPaths.map((d, i) => (
-                <path 
-                  key={`room-tube-${i}`} 
-                  d={d} 
-                  stroke="currentColor" 
-                  className="text-amber-500 dark:text-amber-400"
-                  strokeWidth="4" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                />
-              ))}
-            </g>
-
-            {/* Bright Luminous Tube Core */}
-            <g opacity="0.95">
-              {/* ЧЕБУ core */}
-              {NEON_PATHS.chebuPaths.map((d, i) => (
-                <path key={`chebu-core-${i}`} d={d} stroke="#fffbeb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              ))}
-              {/* ROOM core */}
-              {NEON_PATHS.roomPaths.map((d, i) => (
-                <path key={`room-core-${i}`} d={d} stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              ))}
-            </g>
-          </svg>
         </div>
-      </div>
-
-      {showSubtitle && (
-        <span className="text-[9px] sm:text-[10px] font-bold text-zinc-500 dark:text-zinc-400 tracking-[0.18em] uppercase -mt-0.5 leading-none transition-colors group-hover:text-amber-500">
-          Крафтова чебуречна • Запоріжжя
-        </span>
       )}
     </div>
   );
