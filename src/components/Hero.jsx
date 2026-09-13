@@ -6,7 +6,7 @@ import { MENU_DATA } from '../data/menuData';
 
 export function Hero() {
   const { addItem, setSelectedDishForModal } = useCart();
-  const signatureDish = MENU_DATA.items.find(i => i.id === 'cheb-beef');
+  const signatureDish = MENU_DATA.items.find(i => i.id === 'cheb-pulled-beef') || MENU_DATA.items[0];
 
   return (
     <section className="relative pt-6 pb-10 sm:py-12 bg-[#F8F9FA] dark:bg-[#09090B] border-b border-zinc-200 dark:border-[#23232E] overflow-hidden transition-colors">

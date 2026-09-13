@@ -67,10 +67,10 @@ export function CartCheckoutPage() {
   const discount = getDiscount(orderType);
   const total = getTotal(orderType);
 
-  // Cross-sell items (quick additions like sauces & drinks)
+  // Cross-sell items (quick additions like coffee, desserts & fries)
   const crossSellItems = useMemo(() => {
     return MENU_DATA.items.filter(
-      item => (item.category === 'sauces' || item.category === 'drinks' || item.id === 'snack-fries')
+      item => (item.category === 'coffee' || item.category === 'desserts' || item.category === 'deepfry')
     ).slice(0, 4);
   }, []);
 

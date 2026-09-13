@@ -1,16 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MENU_DATA } from '../data/menuData';
-import { Search, X, LayoutGrid, Flame, Sparkles, Package, Utensils, Droplet, Coffee } from 'lucide-react';
+import { Search, X, LayoutGrid, Flame, CookingPot, Sparkles, Egg, Salad, Coffee, Cookie, Package, Utensils, Droplet } from 'lucide-react';
 
 const iconMap = {
   LayoutGrid,
   Flame,
+  CookingPot,
   Sparkles,
+  Egg,
+  Salad,
+  Coffee,
+  Cookie,
   Package,
   Utensils,
-  Droplet,
-  Coffee
+  Droplet
 };
 
 export function CategoryNav({
