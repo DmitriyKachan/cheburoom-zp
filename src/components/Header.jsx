@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { ShoppingBag, Sun, Moon, Phone, MapPin, Clock, ChevronDown, Sparkles } from 'lucide-react';
 import { InstagramIcon } from './InstagramIcon';
+import { CheburoomLogo } from './CheburoomLogo';
 
 export function Header() {
   const { itemCount, subtotal, currentPage, navigateTo, darkMode, toggleTheme } = useCart();
@@ -13,7 +14,7 @@ export function Header() {
       <div className="bg-glovo-yellow text-zinc-950 font-bold text-xs h-7 px-4 text-center flex items-center justify-center gap-2">
         <Sparkles className="w-3.5 h-3.5 shrink-0 animate-pulse" />
         <span>
-          <strong>Безкоштовна доставка</strong> від 450 ₴ по Запоріжжю &bull; <strong>-10%</strong> на самовивіз!
+          Безкоштовна доставка від 450 ₴ по Запоріжжю • Готуємо свіже за 10 хв
         </span>
       </div>
 
@@ -23,26 +24,14 @@ export function Header() {
         <div className="flex items-center gap-4 sm:gap-6">
           <motion.button
             type="button"
-            whileHover={{ scale: 1.03 }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={() => navigateTo('menu')}
-            className="flex items-center gap-2.5 group focus:outline-none cursor-pointer text-left"
+            className="group focus:outline-none cursor-pointer text-left"
             aria-label="Головна ЧЕБУROOM"
           >
-            <div className="w-11 h-11 rounded-2xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-display font-black text-base shadow-sm group-hover:scale-105 group-hover:rotate-6 transition-all duration-300">
-              ЧР
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-display font-black text-xl tracking-tight text-zinc-950 dark:text-white">
-                  ЧЕБУ<span className="text-amber-500">ROOM</span>
-                </span>
-              </div>
-              <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-medium leading-none">
-                Крафтова чебуречна
-              </p>
-            </div>
+            <CheburoomLogo size="md" />
           </motion.button>
 
           {/* City / Location selector (Glovo / RnR style) */}
