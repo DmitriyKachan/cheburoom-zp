@@ -64,7 +64,17 @@ export function App() {
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             >
               <Hero />
-              <PromoBanners />
+              <PromoBanners
+                onSelectCategory={(catId) => {
+                  setActiveCategory(catId);
+                  setActiveTag(null);
+                  setSearchQuery('');
+                  const el = document.getElementById('menu-catalog');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              />
               <MarqueeRibbon />
 
               <section id="menu-catalog" className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

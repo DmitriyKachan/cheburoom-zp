@@ -1,40 +1,52 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Flame, Clock, Percent, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
-export function PromoBanners() {
+export function PromoBanners({ onSelectCategory }) {
   const banners = [
     {
       id: 1,
-      title: 'Хрусткі чебуреки за 25 хв',
-      subtitle: 'Гарячі, соковиті, щойно з фритюру',
-      tag: 'Швидка доставка',
+      categoryId: 'chebureks',
+      title: 'Фірмові чебуреки',
+      subtitle: 'З рваною телятиною, 4 сири чи лососем — хрусткі, соковиті та гарячі',
+      tag: 'Головний хіт',
       bgGradient: 'from-amber-500 via-amber-400 to-yellow-300 text-zinc-950',
       tagBg: 'bg-zinc-950 text-white',
-      image: 'https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?auto=format&fit=crop&w=400&q=80',
-      badge: '🔥 ТОП'
+      image: '/images/dishes/cheb-pulled-beef.jpg',
+      badge: '🔥 ВІД 79 ₴'
     },
     {
       id: 2,
-      title: '-10% при самовивозі',
-      subtitle: 'Запоріжжя, пр. Соборний, 142',
-      tag: 'Забирай сам',
+      categoryId: 'wok',
+      title: 'Азійський WOK',
+      subtitle: 'Локшина з ніжною телятиною, куркою або морепродуктами на вибір',
+      tag: 'Гарячий вок',
       bgGradient: 'from-emerald-600 to-teal-500 text-white',
       tagBg: 'bg-white/20 text-white backdrop-blur-md',
-      image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=400&q=80',
-      badge: '💰 ЕКОНОМІЯ'
+      image: '/images/dishes/wok-pulled-beef.jpg',
+      badge: '🥢 ВІД 155 ₴'
     },
     {
       id: 3,
-      title: 'Кримські Янтики',
-      subtitle: 'Суха пательня без краплі олії з маслом',
-      tag: 'Крафтова фішка',
+      categoryId: 'breakfast',
+      title: 'Ранкове меню щодня',
+      subtitle: 'Пряна шакшука на сковороді, картопля з зеленню та яєчня з беконом',
+      tag: 'Свіжі сніданки',
       bgGradient: 'from-zinc-900 via-zinc-800 to-zinc-900 text-white border border-zinc-700',
       tagBg: 'bg-amber-400 text-zinc-950 font-black',
-      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&q=80',
-      badge: '✨ ХІТ'
+      image: '/images/dishes/breakfast-shakshuka.jpg',
+      badge: '🍳 ПО 95 ₴'
     }
   ];
+
+  const handleBannerClick = (categoryId) => {
+    if (onSelectCategory) {
+      onSelectCategory(categoryId);
+    } else {
+      const el = document.getElementById('menu-catalog');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <section className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,17 +60,14 @@ export function PromoBanners() {
             whileTap={{ scale: 0.98 }}
             transition={{ duration: 0.3, delay: index * 0.08 }}
             className={`relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-br ${banner.bgGradient} shadow-md hover:shadow-xl transition-shadow cursor-pointer group flex flex-col justify-between min-h-[170px] select-none`}
-            onClick={() => {
-              const el = document.getElementById('menu-catalog');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={() => handleBannerClick(banner.categoryId)}
           >
             {/* Top row with tags */}
             <div className="flex items-center justify-between z-10">
               <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-xs transition-transform group-hover:scale-105 ${banner.tagBg}`}>
                 {banner.tag}
               </span>
-              <span className="text-xs font-extrabold px-2 py-0.5 rounded-md bg-black/30 backdrop-blur-md text-white">
+              <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-black/30 backdrop-blur-md text-white">
                 {banner.badge}
               </span>
             </div>
