@@ -9,7 +9,7 @@ export function Footer() {
     <footer className="bg-[#F8F9FA] dark:bg-[#09090B] border-t border-zinc-200 dark:border-[#23232E] py-10 text-xs transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <CheburoomLogo size="sm" showText={false} />
+          <CheburoomLogo showSubtitle={false} />
           <span className="text-zinc-600 dark:text-zinc-400 font-medium">
             © 2026 ЧЕБУROOM (@cheburoom.zp) — Запоріжжя
           </span>
