@@ -132,10 +132,10 @@ export function Header() {
               whileTap={{ scale: 0.94 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
               onClick={() => navigateTo('checkout')}
-              className="h-11 px-4 sm:px-5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-bold text-xs sm:text-sm btn-glow-yellow animate-shimmer flex items-center gap-2.5 cursor-pointer select-none group shadow-sm"
+              className="h-11 px-4 sm:px-5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-bold text-xs sm:text-sm btn-glow-yellow animate-shimmer flex items-center gap-3.5 sm:gap-4 cursor-pointer select-none group shadow-sm"
               aria-label="Відкрити кошик замовлення"
             >
-              <div className="relative">
+              <div className="relative shrink-0 mr-1">
                 <ShoppingBag className="w-5 h-5 text-zinc-950 group-hover:scale-115 group-hover:-rotate-6 transition-transform" />
                 {itemCount > 0 && (
                   <span
@@ -148,7 +148,7 @@ export function Header() {
               </div>
               
               <div className="flex flex-col text-left">
-                <span className="text-[10px] uppercase font-semibold text-zinc-700 leading-tight">Кошик</span>
+                <span className="text-[10px] uppercase font-semibold text-zinc-700 leading-tight tracking-wide">Кошик</span>
                 <span className="font-extrabold text-xs sm:text-sm leading-tight">{subtotal} ₴</span>
               </div>
             </motion.button>
