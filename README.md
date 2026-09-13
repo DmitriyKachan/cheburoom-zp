@@ -12,8 +12,8 @@
 
 1. **Клонувати репозиторій:**
 ```bash
-git clone <URL_REPO>
-cd site1
+git clone https://github.com/DmitriyKachan/cheburoom-zp.git
+cd cheburoom-zp
 ```
 
 2. **Встановити залежності:**
