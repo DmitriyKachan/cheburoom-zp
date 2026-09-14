@@ -182,6 +182,16 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
         name,
         phone,
         total,
+        subtotal,
+        deliveryFee,
+        discount,
+        orderType,
+        address: addressStr,
+        timing: timingText,
+        payment,
+        cutleryCount,
+        comment,
+        items: [...items],
         fullOrderText
       });
       clearCart();

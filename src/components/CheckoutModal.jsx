@@ -116,6 +116,13 @@ ${itemsText}
       name,
       phone,
       total,
+      subtotal,
+      deliveryFee,
+      discount,
+      orderType,
+      address: addressStr,
+      payment,
+      items: [...items],
       fullOrderText
     });
 
