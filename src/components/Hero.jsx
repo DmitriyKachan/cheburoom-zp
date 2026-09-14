@@ -166,7 +166,7 @@ export function Hero() {
                 <div className="pt-3.5 sm:pt-4 border-t border-zinc-100 dark:border-[#23232E] flex items-center justify-between gap-2 sm:gap-3">
                   <span className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 whitespace-nowrap">
                     <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                    <span>Фритюр або Янтик без олії</span>
+                    <span>Класичний золотавий фритюр</span>
                   </span>
                   <motion.button
                     type="button"

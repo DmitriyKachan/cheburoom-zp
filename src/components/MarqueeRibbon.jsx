@@ -16,8 +16,8 @@ export function MarqueeRibbon() {
       title: "Фірмове пухирчасте тісто"
     },
     {
-      icon: "🍳",
-      title: "Фритюр або Кримський янтик"
+      icon: "🥟",
+      title: "Золотава пухирчаста скоринка"
     },
     {
       icon: "🥩",

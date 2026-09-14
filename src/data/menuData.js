@@ -18,8 +18,7 @@ export const MENU_DATA = {
   // Офіційні додатки до чебуреків з меню
   chebOptions: {
     crust: [
-      { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-      { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+      { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
     ],
     extras: [
       { id: "extra-cheese", name: "Сир", price: 25 },
@@ -52,8 +51,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: [
           { id: "extra-cheese", name: "Сир", price: 25 },
@@ -84,8 +82,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: [
           { id: "extra-cheese", name: "Сир", price: 25 },
@@ -116,8 +113,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: [
           { id: "extra-cheese", name: "Сир", price: 25 },
@@ -148,8 +144,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: [
           { id: "extra-cheese", name: "Сир", price: 25 },
@@ -180,8 +175,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: [
           { id: "extra-cheese", name: "Сир", price: 25 },
@@ -212,8 +206,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: [
           { id: "extra-cheese", name: "Сир", price: 25 },
@@ -244,8 +237,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: [
           { id: "extra-cheese", name: "Сир", price: 25 },
@@ -276,8 +268,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: [
           { id: "extra-cheese", name: "Додати сир", price: 25 }
@@ -301,8 +292,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: []
       }
@@ -324,8 +314,7 @@ export const MENU_DATA = {
       customizable: true,
       options: {
         crust: [
-          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true },
-          { name: "Янтик на сухій пательні (без олії)", priceDelta: 0 }
+          { name: "Класичний фритюр (пухирці, хрускіт)", priceDelta: 0, default: true }
         ],
         extras: [
           { id: "extra-cheese", name: "Сир", price: 25 }

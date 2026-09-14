@@ -98,7 +98,7 @@ export function DishModal() {
             </p>
 
             {/* Crust Choices */}
-            {dish.options?.crust && dish.options.crust.length > 0 && (
+            {dish.options?.crust && dish.options.crust.length > 1 && (
               <div className="mb-5">
                 <h4 className="text-xs font-display font-bold text-zinc-950 dark:text-white mb-2">
                   Спосіб приготування:
