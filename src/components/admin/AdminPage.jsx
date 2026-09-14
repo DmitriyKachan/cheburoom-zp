@@ -52,6 +52,52 @@ const CATEGORIES = [
   { id: 'sets', name: 'Сети' }
 ];
 
+function getDisplayBadge(dish) {
+  if (dish.badge && dish.badge.trim()) {
+    const raw = dish.badge.trim();
+    const lower = raw.toLowerCase();
+    if (lower === 'hit' || lower === 'хит' || lower === 'хіт') return '🔥 Хіт';
+    if (lower === 'new' || lower === 'новинка') return '✨ Новинка';
+    if (lower === 'spicy' || lower === 'гостре') return null;
+    if (lower === 'premium' || lower === 'преміум') return '⭐ Преміум';
+    if (lower === 'top' || lower === 'топ') return '🧀 Топ';
+    return raw;
+  }
+  if (dish.isHit) return '🔥 Хіт';
+  if (dish.isNew) return '✨ Новинка';
+  return null;
+}
+
+function getBadgeColorClass(badgeText, badgeColor) {
+  if (badgeColor === 'rose' || badgeColor === 'red') {
+    return 'bg-rose-500 text-white shadow-xs';
+  }
+  if (badgeColor === 'emerald' || badgeColor === 'green') {
+    return 'bg-emerald-500 text-white shadow-xs';
+  }
+  if (badgeColor === 'purple' || badgeColor === 'violet') {
+    return 'bg-purple-600 text-white shadow-xs';
+  }
+  if (badgeColor === 'blue') {
+    return 'bg-blue-600 text-white shadow-xs';
+  }
+
+  if (badgeText) {
+    const lower = badgeText.toLowerCase();
+    if (lower.includes('новин') || lower.includes('new')) {
+      return 'bg-emerald-500 text-white shadow-xs';
+    }
+    if (lower.includes('суперцін') || lower.includes('акці') || lower.includes('солодк')) {
+      return 'bg-rose-500 text-white shadow-xs';
+    }
+    if (lower.includes('преміум')) {
+      return 'bg-zinc-950 text-amber-400 border border-amber-400/50 shadow-xs';
+    }
+  }
+
+  return 'bg-amber-400 text-zinc-950 font-black shadow-xs';
+}
+
 export function AdminPage() {
   const {
     menuItems,
@@ -531,13 +577,13 @@ export function AdminPage() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 mb-1">
+                        <div className="flex flex-wrap items-center gap-1 mb-1">
                           <span className="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
                             {dish.category}
                           </span>
-                          {dish.isHit && (
-                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-500 text-zinc-950">
-                              ХІТ
+                          {getDisplayBadge(dish) && (
+                            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${getBadgeColorClass(getDisplayBadge(dish), dish.badgeColor)}`}>
+                              {getDisplayBadge(dish)}
                             </span>
                           )}
                           {dish.isSpicy && <span title="Гостре">🌶️</span>}
@@ -989,7 +1035,9 @@ export function AdminPage() {
                           category: 'chebureks',
                           price: 135,
                           weight: '260 г',
-                          badge: 'hit',
+                          badge: '🔥 Хіт',
+                          badgeColor: 'amber',
+                          isHit: true,
                           shortDesc: 'Мармурова яловичина, моцарела, соус сальса',
                           desc: 'Преміальний пухирчастий чебурек із соковитою рубаною мармуровою яловичиною, ніжним сиром моцарела та ароматною кінзою.',
                           image: '/images/cheburek-royal-beef.jpg',
@@ -1120,37 +1168,138 @@ export function AdminPage() {
                   />
                 </div>
 
-                {/* Badges / Checkboxes */}
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 flex flex-wrap gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editingDish.isHit || false}
-                      onChange={(e) => setEditingDish({ ...editingDish, isHit: e.target.checked })}
-                      className="w-4 h-4 rounded text-amber-500 bg-zinc-800 border-zinc-700 focus:ring-0"
-                    />
-                    <span className="font-bold text-white">🔥 Хіт продажу</span>
-                  </label>
+                {/* Dish Status & Badges Section */}
+                <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-zinc-200">
+                      Статус та маркування страви (бейдж):
+                    </label>
+                    {editingDish.badge && (
+                      <span className={`px-2.5 py-0.5 text-[10px] font-black rounded-lg ${getBadgeColorClass(editingDish.badge, editingDish.badgeColor)}`}>
+                        {editingDish.badge}
+                      </span>
+                    )}
+                  </div>
 
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editingDish.isNew || false}
-                      onChange={(e) => setEditingDish({ ...editingDish, isNew: e.target.checked })}
-                      className="w-4 h-4 rounded text-amber-500 bg-zinc-800 border-zinc-700 focus:ring-0"
-                    />
-                    <span className="font-bold text-white">✨ Новинка</span>
-                  </label>
+                  {/* Preset Badges Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'none', label: 'Без бейджа', badge: '', color: '' },
+                      { id: 'hit', label: '🔥 Хіт', badge: '🔥 Хіт', color: 'amber' },
+                      { id: 'signature', label: '👑 Фірмовий хіт', badge: 'Фірмовий хіт', color: 'amber' },
+                      { id: 'new', label: '✨ Новинка', badge: '✨ Новинка', color: 'emerald' },
+                      { id: 'cheese', label: '🧀 Топ сир', badge: '🧀 Топ сир', color: 'amber' },
+                      { id: 'premium', label: '⭐ Преміум', badge: '⭐ Преміум', color: 'purple' },
+                      { id: 'deal', label: '💥 Суперціна', badge: '💥 Суперціна', color: 'rose' },
+                      { id: 'custom', label: '✍️ Свій бейдж', badge: null, color: 'custom' }
+                    ].map((preset) => {
+                      const currentBadge = editingDish.badge || '';
+                      const isSelected = preset.badge !== null
+                        ? currentBadge === preset.badge
+                        : (currentBadge !== '' && !['🔥 Хіт', 'Фірмовий хіт', '✨ Новинка', '🧀 Топ сир', '⭐ Преміум', '💥 Суперціна'].includes(currentBadge));
 
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editingDish.isSpicy || false}
-                      onChange={(e) => setEditingDish({ ...editingDish, isSpicy: e.target.checked })}
-                      className="w-4 h-4 rounded text-amber-500 bg-zinc-800 border-zinc-700 focus:ring-0"
-                    />
-                    <span className="font-bold text-white">🌶️ Гостре</span>
-                  </label>
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => {
+                            if (preset.badge !== null) {
+                              setEditingDish({
+                                ...editingDish,
+                                badge: preset.badge,
+                                badgeColor: preset.color,
+                                isHit: preset.badge.includes('Хіт'),
+                                isNew: preset.badge.includes('Новинка')
+                              });
+                            } else {
+                              setEditingDish({
+                                ...editingDish,
+                                badge: currentBadge || 'Сезонне',
+                                badgeColor: editingDish.badgeColor || 'amber'
+                              });
+                            }
+                          }}
+                          className={`p-2 rounded-xl border text-[11px] font-bold transition-all cursor-pointer text-left flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-amber-500/20 border-amber-500 text-amber-300 ring-1 ring-amber-500/50'
+                              : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                          }`}
+                        >
+                          <span className="truncate">{preset.label}</span>
+                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Custom Badge Text Input */}
+                  <div className="pt-2 border-t border-zinc-800/80 flex flex-wrap sm:flex-nowrap gap-2 items-center">
+                    <div className="flex-1 min-w-[160px]">
+                      <input
+                        type="text"
+                        value={editingDish.badge || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEditingDish({
+                            ...editingDish,
+                            badge: val,
+                            isHit: val.toLowerCase().includes('хіт'),
+                            isNew: val.toLowerCase().includes('новин')
+                          });
+                        }}
+                        placeholder="Власний текст бейджа (наприклад: Сезонне, Шеф-рецепт)..."
+                        className="w-full px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-700 text-white text-xs placeholder:text-zinc-500 focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    {/* Color palette */}
+                    {editingDish.badge && (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[10px] font-bold text-zinc-400">Колір:</span>
+                        {[
+                          { id: 'amber', bg: 'bg-amber-400', title: 'Жовтий (Хіт)' },
+                          { id: 'emerald', bg: 'bg-emerald-500', title: 'Зелений (Новинка)' },
+                          { id: 'rose', bg: 'bg-rose-500', title: 'Червоний (Акція)' },
+                          { id: 'purple', bg: 'bg-purple-600', title: 'Фіолетовий (Преміум)' }
+                        ].map(c => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => setEditingDish({ ...editingDish, badgeColor: c.id })}
+                            className={`w-5 h-5 rounded-md ${c.bg} transition-transform cursor-pointer flex items-center justify-center ${
+                              (editingDish.badgeColor || 'amber') === c.id ? 'scale-120 ring-2 ring-white shadow-sm' : 'opacity-60 hover:opacity-100'
+                            }`}
+                            title={c.title}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Spicy toggle */}
+                  <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between">
+                    <label className="flex items-center gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editingDish.isSpicy || false}
+                        onChange={(e) => setEditingDish({ ...editingDish, isSpicy: e.target.checked })}
+                        className="w-4 h-4 rounded text-rose-500 bg-zinc-800 border-zinc-700 focus:ring-0 cursor-pointer"
+                      />
+                      <div>
+                        <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                          <span>🌶️ Гостра страва</span>
+                          {editingDish.isSpicy && (
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30">
+                              Позначка увімкнена
+                            </span>
+                          )}
+                        </span>
+                        <p className="text-[10px] text-zinc-400">
+                          Додає червоний бейдж «🌶️ Гостре» на фотографію страви
+                        </p>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
                 {/* Modal Buttons */}

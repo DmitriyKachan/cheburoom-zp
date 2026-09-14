@@ -3,6 +3,52 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { X, Plus, Flame, Sparkles } from 'lucide-react';
 
+function getDisplayBadge(dish) {
+  if (dish.badge && dish.badge.trim()) {
+    const raw = dish.badge.trim();
+    const lower = raw.toLowerCase();
+    if (lower === 'hit' || lower === 'хит' || lower === 'хіт') return '🔥 Хіт';
+    if (lower === 'new' || lower === 'новинка') return '✨ Новинка';
+    if (lower === 'spicy' || lower === 'гостре') return null;
+    if (lower === 'premium' || lower === 'преміум') return '⭐ Преміум';
+    if (lower === 'top' || lower === 'топ') return '🧀 Топ';
+    return raw;
+  }
+  if (dish.isHit) return '🔥 Хіт';
+  if (dish.isNew) return '✨ Новинка';
+  return null;
+}
+
+function getBadgeColorClass(badgeText, badgeColor) {
+  if (badgeColor === 'rose' || badgeColor === 'red') {
+    return 'bg-rose-500 text-white shadow-xs';
+  }
+  if (badgeColor === 'emerald' || badgeColor === 'green') {
+    return 'bg-emerald-500 text-white shadow-xs';
+  }
+  if (badgeColor === 'purple' || badgeColor === 'violet') {
+    return 'bg-purple-600 text-white shadow-xs';
+  }
+  if (badgeColor === 'blue') {
+    return 'bg-blue-600 text-white shadow-xs';
+  }
+
+  if (badgeText) {
+    const lower = badgeText.toLowerCase();
+    if (lower.includes('новин') || lower.includes('new')) {
+      return 'bg-emerald-500 text-white shadow-xs';
+    }
+    if (lower.includes('суперцін') || lower.includes('акці') || lower.includes('солодк')) {
+      return 'bg-rose-500 text-white shadow-xs';
+    }
+    if (lower.includes('преміум')) {
+      return 'bg-zinc-950 text-amber-400 border border-amber-400/50 shadow-xs';
+    }
+  }
+
+  return 'bg-glovo-yellow text-zinc-950 font-black shadow-xs';
+}
+
 export function DishModal() {
   const { selectedDishForModal, setSelectedDishForModal, addItem } = useCart();
   
@@ -47,6 +93,9 @@ export function DishModal() {
     setSelectedDishForModal(null);
   };
 
+  const displayBadge = getDisplayBadge(dish);
+  const badgeColorClass = getBadgeColorClass(displayBadge, dish.badgeColor);
+
   return (
     <AnimatePresence>
       <div 
@@ -67,6 +116,20 @@ export function DishModal() {
 
           {/* Header Image */}
           <div className="relative h-44 sm:h-56 w-full bg-zinc-100 dark:bg-zinc-900 shrink-0">
+            {/* Badges in modal */}
+            <div className="absolute top-3 left-3 flex flex-col gap-1 items-start z-10 pointer-events-none">
+              {displayBadge && (
+                <span className={`px-2.5 py-1 text-[11px] font-extrabold rounded-xl shadow-md ${badgeColorClass}`}>
+                  {displayBadge}
+                </span>
+              )}
+              {dish.isSpicy && (
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500 text-white shadow-md">
+                  🌶️ Гостре
+                </span>
+              )}
+            </div>
+
             <img
               src={dish.image}
               alt={dish.name}

@@ -3,6 +3,52 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { Plus, Minus, SlidersHorizontal, Scale, Sparkles } from 'lucide-react';
 
+function getDisplayBadge(dish) {
+  if (dish.badge && dish.badge.trim()) {
+    const raw = dish.badge.trim();
+    const lower = raw.toLowerCase();
+    if (lower === 'hit' || lower === 'хит' || lower === 'хіт') return '🔥 Хіт';
+    if (lower === 'new' || lower === 'новинка') return '✨ Новинка';
+    if (lower === 'spicy' || lower === 'гостре') return null;
+    if (lower === 'premium' || lower === 'преміум') return '⭐ Преміум';
+    if (lower === 'top' || lower === 'топ') return '🧀 Топ';
+    return raw;
+  }
+  if (dish.isHit) return '🔥 Хіт';
+  if (dish.isNew) return '✨ Новинка';
+  return null;
+}
+
+function getBadgeColorClass(badgeText, badgeColor) {
+  if (badgeColor === 'rose' || badgeColor === 'red') {
+    return 'bg-rose-500 text-white shadow-xs';
+  }
+  if (badgeColor === 'emerald' || badgeColor === 'green') {
+    return 'bg-emerald-500 text-white shadow-xs';
+  }
+  if (badgeColor === 'purple' || badgeColor === 'violet') {
+    return 'bg-purple-600 text-white shadow-xs';
+  }
+  if (badgeColor === 'blue') {
+    return 'bg-blue-600 text-white shadow-xs';
+  }
+
+  if (badgeText) {
+    const lower = badgeText.toLowerCase();
+    if (lower.includes('новин') || lower.includes('new')) {
+      return 'bg-emerald-500 text-white shadow-xs';
+    }
+    if (lower.includes('суперцін') || lower.includes('акці') || lower.includes('солодк')) {
+      return 'bg-rose-500 text-white shadow-xs';
+    }
+    if (lower.includes('преміум')) {
+      return 'bg-zinc-950 text-amber-400 border border-amber-400/50 shadow-xs';
+    }
+  }
+
+  return 'bg-glovo-yellow text-zinc-950 font-black shadow-xs';
+}
+
 export function DishCard({ dish }) {
   const { items, addItem, updateQuantity, setSelectedDishForModal } = useCart();
   const isAvailable = dish.available !== false;
@@ -11,6 +57,9 @@ export function DishCard({ dish }) {
   const cartItem = items.find(i => i.id === dish.id);
   const inCartQty = cartItem ? cartItem.quantity : 0;
 
+  const displayBadge = getDisplayBadge(dish);
+  const badgeColorClass = getBadgeColorClass(displayBadge, dish.badgeColor);
+
   return (
     <motion.article
       whileHover={{ y: -6 }}
@@ -18,10 +67,10 @@ export function DishCard({ dish }) {
       className="relative flex flex-col h-full bg-white dark:bg-[#121215] rounded-3xl border border-zinc-200/90 dark:border-[#23232E] hover:border-amber-400 dark:hover:border-amber-500/50 card-interactive overflow-hidden group shadow-xs select-none"
     >
       {/* Badges (Glovo / RnR style) */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 pointer-events-none">
-        {dish.badge && (
-          <span className="px-2.5 py-1 text-[11px] font-extrabold rounded-xl bg-glovo-yellow text-zinc-950 shadow-sm transition-transform duration-300 group-hover:scale-110">
-            {dish.badge}
+      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 items-start pointer-events-none">
+        {displayBadge && (
+          <span className={`px-2.5 py-1 text-[11px] font-extrabold rounded-xl transition-transform duration-300 group-hover:scale-110 ${badgeColorClass}`}>
+            {displayBadge}
           </span>
         )}
         {dish.isSpicy && (
