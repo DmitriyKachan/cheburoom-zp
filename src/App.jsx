@@ -10,6 +10,7 @@ import { DishModal } from './components/DishModal';
 import { CartDrawer } from './components/CartDrawer';
 import { CartCheckoutPage } from './components/CartCheckoutPage';
 import { SuccessModal } from './components/SuccessModal';
+import { ActiveOrderFloatingWidget } from './components/ActiveOrderFloatingWidget';
 import { LocationInfo } from './components/LocationInfo';
 import { Footer } from './components/Footer';
 import { AdminPage } from './components/admin/AdminPage';
@@ -169,6 +170,7 @@ export function App() {
       {/* Modals */}
       <DishModal />
       <SuccessModal />
+      <ActiveOrderFloatingWidget />
 
       {/* Toast */}
       {toastMessage && (

@@ -6,7 +6,7 @@ import { InstagramIcon } from './InstagramIcon';
 import { CheburoomLogo } from './CheburoomLogo';
 
 export function Header() {
-  const { itemCount, subtotal, currentPage, navigateTo, darkMode, toggleTheme, successOrder, setSuccessOrder } = useCart();
+  const { itemCount, subtotal, currentPage, navigateTo, darkMode, toggleTheme, successOrder, setSuccessOrder, openSuccessModal } = useCart();
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-md border-b border-zinc-200 dark:border-[#23232E] transition-colors">
@@ -101,7 +101,7 @@ export function Header() {
               type="button"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
-              onClick={() => setSuccessOrder({ ...successOrder })}
+              onClick={() => openSuccessModal ? openSuccessModal() : setSuccessOrder({ ...successOrder })}
               className={`h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl border flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0 text-xs font-bold transition-all ${
                 successOrder.status === 'ready'
                   ? 'bg-emerald-500 text-white border-emerald-400 animate-pulse'

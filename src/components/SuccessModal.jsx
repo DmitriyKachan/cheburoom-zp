@@ -4,9 +4,9 @@ import { useCart } from '../context/CartContext';
 import { Check, Clock, MapPin, Phone, CreditCard, X, ChevronRight, AlertCircle, ChefHat, Sparkles } from 'lucide-react';
 
 export function SuccessModal() {
-  const { successOrder, setSuccessOrder, navigateTo } = useCart();
+  const { successOrder, setSuccessOrder, isSuccessModalOpen, closeSuccessModal, navigateTo, currentPage } = useCart();
 
-  if (!successOrder) return null;
+  if (!successOrder || !isSuccessModalOpen) return null;
 
   const isCancelled = successOrder.status === 'cancelled' || successOrder.isDeleted;
   const currentStatus = isCancelled ? 'cancelled' : (successOrder.status || 'new');
@@ -58,10 +58,11 @@ export function SuccessModal() {
   const StatusIcon = activeConfig.icon;
 
   const handleClose = () => {
+    closeSuccessModal();
     if (isCancelled) {
       setSuccessOrder(null);
     }
-    if (navigateTo) {
+    if (navigateTo && currentPage !== 'menu') {
       navigateTo('menu');
     }
   };
@@ -299,7 +300,8 @@ export function SuccessModal() {
                 whileTap={{ scale: 0.96 }}
                 onClick={() => {
                   setSuccessOrder(null);
-                  if (navigateTo) navigateTo('menu');
+                  closeSuccessModal();
+                  if (navigateTo && currentPage !== 'menu') navigateTo('menu');
                 }}
                 className="w-full h-12 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-display font-black text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
               >

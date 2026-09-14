@@ -83,6 +83,7 @@ export function CartProvider({ children }) {
       return null;
     }
   });
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
   // Cloud Database connection status
@@ -625,15 +626,21 @@ export function CartProvider({ children }) {
   };
 
   // Orders logging & management
-  const setSuccessOrder = (order) => {
+  const setSuccessOrder = (order, shouldOpenModal = true) => {
     setSuccessOrderState(order);
-    try {
-      if (order) {
-        localStorage.setItem('cheburoom_active_order', JSON.stringify(order));
-      } else {
-        localStorage.removeItem('cheburoom_active_order');
+    if (order) {
+      if (shouldOpenModal) {
+        setIsSuccessModalOpen(true);
       }
-    } catch {}
+      try {
+        localStorage.setItem('cheburoom_active_order', JSON.stringify(order));
+      } catch {}
+    } else {
+      setIsSuccessModalOpen(false);
+      try {
+        localStorage.removeItem('cheburoom_active_order');
+      } catch {}
+    }
 
     if (order && order.orderId) {
       const newEntry = {
@@ -911,6 +918,10 @@ export function CartProvider({ children }) {
         setIsCheckoutOpen,
         successOrder,
         setSuccessOrder,
+        isSuccessModalOpen,
+        setIsSuccessModalOpen,
+        openSuccessModal: () => setIsSuccessModalOpen(true),
+        closeSuccessModal: () => setIsSuccessModalOpen(false),
         toastMessage,
         showToast,
         darkMode,
