@@ -65,6 +65,16 @@ export function CategoryNav({
                   onSelectCategory(cat.id);
                   if (searchQuery) onSearchChange('');
                   e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                  
+                  // Auto-scroll to the first dishes in the list
+                  requestAnimationFrame(() => {
+                    const catalogEl = document.getElementById('menu-catalog');
+                    if (catalogEl) {
+                      const yOffset = -115;
+                      const y = catalogEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                    }
+                  });
                 }}
                 className={`h-8 px-2.5 sm:px-3 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 shrink-0 select-none cursor-pointer whitespace-nowrap ${
                   isActive

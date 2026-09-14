@@ -57,12 +57,15 @@ export function App() {
               <PromoBanners
                 onSelectCategory={(catId) => {
                   setActiveCategory(catId);
-                  setActiveTag(null);
                   setSearchQuery('');
-                  const el = document.getElementById('menu-catalog');
-                  if (el) {
-                    el.scrollIntoView({ behavior: 'smooth' });
-                  }
+                  requestAnimationFrame(() => {
+                    const el = document.getElementById('menu-catalog');
+                    if (el) {
+                      const yOffset = -115;
+                      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                    }
+                  });
                 }}
               />
               <MarqueeRibbon />
@@ -85,7 +88,7 @@ export function App() {
                 onSearchChange={setSearchQuery}
               />
 
-              <section id="menu-catalog" className={`pt-2 sm:pt-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${itemCount > 0 ? 'pb-24 lg:pb-12' : 'pb-12'}`}>
+              <section id="menu-catalog" className={`scroll-mt-28 sm:scroll-mt-32 pt-2 sm:pt-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${itemCount > 0 ? 'pb-24 lg:pb-12' : 'pb-12'}`}>
 
                 {filteredItems.length === 0 ? (
                   <div className="py-16 text-center">
