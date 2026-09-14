@@ -65,7 +65,7 @@ export function Hero() {
               >
                 <ShoppingBag className="w-4 h-4 text-emerald-500 mb-1 group-hover:scale-120 group-hover:-rotate-12 transition-transform duration-300" />
                 <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium whitespace-nowrap">Самовивіз</div>
-                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">-10% знижка</div>
+                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">Без черги</div>
               </motion.div>
 
               <motion.div 

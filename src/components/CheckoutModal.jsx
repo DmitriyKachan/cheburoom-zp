@@ -71,7 +71,7 @@ export function CheckoutModal() {
 ━━━━━━━━━━━━━━━━━━━━
 👤 Клієнт: ${name}
 📞 Телефон: ${phone}
-📍 Отримання: 🏃 Самовивіз (-10%)
+📍 Отримання: 🏃 Самовивіз
 🏠 Точка видачі: ${addressStr}
 💳 Оплата: ${payment}
 ${comment.trim() ? '💬 Коментар: ' + comment.trim() + '\n' : ''}━━━━━━━━━━━━━━━━━━━━
@@ -142,7 +142,7 @@ ${itemsText}
               м. Запоріжжя, {MENU_DATA.info.address}
             </p>
             <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-bold">
-              🔥 Самовивіз зі знижкою 10%
+              🔥 Свіже та гаряче з-під ножа
             </p>
           </div>
 

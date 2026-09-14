@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
-import { ShoppingBag, Sun, Moon, Phone, MapPin, Clock, ChevronDown, Sparkles } from 'lucide-react';
+import { ShoppingBag, Sun, Moon, Phone, MapPin } from 'lucide-react';
 import { InstagramIcon } from './InstagramIcon';
 import { CheburoomLogo } from './CheburoomLogo';
 
@@ -9,150 +9,133 @@ export function Header() {
   const { itemCount, subtotal, currentPage, navigateTo, darkMode, toggleTheme } = useCart();
 
   return (
-    <>
-      {/* Top Promo Bar (scrolls away to free maximum vertical screen space) */}
-      <div className="bg-glovo-yellow text-zinc-950 font-bold h-7 px-3 sm:px-4 text-center flex items-center justify-center gap-1.5 sm:gap-2 select-none">
-        <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse text-zinc-950" />
-        <span className="text-[10.5px] sm:text-xs font-bold text-zinc-950 tracking-tight whitespace-nowrap">
-          <span className="sm:hidden">Знижка 10% на самовивіз • Свіже за 10 хв</span>
-          <span className="hidden sm:inline">Знижка 10% на самовивіз • Готуємо свіже з-під ножа за 10 хв</span>
-        </span>
-      </div>
-
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-md border-b border-zinc-200 dark:border-[#23232E] transition-colors">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-md border-b border-zinc-200 dark:border-[#23232E] transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-4">
         
-        {/* Left: Brand Logo & Location */}
-        <div className="flex items-center gap-2.5 sm:gap-6 shrink-0">
+        {/* Left Section: Logo & Address */}
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <motion.button
             type="button"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={() => navigateTo('menu')}
-            className="group focus:outline-none cursor-pointer text-left"
+            className="focus:outline-none cursor-pointer text-left"
             aria-label="Головна ЧЕБУROOM"
           >
             <CheburoomLogo size="md" />
           </motion.button>
 
-          {/* City / Location selector (Clickable Google Maps link) */}
+          <div className="hidden sm:block h-5 w-px bg-zinc-200 dark:bg-zinc-800" />
+
+          {/* Location link */}
           <motion.a 
-            whileHover={{ scale: 1.04, y: -1 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.97 }}
             href="https://www.google.com/maps/search/?api=1&query=пр.+Соборний+142,+Запоріжжя"
             target="_blank"
             rel="noopener noreferrer"
             title="Відкрити адресу закладу в Google Картах"
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-[#121215] dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] hover:border-amber-400/70 dark:hover:border-amber-400/50 text-xs cursor-pointer transition-all shadow-xs group shrink-0"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-xs transition-all cursor-pointer group"
           >
-            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-glovo-green shrink-0 group-hover:scale-115 group-hover:-translate-y-0.5 transition-transform" />
-            <div className="text-left leading-tight">
-              <span className="font-bold text-zinc-950 dark:text-white group-hover:text-amber-500 transition-colors block text-[11px] sm:text-xs whitespace-nowrap">Запоріжжя</span>
-              <span className="text-[10px] sm:text-[11px] text-zinc-600 dark:text-zinc-400 block font-medium whitespace-nowrap">пр. Соборний, 142</span>
-            </div>
+            <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0 group-hover:scale-110 transition-transform" />
+            <span className="font-bold text-zinc-900 dark:text-white text-xs whitespace-nowrap">
+              Запоріжжя, <span className="font-normal text-zinc-500 dark:text-zinc-400">пр. Соборний, 142</span>
+            </span>
           </motion.a>
         </div>
 
-        {/* Center: Hours & Phone Call Center (RnR style) */}
-        <div className="hidden lg:flex items-center gap-6 text-xs">
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100/70 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 font-bold transition-transform cursor-default select-none"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Відчинено: 09:00 — 20:00</span>
-          </motion.div>
+        {/* Right Section: Hours, Phone, Instagram, Theme, Cart */}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          
+          {/* Working Hours Pill */}
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/50 text-xs text-emerald-800 dark:text-emerald-300 font-semibold select-none">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span>09:00 — 20:00</span>
+          </div>
 
+          {/* Phone Contact */}
           <motion.a
-            whileHover={{ scale: 1.04, y: -1 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.97 }}
             href="tel:+380951991599"
-            className="flex items-center gap-2.5 font-bold text-zinc-950 dark:text-white hover:text-amber-500 transition-colors group cursor-pointer"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-xs font-bold text-zinc-900 dark:text-white hover:text-amber-500 dark:hover:text-amber-400 transition-all cursor-pointer group"
+            title="Зателефонувати в заклад"
           >
-            <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 group-hover:bg-glovo-yellow group-hover:text-zinc-950 transition-colors">
-              <Phone className="w-3.5 h-3.5 group-hover:rotate-12 group-hover:scale-115 transition-transform" />
-            </div>
-            <div>
-              <span className="text-xs font-black block leading-tight text-zinc-950 dark:text-white">+380 (95) 199 15 99</span>
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block leading-tight font-medium">Замовлення та самовивіз</span>
-            </div>
+            <Phone className="w-3.5 h-3.5 text-amber-500 shrink-0 group-hover:rotate-12 transition-transform" />
+            <span>+380 (95) 199 15 99</span>
           </motion.a>
 
+          {/* Instagram Link */}
           <motion.a
-            whileHover={{ scale: 1.04, y: -1 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.97 }}
             href="https://www.instagram.com/cheburoom.zp/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 font-bold text-zinc-600 dark:text-zinc-300 hover:text-pink-600 transition-colors group cursor-pointer"
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:text-pink-500 dark:hover:text-pink-400 transition-all cursor-pointer group"
+            title="Instagram @cheburoom.zp"
           >
-            <InstagramIcon className="w-4 h-4 text-pink-500 group-hover:scale-120 group-hover:rotate-6 transition-transform" />
+            <InstagramIcon className="w-3.5 h-3.5 text-pink-500 shrink-0 group-hover:scale-115 transition-transform" />
             <span>@cheburoom.zp</span>
           </motion.a>
-        </div>
 
-        {/* Right: Theme switch + Glovo-style Floating Cart Button */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          {/* Theme Toggle */}
+          <div className="hidden md:block h-5 w-px bg-zinc-200 dark:bg-zinc-800" />
+
+          {/* Theme Switch */}
           <motion.button
             type="button"
-            whileHover={{ scale: 1.1, rotate: 45 }}
-            whileTap={{ scale: 0.85 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
             onClick={toggleTheme}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-zinc-100 dark:bg-[#121215] hover:bg-zinc-200 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-800 dark:text-zinc-200 transition-colors flex items-center justify-center cursor-pointer shadow-xs shrink-0"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/80 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-zinc-700 dark:text-zinc-300 transition-colors flex items-center justify-center cursor-pointer shadow-xs shrink-0"
             aria-label="Перемкнути тему"
             title={darkMode ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
           >
             {darkMode ? <Sun className="w-4 h-4 text-amber-400 fill-amber-400/20" /> : <Moon className="w-4 h-4 text-zinc-700" />}
           </motion.button>
 
-          {/* Glovo / RnR Cart Button */}
+          {/* Cart Button */}
           {currentPage === 'checkout' ? (
             <motion.button
               type="button"
-              whileHover={{ scale: 1.04, x: -2 }}
-              whileTap={{ scale: 0.94 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => navigateTo('menu')}
-              className="h-10 sm:h-11 px-3 sm:px-5 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-[#121215] dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white font-display font-bold text-xs sm:text-sm transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-xs shrink-0 whitespace-nowrap"
-              aria-label="Повернутися до меню"
+              className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-zinc-900 dark:text-white font-display font-bold text-xs sm:text-sm transition-all flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0 whitespace-nowrap"
             >
               <span>← До меню</span>
             </motion.button>
           ) : (
             <motion.button
               type="button"
-              whileHover={{ scale: 1.04, y: -1 }}
-              whileTap={{ scale: 0.94 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => navigateTo('checkout')}
-              className="h-10 sm:h-11 px-3 sm:px-5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-bold text-xs sm:text-sm btn-glow-yellow animate-shimmer flex items-center gap-2.5 sm:gap-4 cursor-pointer select-none group shadow-sm shrink-0 whitespace-nowrap"
-              aria-label="Відкрити кошик замовлення"
+              className="h-9 sm:h-10 px-3.5 sm:px-4 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-xs sm:text-sm flex items-center gap-2.5 cursor-pointer select-none group shadow-xs shrink-0 whitespace-nowrap"
+              aria-label="Відкрити кошик"
             >
-              <div className="relative shrink-0 mr-0.5 sm:mr-1">
-                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-950 group-hover:scale-115 group-hover:-rotate-6 transition-transform" />
+              <div className="relative shrink-0">
+                <ShoppingBag className="w-4 h-4 text-zinc-950 group-hover:scale-110 transition-transform" />
                 {itemCount > 0 && (
                   <span
                     key={itemCount}
-                    className="absolute -top-2 -right-2 bg-zinc-950 text-white text-[10px] font-black rounded-full h-4 min-w-4 px-1 flex items-center justify-center animate-badge-pop shadow-xs"
+                    className="absolute -top-1.5 -right-2 bg-zinc-950 text-white text-[9px] font-black rounded-full h-3.5 min-w-3.5 px-1 flex items-center justify-center animate-badge-pop"
                   >
                     {itemCount}
                   </span>
                 )}
               </div>
-              
-              <div className="flex flex-col text-left">
-                <span className="text-[9px] sm:text-[10px] uppercase font-semibold text-zinc-700 leading-tight tracking-wide">Кошик</span>
-                <span className="font-extrabold text-xs sm:text-sm leading-tight">{subtotal} ₴</span>
-              </div>
+              <span>Кошик</span>
+              <span className="font-extrabold text-xs px-1.5 py-0.5 rounded-md bg-black/10">
+                {subtotal} ₴
+              </span>
             </motion.button>
           )}
+
         </div>
 
       </div>
     </header>
-    </>
   );
 }

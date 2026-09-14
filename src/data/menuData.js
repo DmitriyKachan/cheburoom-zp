@@ -419,7 +419,17 @@ export const MENU_DATA = {
       isSpicy: false,
       isVegetarian: true,
       image: "/images/dishes/fry-fries.jpg",
-      customizable: false
+      customizable: true,
+      options: {
+        extras: [
+          { id: "sauce-cheese", name: "Сирний соус", price: 25 },
+          { id: "sauce-bbq", name: "Соус Барбекю", price: 25 },
+          { id: "sauce-garlic", name: "Часниковий соус", price: 25 },
+          { id: "sauce-sweet-sour", name: "Кисло-солодкий", price: 25 },
+          { id: "extra-jalapeno", name: "Халапеньйо", price: 20 },
+          { id: "extra-cheese", name: "Подвійний сир", price: 25 }
+        ]
+      }
     },
     {
       id: "fry-mozzarella",
@@ -435,7 +445,16 @@ export const MENU_DATA = {
       isSpicy: false,
       isVegetarian: true,
       image: "/images/dishes/fry-mozzarella.jpg",
-      customizable: false
+      customizable: true,
+      options: {
+        extras: [
+          { id: "sauce-cheese", name: "Сирний соус", price: 25 },
+          { id: "sauce-bbq", name: "Соус Барбекю", price: 25 },
+          { id: "sauce-garlic", name: "Часниковий соус", price: 25 },
+          { id: "sauce-sweet-sour", name: "Кисло-солодкий", price: 25 },
+          { id: "extra-jalapeno", name: "Халапеньйо", price: 20 }
+        ]
+      }
     },
     {
       id: "fry-wings",
@@ -451,7 +470,16 @@ export const MENU_DATA = {
       isSpicy: true,
       isVegetarian: false,
       image: "/images/dishes/fry-wings.jpg",
-      customizable: false
+      customizable: true,
+      options: {
+        extras: [
+          { id: "sauce-cheese", name: "Сирний соус", price: 25 },
+          { id: "sauce-bbq", name: "Соус Барбекю", price: 25 },
+          { id: "sauce-garlic", name: "Часниковий соус", price: 25 },
+          { id: "sauce-sweet-sour", name: "Кисло-солодкий", price: 25 },
+          { id: "extra-jalapeno", name: "Халапеньйо", price: 20 }
+        ]
+      }
     },
     {
       id: "fry-nuggets",
@@ -467,7 +495,16 @@ export const MENU_DATA = {
       isSpicy: false,
       isVegetarian: false,
       image: "/images/dishes/fry-nuggets.jpg",
-      customizable: false
+      customizable: true,
+      options: {
+        extras: [
+          { id: "sauce-cheese", name: "Сирний соус", price: 25 },
+          { id: "sauce-bbq", name: "Соус Барбекю", price: 25 },
+          { id: "sauce-garlic", name: "Часниковий соус", price: 25 },
+          { id: "sauce-sweet-sour", name: "Кисло-солодкий", price: 25 },
+          { id: "extra-jalapeno", name: "Халапеньйо", price: 20 }
+        ]
+      }
     },
 
     // --- РАНКОВЕ МЕНЮ ---
@@ -1033,7 +1070,6 @@ export const MENU_DATA = {
     hours: "Щодня з 9:00 до 20:00",
     instagram: "https://www.instagram.com/cheburoom.zp/",
     instagramUsername: "cheburoom.zp",
-    pickupDiscountPercent: 10,
     estimatedCookTime: "7-12 хв"
   }
 };

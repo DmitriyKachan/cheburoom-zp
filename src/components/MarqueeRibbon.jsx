@@ -37,7 +37,7 @@ export function MarqueeRibbon() {
     },
     {
       icon: "📍",
-      title: "-10% на самовивіз"
+      title: "пр. Соборний, 142 (Запоріжжя)"
     },
     {
       icon: "☕",

@@ -33,11 +33,11 @@ export function CartCheckoutPage() {
     clearCart,
     itemCount,
     subtotal,
-    getDiscount,
     getTotal,
     navigateTo,
     setSuccessOrder,
-    showToast
+    showToast,
+    setSelectedDishForModal
   } = useCart();
 
   // Checkout form state
@@ -50,16 +50,23 @@ export function CartCheckoutPage() {
   const [cutleryCount, setCutleryCount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Takeaway calculations
-  const discount = getDiscount();
+  // Takeaway calculations (no discount)
   const total = getTotal();
 
-  // Cross-sell items (quick additions like coffee, desserts & fries)
+  // Cross-sell items (replaces added dishes dynamically with next candidates)
   const crossSellItems = useMemo(() => {
-    return MENU_DATA.items.filter(
-      item => (item.category === 'coffee' || item.category === 'desserts' || item.category === 'deepfry')
-    ).slice(0, 4);
-  }, []);
+    const candidatePool = MENU_DATA.items.filter(
+      item => (
+        item.category === 'deepfry' ||
+        item.category === 'coffee' ||
+        item.category === 'desserts' ||
+        item.category === 'salads' ||
+        item.category === 'wok'
+      )
+    );
+    const cartDishIds = new Set(items.map(i => i.id));
+    return candidatePool.filter(item => !cartDishIds.has(item.id)).slice(0, 4);
+  }, [items]);
 
   const handlePhoneChange = (e) => {
     let val = e.target.value.replace(/\D/g, '');
@@ -122,7 +129,7 @@ export function CartCheckoutPage() {
 ━━━━━━━━━━━━━━━━━━━━
 👤 Клієнт: ${name}
 📞 Телефон: ${phone}
-📍 Отримання: 🏃 Самовивіз (-10%)
+📍 Отримання: 🏃 Самовивіз
 ⏱ Час: ${timingText}
 🏠 Точка видачі: ${addressStr}
 💳 Оплата: ${payment}
@@ -131,8 +138,7 @@ ${comment.trim() ? '💬 Коментар: ' + comment.trim() + '\n' : ''}━━
 📋 СКЛАД ЗАМОВЛЕННЯ:
 ${itemsText}
 
-💰 Вартість страв: ${subtotal} ₴
-${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\n` : ''}🔥 РАЗОМ ДО СПЛАТИ: ${total} ₴`;
+🔥 РАЗОМ ДО СПЛАТИ: ${total} ₴`;
 
     // Open success modal
     setTimeout(() => {
@@ -142,7 +148,7 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
         phone,
         total,
         subtotal,
-        discount,
+        discount: 0,
         orderType: 'pickup',
         address: addressStr,
         timing: timingText,
@@ -238,15 +244,15 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
             {/* LEFT COLUMN: Cart Review & Takeaway Benefit (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
               
-              {/* Pickup Discount Card */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent dark:from-amber-500/15 dark:via-transparent border border-amber-500/25 shadow-sm">
+              {/* Fast Pickup Card */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] shadow-xs">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-amber-500 text-zinc-950 flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
-                    -10%
+                  <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-black shrink-0 border border-amber-500/20">
+                    <Store className="w-5 h-5 text-amber-500" />
                   </div>
                   <div>
                     <h3 className="text-xs sm:text-sm font-extrabold text-zinc-950 dark:text-white">
-                      Знижка 10% на все замовлення з собою!
+                      Швидкий самовивіз без черги
                     </h3>
                     <p className="text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
                       Готуємо з-під ножа за 7–10 хвилин до вашого приходу • пр. Соборний, 142
@@ -391,41 +397,77 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {crossSellItems.map((dish) => (
-                      <div
-                        key={dish.id}
-                        className="p-3 rounded-2xl bg-zinc-50 dark:bg-[#1A1A22]/50 border border-zinc-200/70 dark:border-[#23232E] flex flex-col justify-between group card-interactive"
-                      >
-                        <div className="overflow-hidden rounded-xl mb-2 h-20">
-                          <img
-                            src={dish.image}
-                            alt={dish.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        </div>
-                        <div>
-                          <p className="font-bold text-xs text-zinc-900 dark:text-white line-clamp-1 leading-snug group-hover:text-amber-500 transition-colors">
-                            {dish.name}
-                          </p>
-                          <span className="text-[11px] text-zinc-400 block mb-2">{dish.weight}</span>
-                        </div>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="font-display font-black text-xs text-zinc-900 dark:text-white">
-                            {dish.price} ₴
-                          </span>
-                          <motion.button
-                            type="button"
-                            whileHover={{ scale: 1.15 }}
-                            whileTap={{ scale: 0.85 }}
-                            onClick={() => addItem(dish)}
-                            className="w-7 h-7 rounded-xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-bold hover:bg-glovo-yellow-hover transition-all shadow-xs cursor-pointer group/plus"
-                            title="Додати до кошика"
+                    <AnimatePresence mode="popLayout">
+                      {crossSellItems.map((dish) => {
+                        const hasExtras = dish.customizable || (dish.options && dish.options.extras && dish.options.extras.length > 0);
+                        return (
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.2 }}
+                            key={dish.id}
+                            onClick={() => setSelectedDishForModal(dish)}
+                            className="p-3 rounded-2xl bg-zinc-50 dark:bg-[#1A1A22]/50 border border-zinc-200/70 dark:border-[#23232E] flex flex-col justify-between group card-interactive cursor-pointer hover:border-amber-400/60 transition-colors"
                           >
-                            <Plus className="w-3.5 h-3.5 group-hover/plus:rotate-90 transition-transform duration-200" />
-                          </motion.button>
-                        </div>
-                      </div>
-                    ))}
+                            <div className="overflow-hidden rounded-xl mb-2 h-20 relative">
+                              <img
+                                src={dish.image}
+                                alt={dish.name}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              />
+                              {hasExtras && (
+                                <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-zinc-950/80 backdrop-blur-xs text-[9px] font-bold text-amber-400 border border-amber-400/30">
+                                  + допи
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-xs text-zinc-900 dark:text-white line-clamp-1 leading-snug group-hover:text-amber-500 transition-colors">
+                                {dish.name}
+                              </p>
+                              <span className="text-[11px] text-zinc-400 block mb-2">{dish.weight}</span>
+                            </div>
+                            <div className="flex items-center justify-between mt-1 pt-1 border-t border-zinc-200/40 dark:border-[#23232E]">
+                              <span className="font-display font-black text-xs text-zinc-900 dark:text-white">
+                                {dish.price} ₴
+                              </span>
+                              {hasExtras ? (
+                                <motion.button
+                                  type="button"
+                                  whileHover={{ scale: 1.08 }}
+                                  whileTap={{ scale: 0.92 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedDishForModal(dish);
+                                  }}
+                                  className="px-2 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-extrabold flex items-center gap-1 transition-all cursor-pointer"
+                                  title="Обрати додатки та соуси"
+                                >
+                                  <Plus className="w-2.5 h-2.5" />
+                                  <span>Допи</span>
+                                </motion.button>
+                              ) : (
+                                <motion.button
+                                  type="button"
+                                  whileHover={{ scale: 1.15 }}
+                                  whileTap={{ scale: 0.85 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addItem(dish);
+                                  }}
+                                  className="w-7 h-7 rounded-xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-bold hover:bg-glovo-yellow-hover transition-all shadow-xs cursor-pointer group/plus"
+                                  title="Додати до кошика"
+                                >
+                                  <Plus className="w-3.5 h-3.5 group-hover/plus:rotate-90 transition-transform duration-200" />
+                                </motion.button>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
                   </div>
                 </div>
               )}
@@ -460,8 +502,8 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                     м. Запоріжжя, {MENU_DATA.info.address}
                   </p>
                   <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 font-semibold flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                    <span>Знижка 10% на все замовлення вже врахована!</span>
+                    <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span>Готуємо свіже з-під ножа за 7–10 хвилин</span>
                   </p>
                 </div>
 
@@ -636,13 +678,6 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                     <span>Страви ({itemCount} шт):</span>
                     <span className="font-bold text-zinc-900 dark:text-white">{subtotal} ₴</span>
                   </div>
-
-                  {discount > 0 && (
-                    <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
-                      <span>Знижка на самовивіз (-10%):</span>
-                      <span>-{discount} ₴</span>
-                    </div>
-                  )}
 
                   <div className="flex justify-between items-baseline text-base font-black pt-2.5 border-t border-zinc-200 dark:border-[#23232E] text-zinc-950 dark:text-white">
                     <span>Разом до сплати:</span>

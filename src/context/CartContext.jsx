@@ -165,13 +165,9 @@ export function CartProvider({ children }) {
 
   const getDeliveryFee = () => 0;
 
-  const getDiscount = () => {
-    return Math.round(subtotal * 0.10);
-  };
+  const getDiscount = () => 0;
 
-  const getTotal = () => {
-    return Math.max(0, subtotal - getDiscount());
-  };
+  const getTotal = () => subtotal;
 
   return (
     <CartContext.Provider

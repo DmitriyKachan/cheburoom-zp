@@ -145,7 +145,7 @@ export function DishModal() {
             {dish.options?.extras && dish.options.extras.length > 0 && (
               <div className="mb-4">
                 <h4 className="text-xs font-display font-bold text-zinc-950 dark:text-white mb-2">
-                  Додати до начинки:
+                  {dish.category === 'chebureks' ? 'Додати до начинки:' : 'Додати соуси та додатки:'}
                 </h4>
                 <div className="space-y-2">
                   {dish.options.extras.map(extra => {

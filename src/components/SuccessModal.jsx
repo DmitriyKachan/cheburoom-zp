@@ -177,12 +177,6 @@ export function SuccessModal() {
                   <span className="font-semibold text-zinc-950 dark:text-white">{successOrder.subtotal} ₴</span>
                 </div>
               )}
-              {successOrder.discount > 0 && (
-                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
-                  <span>Знижка (самовивіз -10%):</span>
-                  <span>-{successOrder.discount} ₴</span>
-                </div>
-              )}
               <div className="flex justify-between items-baseline pt-2 border-t border-amber-200 dark:border-amber-900/50">
                 <span className="font-display font-black text-sm text-zinc-950 dark:text-white">
                   Разом до сплати:
