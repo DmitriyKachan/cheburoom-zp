@@ -558,10 +558,10 @@ export function AdminPage() {
       
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 bg-[#121218]/95 backdrop-blur-md border-b border-zinc-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           
           {/* Logo & Status */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <CheburoomLogo size="sm" />
             <span className="hidden sm:inline-block h-4 w-px bg-zinc-800" />
             <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-800 text-[11px] font-bold text-emerald-400">
@@ -576,8 +576,8 @@ export function AdminPage() {
             </div>
           </div>
 
-          {/* Nav Tabs */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          {/* Desktop Nav Tabs */}
+          <div className="hidden sm:flex items-center gap-1 sm:gap-2">
             <button
               type="button"
               onClick={() => setActiveTab('menu')}
@@ -623,8 +623,7 @@ export function AdminPage() {
               }`}
             >
               <Database className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Хмара та Безпека</span>
-              <span className="sm:hidden">Хмара</span>
+              <span>Хмара та Безпека</span>
               {isCloudConnected && (
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
               )}
@@ -632,17 +631,17 @@ export function AdminPage() {
           </div>
 
           {/* Right Action: Site & Logout */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <motion.button
               type="button"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigateTo('menu')}
-              className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
               title="Перейти на сайт ресторану"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">На сайт</span>
+              <span className="text-[11px] sm:text-xs">На сайт</span>
             </motion.button>
 
             <motion.button
@@ -658,6 +657,62 @@ export function AdminPage() {
           </div>
 
         </div>
+
+        {/* Mobile Navigation Segmented Control */}
+        <div className="sm:hidden px-3 py-2 bg-[#0E0E14] border-t border-zinc-800/80">
+          <div className="grid grid-cols-3 gap-1 p-1 bg-zinc-950 rounded-2xl border border-zinc-800">
+            <button
+              type="button"
+              onClick={() => setActiveTab('menu')}
+              className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'menu'
+                  ? 'bg-amber-400 text-zinc-950 font-black shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[11px] truncate">Меню ({menuItems.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('orders')}
+              className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer relative ${
+                activeTab === 'orders'
+                  ? 'bg-amber-400 text-zinc-950 font-black shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[11px] truncate">Замовлення</span>
+              {ordersHistory.length > 0 && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black ${
+                  activeTab === 'orders'
+                    ? 'bg-zinc-950 text-amber-400'
+                    : 'bg-rose-500 text-white animate-pulse'
+                }`}>
+                  {ordersHistory.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('security')}
+              className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'security'
+                  ? 'bg-amber-400 text-zinc-950 font-black shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Database className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[11px] truncate">Хмара / БД</span>
+              {isCloudConnected && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+              )}
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* Main Container */}
@@ -672,7 +727,7 @@ export function AdminPage() {
             {/* Action Bar */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <div>
-                <h1 className="font-display font-black text-xl sm:text-2xl text-white">
+                <h1 className="font-display font-black text-lg sm:text-2xl text-white">
                   Керування меню ресторану
                 </h1>
                 <p className="text-xs text-zinc-400 mt-0.5">
@@ -682,7 +737,7 @@ export function AdminPage() {
 
               <motion.button
                 type="button"
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => {
                   setIsNewDish(true);
@@ -701,7 +756,7 @@ export function AdminPage() {
                     customizable: true
                   });
                 }}
-                className="px-4 py-2.5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-amber-500/15"
+                className="w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-amber-500/15 active:scale-98 transition-all"
               >
                 <Plus className="w-4 h-4" />
                 <span>Додати нову страву</span>
@@ -709,18 +764,18 @@ export function AdminPage() {
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between bg-[#13131A] p-3 rounded-2xl border border-zinc-800">
+            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between bg-[#13131A] p-2.5 sm:p-3 rounded-2xl border border-zinc-800">
               
-              {/* Category Pills */}
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+              {/* Category Pills (Touch-scrollable) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 -mx-1 px-1 touch-pan-x">
                 {CATEGORIES.map(cat => (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                    className={`px-3.5 py-2 sm:py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 min-h-[36px] flex items-center ${
                       selectedCategory === cat.id
-                        ? 'bg-amber-500 text-zinc-950'
+                        ? 'bg-amber-400 text-zinc-950 shadow-sm'
                         : 'bg-zinc-800/80 text-zinc-400 hover:text-white'
                     }`}
                   >
@@ -737,20 +792,20 @@ export function AdminPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Швидкий пошук страви..."
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder:text-zinc-500 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  className="w-full pl-8 pr-3 py-2 sm:py-1.5 text-xs rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder:text-zinc-500 focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>
 
             </div>
 
             {/* Dishes List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filteredDishes.map((dish) => {
                 const isAvail = dish.available !== false;
                 return (
                   <div
                     key={dish.id}
-                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between group ${
+                    className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col justify-between group ${
                       isAvail
                         ? 'bg-[#14141B] border-zinc-800 hover:border-zinc-700'
                         : 'bg-[#14141B]/50 border-rose-950/60 opacity-80'
@@ -758,14 +813,14 @@ export function AdminPage() {
                   >
                     {/* Top Row: Image & Info */}
                     <div className="flex gap-3 items-start">
-                      <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-zinc-900 shrink-0 border border-zinc-800">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-zinc-900 shrink-0 border border-zinc-800">
                         <img
                           src={dish.image}
                           alt={dish.name}
                           className={`w-full h-full object-cover ${!isAvail ? 'grayscale' : ''}`}
                         />
                         {!isAvail && (
-                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-[9px] font-black text-rose-400 text-center uppercase p-0.5">
+                          <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-[10px] font-black text-rose-400 text-center uppercase p-0.5">
                             Стоп
                           </div>
                         )}
@@ -804,19 +859,19 @@ export function AdminPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {/* Stop-list button */}
                         <button
                           type="button"
                           onClick={() => toggleDishAvailability(dish.id)}
-                          className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1 ${
+                          className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1 min-h-[36px] active:scale-95 ${
                             isAvail
                               ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/80 hover:bg-rose-950 hover:text-rose-400 hover:border-rose-800'
                               : 'bg-rose-950/80 text-rose-400 border border-rose-800 hover:bg-emerald-950 hover:text-emerald-400'
                           }`}
                           title={isAvail ? "Поставити в стоп-лист" : "Повернути в наявність"}
                         >
-                          {isAvail ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                          {isAvail ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                           <span>{isAvail ? 'В наявності' : 'Стоп'}</span>
                         </button>
 
@@ -827,10 +882,10 @@ export function AdminPage() {
                             setIsNewDish(false);
                             setEditingDish({ ...dish });
                           }}
-                          className="w-7 h-7 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center transition-colors cursor-pointer active:scale-95 border border-zinc-700/60"
                           title="Редагувати страву"
                         >
-                          <Edit2 className="w-3.5 h-3.5" />
+                          <Edit2 className="w-4 h-4" />
                         </button>
 
                         {/* Delete Button */}
@@ -842,10 +897,10 @@ export function AdminPage() {
                               showToast(`Страву «${dish.name}» видалено`);
                             }
                           }}
-                          className="w-7 h-7 rounded-xl bg-zinc-800 hover:bg-rose-950 hover:text-rose-400 text-zinc-400 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-9 h-9 rounded-xl bg-zinc-800 hover:bg-rose-950 hover:text-rose-400 text-zinc-400 flex items-center justify-center transition-colors cursor-pointer active:scale-95 border border-zinc-700/60"
                           title="Видалити страву"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -878,11 +933,11 @@ export function AdminPage() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => createTestOrder()}
-                  className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                  className="px-3.5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all"
                   title="Згенерувати тестове замовлення клієнта"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -895,7 +950,7 @@ export function AdminPage() {
                     playKitchenChime();
                     showToast('🔔 Звуковий сигнал кухні перевірено');
                   }}
-                  className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer border border-zinc-700 transition-colors"
+                  className="px-3.5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-zinc-700 active:scale-95 transition-colors"
                   title="Перевірити звук дзвінка замовлення"
                 >
                   <span>🔔 Перевірити звук</span>
@@ -909,16 +964,17 @@ export function AdminPage() {
                         clearOrdersHistory();
                       }
                     }}
-                    className="px-3 py-2 rounded-xl bg-zinc-800/80 hover:bg-rose-950 hover:text-rose-400 text-xs font-bold text-zinc-400 transition-colors cursor-pointer border border-zinc-800"
+                    className="col-span-2 sm:col-span-1 px-3.5 py-2.5 rounded-xl bg-zinc-800/80 hover:bg-rose-950 hover:text-rose-400 text-xs font-bold text-zinc-400 transition-colors cursor-pointer border border-zinc-800 flex items-center justify-center gap-1.5 active:scale-95"
                   >
-                    Очистити
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Очистити всю історію</span>
                   </button>
                 )}
               </div>
             </div>
 
             {ordersHistory.length === 0 ? (
-              <div className="p-10 sm:p-14 text-center rounded-3xl bg-[#13131A] border border-zinc-800">
+              <div className="p-8 sm:p-14 text-center rounded-3xl bg-[#13131A] border border-zinc-800">
                 <ShoppingBag className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
                 <h3 className="font-bold text-base text-zinc-200 mb-1">
                   Нових замовлень поки немає
@@ -929,7 +985,7 @@ export function AdminPage() {
                 <button
                   type="button"
                   onClick={() => createTestOrder()}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-zinc-950 text-xs font-black shadow-lg shadow-amber-400/20 cursor-pointer transition-all"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-zinc-950 text-xs font-black shadow-lg shadow-amber-400/20 cursor-pointer active:scale-98 transition-all"
                 >
                   <Sparkles className="w-4 h-4 text-zinc-950" />
                   <span>Створити тестове замовлення для перевірки</span>
@@ -948,10 +1004,10 @@ export function AdminPage() {
                   return (
                     <div
                       key={order.orderId}
-                      className="p-4 sm:p-5 rounded-2xl bg-[#13131A] border border-zinc-800 space-y-3"
+                      className="p-3.5 sm:p-5 rounded-2xl bg-[#13131A] border border-zinc-800 space-y-3"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800">
-                        <div className="flex items-center gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-zinc-800">
+                        <div className="flex items-center justify-between sm:justify-start gap-2.5">
                           <span className="font-mono font-black text-sm px-2.5 py-1 rounded-xl bg-zinc-900 border border-zinc-700 text-amber-400">
                             #{order.orderId}
                           </span>
@@ -961,11 +1017,11 @@ export function AdminPage() {
                         </div>
 
                         {/* Status dropdown & delete button */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
                           <select
                             value={order.status || 'new'}
                             onChange={(e) => updateOrderStatus(order.orderId, e.target.value)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border focus:outline-none cursor-pointer ${statusColors[order.status || 'new']}`}
+                            className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold border focus:outline-none cursor-pointer min-h-[38px] ${statusColors[order.status || 'new']}`}
                           >
                             <option value="new">🟡 Нове замовлення</option>
                             <option value="preparing">🔵 Готується на кухні</option>
@@ -979,7 +1035,7 @@ export function AdminPage() {
                                 deleteOrder(order.orderId);
                               }
                             }}
-                            className="p-1.5 rounded-xl bg-zinc-900/80 hover:bg-rose-950 text-zinc-500 hover:text-rose-400 border border-zinc-800 hover:border-rose-800/60 transition-colors cursor-pointer"
+                            className="w-10 h-10 rounded-xl bg-zinc-900/80 hover:bg-rose-950 text-zinc-400 hover:text-rose-400 border border-zinc-800 hover:border-rose-800/60 transition-colors cursor-pointer flex items-center justify-center shrink-0 active:scale-95"
                             title="Видалити це замовлення"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -988,23 +1044,24 @@ export function AdminPage() {
                       </div>
 
                       {/* Customer Details */}
-                      <div className="flex flex-wrap gap-4 text-xs">
-                        <div className="flex items-center gap-1.5 text-zinc-300">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-300 font-bold">
                           <User className="w-3.5 h-3.5 text-zinc-500" />
-                          <span className="font-bold">{order.name}</span>
+                          <span>{order.name}</span>
                         </div>
                         <a
                           href={`tel:${order.phone}`}
-                          className="flex items-center gap-1.5 text-amber-400 hover:underline font-bold"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 font-bold active:scale-95 transition-all cursor-pointer"
+                          title="Подзвонити гостю"
                         >
                           <Phone className="w-3.5 h-3.5" />
                           <span>{order.phone}</span>
                         </a>
-                        <div className="text-zinc-400">
+                        <div className="px-2.5 py-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-zinc-400">
                           Оплата: <strong className="text-zinc-200">{order.payment}</strong>
                         </div>
                         {order.cutleryCount > 0 && (
-                          <div className="text-zinc-400">
+                          <div className="px-2.5 py-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-zinc-400">
                             Прибори: <strong className="text-zinc-200">{order.cutleryCount} шт.</strong>
                           </div>
                         )}
@@ -1127,12 +1184,12 @@ export function AdminPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-2.5 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 <button
                   type="button"
                   disabled={isTestingFirebase}
                   onClick={handleTestCurrentCloud}
-                  className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-display font-black text-xs flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50 transition-colors"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-display font-black text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-50 active:scale-98 transition-all min-h-[42px]"
                 >
                   {isTestingFirebase ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
@@ -1148,7 +1205,7 @@ export function AdminPage() {
                     createTestOrder();
                     showToast('Тестове замовлення надіслано в хмару!');
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center gap-2 cursor-pointer border border-zinc-700 transition-colors"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-zinc-700 active:scale-98 transition-all min-h-[42px]"
                 >
                   <Plus className="w-3.5 h-3.5 text-amber-400" />
                   <span>🔔 Надіслати тестове замовлення</span>
@@ -1158,21 +1215,21 @@ export function AdminPage() {
                   type="button"
                   disabled={isUploadingToCloud}
                   onClick={handleUploadMenuToCloud}
-                  className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center gap-2 cursor-pointer border border-zinc-700 disabled:opacity-50 transition-colors"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-zinc-700 disabled:opacity-50 active:scale-98 transition-all min-h-[42px]"
                 >
                   {isUploadingToCloud ? (
                     <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
                   ) : (
                     <Upload className="w-4 h-4 text-emerald-400" />
                   )}
-                  <span>{isUploadingToCloud ? 'Синхронізація...' : '☁️ Синхронізувати меню на всі пристрої'}</span>
+                  <span>{isUploadingToCloud ? 'Синхронізація...' : '☁️ Синхронізувати меню'}</span>
                 </button>
 
                 <button
                   type="button"
                   disabled={isDiagnosing}
                   onClick={handleRunDbDiagnostics}
-                  className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center gap-2 cursor-pointer border border-zinc-700 disabled:opacity-50 transition-colors"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-zinc-700 disabled:opacity-50 active:scale-98 transition-all min-h-[42px]"
                 >
                   {isDiagnosing ? (
                     <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
@@ -1186,7 +1243,7 @@ export function AdminPage() {
                   <button
                     type="button"
                     onClick={handleDisconnectCloud}
-                    className="px-3.5 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-bold border border-rose-800/60 cursor-pointer transition-colors"
+                    className="sm:col-span-2 w-full px-4 py-3 sm:py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-bold border border-rose-800/60 cursor-pointer transition-colors text-center"
                   >
                     Відключити Firebase
                   </button>
@@ -1408,11 +1465,11 @@ export function AdminPage() {
                 Збережіть усі ваші страви, налаштовані ціни та завантажені фотографії у безпечний файл резервної копії (.json) або відновіть дані на іншому пристрої.
               </p>
 
-              <div className="flex flex-wrap gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={exportMenuBackup}
-                  className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center gap-2 cursor-pointer border border-zinc-700"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-zinc-700 active:scale-[0.98] transition-all"
                 >
                   <Download className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Зберегти резервну копію (.json)</span>
@@ -1429,7 +1486,7 @@ export function AdminPage() {
                 <button
                   type="button"
                   onClick={() => backupFileInputRef.current?.click()}
-                  className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center gap-2 cursor-pointer border border-zinc-700"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-zinc-700 active:scale-[0.98] transition-all"
                 >
                   <Upload className="w-3.5 h-3.5 text-blue-400" />
                   <span>Відновити з файлу</span>
@@ -1443,7 +1500,7 @@ export function AdminPage() {
                       showToast('Меню скинуто до стандартного');
                     }
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-bold flex items-center gap-2 cursor-pointer border border-rose-800/60"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-rose-800/60 active:scale-[0.98] transition-all"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
                   <span>Скинути до заводського</span>
@@ -1462,7 +1519,7 @@ export function AdminPage() {
       <AnimatePresence>
         {editingDish && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-sm"
             onClick={() => setEditingDish(null)}
           >
             <motion.div
@@ -1470,24 +1527,24 @@ export function AdminPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg bg-[#14141C] rounded-3xl overflow-hidden border border-zinc-800 shadow-2xl flex flex-col max-h-[92vh]"
+              className="w-full max-w-lg bg-[#14141C] rounded-3xl overflow-hidden border border-zinc-800 shadow-2xl flex flex-col max-h-[94vh] sm:max-h-[90vh]"
             >
               {/* Modal Header */}
-              <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0">
-                <h3 className="font-display font-black text-base text-white">
+              <div className="p-4 sm:p-5 border-b border-zinc-800 flex items-center justify-between shrink-0">
+                <h3 className="font-display font-black text-sm sm:text-base text-white truncate pr-2">
                   {isNewDish ? 'Нова страва в меню' : `Редагування: ${editingDish.name}`}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setEditingDish(null)}
-                  className="w-8 h-8 rounded-full bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center cursor-pointer shrink-0 active:scale-90 transition-transform"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Modal Form Content */}
-              <form onSubmit={handleSaveDish} className="p-5 overflow-y-auto flex-1 space-y-4 text-xs">
+              <form id="dish-form" onSubmit={handleSaveDish} className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4 text-xs">
                 
                 {/* Instant Test Sample preset */}
                 {isNewDish && (
@@ -1515,7 +1572,7 @@ export function AdminPage() {
                         });
                         showToast('Дані та фото новинки підставлено!');
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black text-[11px] cursor-pointer transition-colors shrink-0"
+                      className="px-2.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black text-[11px] cursor-pointer transition-colors shrink-0 active:scale-95"
                     >
                       Вставити зразок
                     </button>
@@ -1527,17 +1584,17 @@ export function AdminPage() {
                   <label className="block text-xs font-bold text-zinc-300 mb-1.5">
                     Фотографія страви:
                   </label>
-                  <div className="flex gap-4 items-center">
-                    <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-700 shrink-0">
+                  <div className="flex flex-col sm:flex-row gap-3 items-center sm:items-start">
+                    <div className="relative w-28 h-28 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-700 shrink-0">
                       <img
                         src={editingDish.image}
                         alt="Preview"
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div className="space-y-2 flex-1">
-                      <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 font-bold text-xs cursor-pointer transition-colors">
-                        <Camera className="w-3.5 h-3.5" />
+                    <div className="space-y-2 flex-1 w-full">
+                      <label className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 font-bold text-xs cursor-pointer transition-colors w-full active:scale-[0.98]">
+                        <Camera className="w-4 h-4" />
                         <span>Завантажити фото з пристрою</span>
                         <input
                           type="file"
@@ -1551,7 +1608,7 @@ export function AdminPage() {
                         value={editingDish.image || ''}
                         onChange={(e) => setEditingDish({ ...editingDish, image: e.target.value })}
                         placeholder="Або вставте посилання на зображення..."
-                        className="w-full px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 text-[11px] focus:outline-none"
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs focus:outline-none focus:border-amber-500"
                       />
                     </div>
                   </div>
@@ -1568,12 +1625,12 @@ export function AdminPage() {
                     value={editingDish.name}
                     onChange={(e) => setEditingDish({ ...editingDish, name: e.target.value })}
                     placeholder="Наприклад: Чебурек з лососем"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white font-bold text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
                   />
                 </div>
 
                 {/* Category & Weight */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-zinc-300 mb-1">
                       Категорія:
@@ -1581,7 +1638,7 @@ export function AdminPage() {
                     <select
                       value={editingDish.category}
                       onChange={(e) => setEditingDish({ ...editingDish, category: e.target.value })}
-                      className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                      className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white font-bold text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
                     >
                       <option value="chebureks">Чебуреки</option>
                       <option value="wok">WOK</option>
@@ -1604,7 +1661,7 @@ export function AdminPage() {
                       value={editingDish.weight}
                       onChange={(e) => setEditingDish({ ...editingDish, weight: e.target.value })}
                       placeholder="180 г"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -1620,7 +1677,7 @@ export function AdminPage() {
                     min="1"
                     value={editingDish.price}
                     onChange={(e) => setEditingDish({ ...editingDish, price: parseInt(e.target.value, 10) || 0 })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-amber-400 font-display font-black text-base focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-amber-400 font-display font-black text-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
                   />
                 </div>
 
@@ -1634,12 +1691,12 @@ export function AdminPage() {
                     value={editingDish.desc || editingDish.shortDesc || ''}
                     onChange={(e) => setEditingDish({ ...editingDish, desc: e.target.value, shortDesc: e.target.value })}
                     placeholder="Детальний опис для гостя..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none resize-none leading-relaxed"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none resize-none leading-relaxed"
                   />
                 </div>
 
                 {/* Dish Status & Badges Section */}
-                <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-bold text-zinc-200">
                       Статус та маркування страви (бейдж):
@@ -1689,7 +1746,7 @@ export function AdminPage() {
                               });
                             }
                           }}
-                          className={`p-2 rounded-xl border text-[11px] font-bold transition-all cursor-pointer text-left flex items-center justify-between ${
+                          className={`min-h-[38px] p-2 rounded-xl border text-[11px] font-bold transition-all cursor-pointer text-left flex items-center justify-between active:scale-95 ${
                             isSelected
                               ? 'bg-amber-500/20 border-amber-500 text-amber-300 ring-1 ring-amber-500/50'
                               : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
@@ -1704,7 +1761,7 @@ export function AdminPage() {
 
                   {/* Custom Badge Text Input */}
                   <div className="pt-2 border-t border-zinc-800/80 flex flex-wrap sm:flex-nowrap gap-2 items-center">
-                    <div className="flex-1 min-w-[160px]">
+                    <div className="flex-1 min-w-[140px] w-full sm:w-auto">
                       <input
                         type="text"
                         value={editingDish.badge || ''}
@@ -1718,7 +1775,7 @@ export function AdminPage() {
                           });
                         }}
                         placeholder="Власний текст бейджа (наприклад: Сезонне, Шеф-рецепт)..."
-                        className="w-full px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-700 text-white text-xs placeholder:text-zinc-500 focus:outline-none focus:border-amber-500"
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-700 text-white text-xs placeholder:text-zinc-500 focus:outline-none focus:border-amber-500"
                       />
                     </div>
 
@@ -1736,8 +1793,8 @@ export function AdminPage() {
                             key={c.id}
                             type="button"
                             onClick={() => setEditingDish({ ...editingDish, badgeColor: c.id })}
-                            className={`w-5 h-5 rounded-md ${c.bg} transition-transform cursor-pointer flex items-center justify-center ${
-                              (editingDish.badgeColor || 'amber') === c.id ? 'scale-120 ring-2 ring-white shadow-sm' : 'opacity-60 hover:opacity-100'
+                            className={`w-6 h-6 rounded-md ${c.bg} transition-transform cursor-pointer flex items-center justify-center active:scale-90 ${
+                              (editingDish.badgeColor || 'amber') === c.id ? 'scale-115 ring-2 ring-white shadow-sm' : 'opacity-60 hover:opacity-100'
                             }`}
                             title={c.title}
                           />
@@ -1772,24 +1829,26 @@ export function AdminPage() {
                   </div>
                 </div>
 
-                {/* Modal Buttons */}
-                <div className="pt-3 border-t border-zinc-800 flex justify-end gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setEditingDish(null)}
-                    className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs cursor-pointer"
-                  >
-                    Скасувати
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-xs cursor-pointer shadow-sm"
-                  >
-                    Зберегти зміни
-                  </button>
-                </div>
-
               </form>
+
+              {/* Modal Sticky Footer */}
+              <div className="p-3 sm:p-4 border-t border-zinc-800 bg-[#121218] flex items-center justify-end gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setEditingDish(null)}
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs cursor-pointer active:scale-95 transition-all"
+                >
+                  Скасувати
+                </button>
+                <button
+                  type="submit"
+                  form="dish-form"
+                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-xs cursor-pointer shadow-sm active:scale-95 transition-all"
+                >
+                  {isNewDish ? 'Створити страву' : 'Зберегти зміни'}
+                </button>
+              </div>
+
             </motion.div>
           </div>
         )}
