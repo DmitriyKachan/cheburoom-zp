@@ -23,21 +23,12 @@ export function App() {
   
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTag, setActiveTag] = useState(null);
 
   // Filter items
   let filteredItems = MENU_DATA.items;
 
   if (activeCategory !== 'all') {
     filteredItems = filteredItems.filter(i => i.category === activeCategory);
-  }
-
-  if (activeTag === 'hit') {
-    filteredItems = filteredItems.filter(i => i.isHit);
-  } else if (activeTag === 'spicy') {
-    filteredItems = filteredItems.filter(i => i.isSpicy);
-  } else if (activeTag === 'veg') {
-    filteredItems = filteredItems.filter(i => i.isVegetarian);
   }
 
   if (searchQuery.trim()) {
@@ -92,8 +83,6 @@ export function App() {
                   onSelectCategory={setActiveCategory}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
-                  activeTag={activeTag}
-                  onSelectTag={setActiveTag}
                 />
 
                 {filteredItems.length === 0 ? (
@@ -102,13 +91,12 @@ export function App() {
                       Страв не знайдено
                     </h3>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4 max-w-sm mx-auto">
-                      Спробуйте змінити пошуковий запит або скинути фільтри.
+                      Спробуйте змінити пошуковий запит.
                     </p>
                     <button
                       type="button"
                       onClick={() => {
                         setActiveCategory('all');
-                        setActiveTag(null);
                         setSearchQuery('');
                       }}
                       className="px-5 py-2.5 rounded-2xl bg-glovo-yellow text-zinc-950 text-xs font-bold shadow-sm cursor-pointer"

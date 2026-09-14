@@ -17,16 +17,6 @@ export function Hero() {
           {/* Left: Headline & Delivery Badges */}
           <div className="lg:col-span-7 text-center lg:text-left">
             
-            {/* Quick Delivery Tag */}
-            <motion.div 
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-glovo-yellow text-zinc-950 font-bold text-xs mb-5 shadow-sm animate-float select-none"
-            >
-              <Bike className="w-4 h-4 text-zinc-950" />
-              <span>Швидка доставка по Запоріжжю за 25–40 хв</span>
-            </motion.div>
-
             {/* Headline */}
             <motion.h1 
               initial={{ opacity: 0, y: 16 }}
