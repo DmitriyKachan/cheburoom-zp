@@ -6,7 +6,8 @@ import {
   isAdminAuthenticated,
   logoutAdmin,
   changeAdminPassword,
-  getLockoutRemainingSeconds
+  getLockoutRemainingSeconds,
+  resetAdminLockout
 } from '../../services/adminAuthService';
 import { playKitchenChime } from '../../services/orderSyncService';
 import {
@@ -301,6 +302,10 @@ export function AdminPage() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck="false"
+                    inputMode="text"
                     disabled={lockoutSec > 0 || isSubmittingAuth}
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
@@ -319,11 +324,25 @@ export function AdminPage() {
 
               {/* Error / Lockout alert */}
               {lockoutSec > 0 ? (
-                <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 shrink-0 text-rose-400" />
-                  <span>
-                    Захисне блокування: зачекайте <strong>{lockoutSec} сек.</strong>
-                  </span>
+                <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-800 text-rose-300 text-xs flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 shrink-0 text-rose-400" />
+                    <span>
+                      Захисне блокування: зачекайте <strong>{lockoutSec} сек.</strong>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetAdminLockout();
+                      setLockoutSec(0);
+                      setAuthError('');
+                      showToast('Блокування скинуто');
+                    }}
+                    className="px-2 py-1 rounded-lg bg-rose-900/80 hover:bg-rose-800 text-rose-200 text-[10px] font-bold cursor-pointer transition-colors shrink-0"
+                  >
+                    Скинути
+                  </button>
                 </div>
               ) : authError ? (
                 <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/80 text-rose-300 text-xs flex items-center gap-2">
