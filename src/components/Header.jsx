@@ -11,10 +11,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-[#09090B] border-b border-zinc-200 dark:border-[#23232E] transition-colors">
       {/* RnR / Glovo Top Delivery Promo Bar */}
-      <div className="bg-glovo-yellow text-zinc-950 font-bold text-xs h-7 px-3 sm:px-4 text-center flex items-center justify-center gap-2 overflow-hidden select-none">
-        <Sparkles className="w-3.5 h-3.5 shrink-0 animate-pulse" />
-        <span className="truncate whitespace-nowrap text-[11px] sm:text-xs">
-          Безкоштовна доставка від 450 ₴ по Запоріжжю • Готуємо свіже за 10 хв
+      <div className="bg-glovo-yellow text-zinc-950 font-bold h-7 px-3 sm:px-4 text-center flex items-center justify-center gap-1.5 sm:gap-2 select-none">
+        <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse text-zinc-950" />
+        <span className="text-[10.5px] sm:text-xs font-bold text-zinc-950 tracking-tight whitespace-nowrap">
+          <span className="sm:hidden">Безкоштовна доставка від 450 ₴ • Свіже за 10 хв</span>
+          <span className="hidden sm:inline">Безкоштовна доставка від 450 ₴ по Запоріжжю • Готуємо свіже за 10 хв</span>
         </span>
       </div>
 
