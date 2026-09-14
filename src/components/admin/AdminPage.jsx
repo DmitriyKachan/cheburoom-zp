@@ -7,7 +7,8 @@ import {
   logoutAdmin,
   changeAdminPassword,
   getLockoutRemainingSeconds,
-  resetAdminLockout
+  resetAdminLockout,
+  syncCurrentPasswordToCloud
 } from '../../services/adminAuthService';
 import { playKitchenChime, testCloudRelay, diagnoseDatabaseHealth } from '../../services/orderSyncService';
 import {
@@ -124,6 +125,7 @@ export function AdminPage() {
     createTestOrder,
     updateOrderStatus,
     clearOrdersHistory,
+    deleteOrder,
     navigateTo,
     showToast,
     isCloudConnected,
@@ -170,6 +172,13 @@ export function AdminPage() {
     }, 1000);
     return () => clearInterval(timer);
   }, [lockoutSec]);
+
+  // When authenticated, ensure current password hash is synced to cloud for mobile devices
+  useEffect(() => {
+    if (isAuthenticated) {
+      syncCurrentPasswordToCloud();
+    }
+  }, [isAuthenticated]);
 
   // Login handler
   const handleLogin = async (e) => {
@@ -503,10 +512,10 @@ export function AdminPage() {
 
             <div className="pt-3 border-t border-zinc-800/80 text-center space-y-2">
               <p className="text-[11px] text-zinc-300">
-                За замовчуванням пароль: <code className="bg-zinc-800 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">chebu2026</code>
+                Пароль за замовчуванням: <code className="bg-zinc-800 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">chebu2026</code> або <code className="bg-zinc-800 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">123456</code>
               </p>
               <p className="text-[10px] text-zinc-400">
-                💡 Підходить з англійської (<span className="text-amber-300 font-mono">chebu2026</span>) та української (<span className="text-amber-300 font-mono">чебу2026</span>) клавіатури, з великої або маленької літери.
+                💡 Підходить з англійської (<span className="text-amber-300 font-mono">chebu2026</span>) та української (<span className="text-amber-300 font-mono">чебу2026</span>) розкладки, або <span className="text-amber-300 font-mono">123456</span>. Змінені паролі миттєво синхронізуються між ПК та телефонами через хмару.
               </p>
               {authError && (
                 <div className="pt-1">
@@ -896,9 +905,8 @@ export function AdminPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (window.confirm('Очистити історію замовлень?')) {
+                      if (window.confirm('Очистити всю історію замовлень? Вони будуть видалені на всіх пристроях.')) {
                         clearOrdersHistory();
-                        showToast('Історію очищено');
                       }
                     }}
                     className="px-3 py-2 rounded-xl bg-zinc-800/80 hover:bg-rose-950 hover:text-rose-400 text-xs font-bold text-zinc-400 transition-colors cursor-pointer border border-zinc-800"
@@ -952,7 +960,7 @@ export function AdminPage() {
                           </span>
                         </div>
 
-                        {/* Status dropdown */}
+                        {/* Status dropdown & delete button */}
                         <div className="flex items-center gap-2">
                           <select
                             value={order.status || 'new'}
@@ -964,6 +972,18 @@ export function AdminPage() {
                             <option value="ready">🟢 Готове до видачі</option>
                             <option value="completed">⚪ Видано клієнту</option>
                           </select>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm(`Видалити замовлення #${order.orderId}?`)) {
+                                deleteOrder(order.orderId);
+                              }
+                            }}
+                            className="p-1.5 rounded-xl bg-zinc-900/80 hover:bg-rose-950 text-zinc-500 hover:text-rose-400 border border-zinc-800 hover:border-rose-800/60 transition-colors cursor-pointer"
+                            title="Видалити це замовлення"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
 

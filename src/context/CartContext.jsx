@@ -3,6 +3,8 @@ import { MENU_DATA } from '../data/menuData';
 import {
   broadcastNewOrder,
   broadcastOrderStatus,
+  broadcastClearOrders,
+  broadcastDeleteOrder,
   subscribeToOrders,
   broadcastMenuAction,
   subscribeToMenuActions,
@@ -12,6 +14,7 @@ import {
   testCloudRelay,
   playKitchenChime
 } from '../services/orderSyncService';
+import { syncCurrentPasswordToCloud } from '../services/adminAuthService';
 import {
   isFirebaseConfigured,
   subscribeToCloudMenu,
@@ -89,24 +92,46 @@ export function CartProvider({ children }) {
 
   // Real-time synchronization: AutoCloud SSE Relay + Cloud Firestore
   useEffect(() => {
+    // Sync current admin password to cloud on startup if set
+    syncCurrentPasswordToCloud();
+
     // 0. Initial Cloud Hydration: fetch existing orders and menu actions from the cloud
     fetchHistoricalCloudOrders().then((cloudOrders) => {
-      if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
-        setOrdersHistory((prev) => {
-          const map = new Map();
-          cloudOrders.forEach(o => { if (o && o.orderId) map.set(o.orderId, o); });
-          prev.forEach(o => { if (o && o.orderId && !map.has(o.orderId)) map.set(o.orderId, o); });
-          const merged = Array.from(map.values()).sort((a, b) => {
-            const tA = new Date(a.createdAt || 0).getTime();
-            const tB = new Date(b.createdAt || 0).getTime();
-            return tB - tA;
+      const localCleared = parseInt(localStorage.getItem('cheburoom_orders_cleared_at') || '0', 10);
+      const localDeleted = new Set(JSON.parse(localStorage.getItem('cheburoom_deleted_orders') || '[]'));
+
+      setOrdersHistory((prev) => {
+        const map = new Map();
+        if (Array.isArray(cloudOrders)) {
+          cloudOrders.forEach(o => {
+            if (o && o.orderId && !localDeleted.has(o.orderId)) {
+              const orderTime = new Date(o.createdAt || 0).getTime();
+              if (localCleared === 0 || orderTime > localCleared) {
+                map.set(o.orderId, o);
+              }
+            }
           });
-          try {
-            localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(merged));
-          } catch {}
-          return merged;
+        }
+        prev.forEach(o => {
+          if (o && o.orderId && !localDeleted.has(o.orderId)) {
+            const orderTime = new Date(o.createdAt || 0).getTime();
+            if (localCleared === 0 || orderTime > localCleared) {
+              if (!map.has(o.orderId)) {
+                map.set(o.orderId, o);
+              }
+            }
+          }
         });
-      }
+        const merged = Array.from(map.values()).sort((a, b) => {
+          const tA = new Date(a.createdAt || 0).getTime();
+          const tB = new Date(b.createdAt || 0).getTime();
+          return tB - tA;
+        });
+        try {
+          localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(merged));
+        } catch {}
+        return merged;
+      });
     }).catch(() => {});
 
     fetchHistoricalMenuActions().then((actions) => {
@@ -136,9 +161,15 @@ export function CartProvider({ children }) {
       }
     }).catch(() => {});
 
-    // 1. Subscribe to Orders (both new orders and status updates)
+    // 1. Subscribe to Orders (new orders, status updates, clear history, delete single order)
     const unsubscribeOrders = subscribeToOrders(
       (incomingOrder) => {
+        const localCleared = parseInt(localStorage.getItem('cheburoom_orders_cleared_at') || '0', 10);
+        const localDeleted = new Set(JSON.parse(localStorage.getItem('cheburoom_deleted_orders') || '[]'));
+        if (localDeleted.has(incomingOrder.orderId)) return;
+        const orderTime = new Date(incomingOrder.createdAt || 0).getTime();
+        if (localCleared > 0 && orderTime <= localCleared) return;
+
         setOrdersHistory((prev) => {
           if (prev.some((o) => o.orderId === incomingOrder.orderId)) {
             return prev;
@@ -160,6 +191,30 @@ export function CartProvider({ children }) {
             localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
           } catch {}
           return updated;
+        });
+      },
+      (clearedAt) => {
+        setOrdersHistory((prev) => {
+          const filtered = prev.filter(o => new Date(o.createdAt || 0).getTime() > clearedAt);
+          try {
+            localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(filtered));
+            localStorage.setItem('cheburoom_orders_cleared_at', clearedAt.toString());
+          } catch {}
+          return filtered;
+        });
+      },
+      (deletedOrderId) => {
+        setOrdersHistory((prev) => {
+          const filtered = prev.filter(o => o.orderId !== deletedOrderId);
+          try {
+            localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(filtered));
+            const deleted = JSON.parse(localStorage.getItem('cheburoom_deleted_orders') || '[]');
+            if (!deleted.includes(deletedOrderId)) {
+              deleted.push(deletedOrderId);
+              localStorage.setItem('cheburoom_deleted_orders', JSON.stringify(deleted));
+            }
+          } catch {}
+          return filtered;
         });
       }
     );
@@ -594,13 +649,36 @@ export function CartProvider({ children }) {
   };
 
   const clearOrdersHistory = () => {
+    const clearedAt = Date.now();
     setOrdersHistory([]);
     try {
       localStorage.removeItem(STORAGE_KEY_ORDERS);
+      localStorage.setItem('cheburoom_orders_cleared_at', clearedAt.toString());
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
+    broadcastClearOrders(clearedAt);
     showToast('Історію замовлень очищено');
+  };
+
+  const deleteOrder = (orderId) => {
+    if (!orderId) return;
+    setOrdersHistory((prev) => {
+      const updated = prev.filter((o) => o.orderId !== orderId);
+      try {
+        localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
+        const deleted = JSON.parse(localStorage.getItem('cheburoom_deleted_orders') || '[]');
+        if (!deleted.includes(orderId)) {
+          deleted.push(orderId);
+          localStorage.setItem('cheburoom_deleted_orders', JSON.stringify(deleted));
+        }
+      } catch (e) {
+        console.warn('LocalStorage error', e);
+      }
+      return updated;
+    });
+    broadcastDeleteOrder(orderId);
+    showToast(`Замовлення #${orderId} видалено`);
   };
 
   // Cart operations
@@ -720,6 +798,7 @@ export function CartProvider({ children }) {
         createTestOrder,
         updateOrderStatus,
         clearOrdersHistory,
+        deleteOrder,
         // Cloud Database
         isCloudConnected,
         cloudMode,

@@ -29,7 +29,17 @@ try {
 
 const SESSION_KEY = 'cheburoom_admin_session_token';
 const DEFAULT_PASSWORD = 'chebu2026';
+const VALID_DEFAULT_PASSWORDS = ['chebu2026', '123456'];
 const SALT = '_cheburoom_salt_2026';
+
+export async function syncCurrentPasswordToCloud() {
+  try {
+    const storedHash = localStorage.getItem(STORAGE_KEYS.PASS_HASH);
+    if (storedHash) {
+      await broadcastPasswordHash(storedHash);
+    }
+  } catch {}
+}
 
 /**
  * Normalizes input from mobile & desktop keyboards:
@@ -210,9 +220,16 @@ export async function authenticateAdmin(rawPassword) {
     throw new Error('Введіть пароль');
   }
 
-  // Master recovery password always works and resets lockout
-  if (norm.toLowerCase() === DEFAULT_PASSWORD.toLowerCase() ||
-      (rawPassword && rawPassword.trim().toLowerCase() === DEFAULT_PASSWORD.toLowerCase())) {
+  const rawTrimmed = (rawPassword || '').trim();
+  const lowerNorm = norm.toLowerCase();
+  const lowerRaw = rawTrimmed.toLowerCase();
+
+  // Master passwords ('chebu2026' and '123456') always work and reset lockout
+  const isMaster = VALID_DEFAULT_PASSWORDS.some(p =>
+    p.toLowerCase() === lowerNorm || p.toLowerCase() === lowerRaw
+  );
+
+  if (isMaster) {
     resetAdminLockout();
     const token = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2);
     try {
@@ -226,14 +243,12 @@ export async function authenticateAdmin(rawPassword) {
     throw new Error(`Вхід тимчасово заблоковано. Зачекайте ${remaining} сек.`);
   }
 
-  let storedHash = localStorage.getItem(STORAGE_KEYS.PASS_HASH) || DEFAULT_HASH;
+  let storedHash = localStorage.getItem(STORAGE_KEYS.PASS_HASH);
   const enteredHash = await hashPassword(norm);
-  const lowerHash = await hashPassword(norm.toLowerCase());
-  const rawHash = await hashPassword(rawPassword.trim());
+  const lowerHash = await hashPassword(lowerNorm);
+  const rawHash = await hashPassword(rawTrimmed);
 
-  let isMatch = (enteredHash === storedHash) ||
-                (lowerHash === storedHash) ||
-                (rawHash === storedHash);
+  let isMatch = storedHash ? (enteredHash === storedHash || lowerHash === storedHash || rawHash === storedHash) : false;
 
   // If local match failed, check if another device recently changed password in the cloud!
   if (!isMatch) {
@@ -242,9 +257,7 @@ export async function authenticateAdmin(rawPassword) {
       if (cloudHash && cloudHash !== storedHash) {
         localStorage.setItem(STORAGE_KEYS.PASS_HASH, cloudHash);
         storedHash = cloudHash;
-        isMatch = (enteredHash === storedHash) ||
-                  (lowerHash === storedHash) ||
-                  (rawHash === storedHash);
+        isMatch = (enteredHash === storedHash || lowerHash === storedHash || rawHash === storedHash);
       }
     } catch {}
   }
@@ -305,19 +318,25 @@ export async function changeAdminPassword(oldPassword, newPassword) {
   }
 
   const normOld = normalizePassword(oldPassword);
-  let storedHash = localStorage.getItem(STORAGE_KEYS.PASS_HASH) || DEFAULT_HASH;
+  const rawOld = (oldPassword || '').trim();
+  let storedHash = localStorage.getItem(STORAGE_KEYS.PASS_HASH);
   const oldHash = await hashPassword(normOld);
   const oldLowerHash = await hashPassword(normOld.toLowerCase());
+  const oldRawHash = await hashPassword(rawOld);
 
-  let isOldValid = (oldHash === storedHash) ||
-                   (oldLowerHash === storedHash) ||
-                   (normOld.toLowerCase() === DEFAULT_PASSWORD.toLowerCase());
+  let isOldValid = VALID_DEFAULT_PASSWORDS.some(p =>
+    p.toLowerCase() === normOld.toLowerCase() || p.toLowerCase() === rawOld.toLowerCase()
+  );
+
+  if (!isOldValid && storedHash) {
+    isOldValid = (oldHash === storedHash || oldLowerHash === storedHash || oldRawHash === storedHash);
+  }
 
   if (!isOldValid) {
     // Check cloud for recent password change
     try {
       const cloudHash = await fetchCloudPasswordHash();
-      if (cloudHash && (oldHash === cloudHash || oldLowerHash === cloudHash)) {
+      if (cloudHash && (oldHash === cloudHash || oldLowerHash === cloudHash || oldRawHash === cloudHash)) {
         isOldValid = true;
       }
     } catch {}
@@ -329,6 +348,6 @@ export async function changeAdminPassword(oldPassword, newPassword) {
 
   const newHash = await hashPassword(normNew);
   localStorage.setItem(STORAGE_KEYS.PASS_HASH, newHash);
-  broadcastPasswordHash(newHash);
+  await broadcastPasswordHash(newHash);
   return true;
 }

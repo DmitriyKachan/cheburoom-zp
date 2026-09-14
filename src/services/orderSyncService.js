@@ -100,7 +100,7 @@ export async function broadcastNewOrder(order) {
     fetch(CLOUD_ORDERS_URL, {
       method: 'POST',
       headers: {
-        'Title': `Нове замовлення #${order.orderId}`,
+        'Title': `Cheburoom Order #${order.orderId}`,
         'Tags': 'bell,package,chebureki',
         'Content-Type': 'application/json'
       },
@@ -131,7 +131,7 @@ export async function broadcastOrderStatus(orderId, status) {
     fetch(CLOUD_ORDERS_URL, {
       method: 'POST',
       headers: {
-        'Title': `Замовлення #${orderId}: ${status}`,
+        'Title': `Cheburoom Status #${orderId}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
@@ -140,9 +140,56 @@ export async function broadcastOrderStatus(orderId, status) {
 }
 
 /**
- * Subscribe to realtime order events (both new orders and status updates)
+ * Broadcast clearing all orders so other devices also clear their list
  */
-export function subscribeToOrders(onNewOrder, onStatusUpdate) {
+export async function broadcastClearOrders(clearedAt = Date.now()) {
+  const payload = { type: 'CLEAR_ORDERS', clearedAt };
+  try {
+    if (ordersBroadcastChannel) {
+      ordersBroadcastChannel.postMessage(payload);
+    }
+  } catch {}
+
+  try {
+    fetch(CLOUD_ORDERS_URL, {
+      method: 'POST',
+      headers: {
+        'Title': 'Cheburoom Clear Orders',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  } catch {}
+}
+
+/**
+ * Broadcast deleting a single order
+ */
+export async function broadcastDeleteOrder(orderId) {
+  if (!orderId) return;
+  const payload = { type: 'DELETE_ORDER', orderId, deletedAt: Date.now() };
+  try {
+    if (ordersBroadcastChannel) {
+      ordersBroadcastChannel.postMessage(payload);
+    }
+  } catch {}
+
+  try {
+    fetch(CLOUD_ORDERS_URL, {
+      method: 'POST',
+      headers: {
+        'Title': `Cheburoom Delete Order #${orderId}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  } catch {}
+}
+
+/**
+ * Subscribe to realtime order events (new orders, status updates, clear, delete)
+ */
+export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onDeleteOrder) {
   const processedOrderIds = new Set();
 
   const handleOrder = (order) => {
@@ -158,12 +205,28 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate) {
     }
   };
 
+  const handleClear = (clearedAt) => {
+    if (onClearOrders) {
+      onClearOrders(clearedAt);
+    }
+  };
+
+  const handleDelete = (orderId) => {
+    if (onDeleteOrder && orderId) {
+      onDeleteOrder(orderId);
+    }
+  };
+
   // 1. BroadcastChannel listener
   const handleBcMessage = (event) => {
     if (event.data?.type === 'NEW_ORDER' && event.data.order) {
       handleOrder(event.data.order);
     } else if (event.data?.type === 'ORDER_STATUS_UPDATE') {
       handleStatus(event.data.orderId, event.data.status);
+    } else if (event.data?.type === 'CLEAR_ORDERS') {
+      handleClear(event.data.clearedAt);
+    } else if (event.data?.type === 'DELETE_ORDER') {
+      handleDelete(event.data.orderId);
     }
   };
   if (ordersBroadcastChannel) {
@@ -187,6 +250,8 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate) {
           handleOrder(orders[0]);
         }
       } catch {}
+    } else if (e.key === 'cheburoom_orders_cleared_at' && e.newValue) {
+      handleClear(parseInt(e.newValue, 10));
     }
   };
   window.addEventListener('storage', handleStorageEvent);
@@ -205,6 +270,10 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate) {
               handleOrder(inner.order);
             } else if (inner?.type === 'ORDER_STATUS_UPDATE' && inner.orderId) {
               handleStatus(inner.orderId, inner.status);
+            } else if (inner?.type === 'CLEAR_ORDERS') {
+              handleClear(inner.clearedAt);
+            } else if (inner?.type === 'DELETE_ORDER' && inner.orderId) {
+              handleDelete(inner.orderId);
             }
           }
         } catch {}
@@ -252,7 +321,7 @@ export async function broadcastMenuAction(action) {
     fetch(CLOUD_MENU_URL, {
       method: 'POST',
       headers: {
-        'Title': `Оновлення меню: ${action.type}`,
+        'Title': `Cheburoom Menu ${action.type || 'Action'}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(action)
@@ -318,15 +387,19 @@ export function subscribeToMenuActions(onMenuAction) {
 export async function broadcastPasswordHash(hash) {
   if (!hash) return;
   try {
-    fetch(CLOUD_AUTH_URL, {
+    const res = await fetch(CLOUD_AUTH_URL, {
       method: 'POST',
       headers: {
-        'Title': 'Оновлення пароля адміна',
+        'Title': 'Cheburoom Auth Sync',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ type: 'PASS_HASH_SYNC', hash })
-    }).catch(() => {});
-  } catch {}
+      body: JSON.stringify({ type: 'PASS_HASH_SYNC', hash, updatedAt: Date.now() })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('broadcastPasswordHash error:', err);
+    return false;
+  }
 }
 
 /**
@@ -367,31 +440,65 @@ export function subscribeToPasswordHash(onHashUpdate) {
 /**
  * Fetches recent historical orders from the cloud topic
  * Ensures that whenever a phone or PC opens, it instantly pulls all existing orders!
+ * Respects tombstone timestamps (clearedAt) and deleted order IDs so deleted orders never return!
  */
 export async function fetchHistoricalCloudOrders() {
   try {
-    const res = await fetch(`${CLOUD_ORDERS_URL}/json?poll=1`);
+    const res = await fetch(`${CLOUD_ORDERS_URL}/json?poll=1&since=all`);
     if (!res.ok) return [];
     const text = await res.text();
     const lines = text.trim().split('\n');
     const ordersMap = new Map();
+    let latestClearedAt = 0;
+    const deletedOrderIds = new Set();
 
+    // Read local tombstone markers
+    try {
+      const localCleared = parseInt(localStorage.getItem('cheburoom_orders_cleared_at') || '0', 10);
+      if (localCleared > latestClearedAt) latestClearedAt = localCleared;
+      const localDeleted = JSON.parse(localStorage.getItem('cheburoom_deleted_orders') || '[]');
+      if (Array.isArray(localDeleted)) {
+        localDeleted.forEach(id => deletedOrderIds.add(id));
+      }
+    } catch {}
+
+    const parsedEvents = [];
     for (const line of lines) {
       if (!line) continue;
       try {
         const item = JSON.parse(line);
         if (item && item.message) {
           const inner = JSON.parse(item.message);
-          if (inner?.type === 'NEW_ORDER' && inner.order?.orderId) {
-            ordersMap.set(inner.order.orderId, inner.order);
-          } else if (inner?.type === 'ORDER_STATUS_UPDATE' && inner.orderId) {
-            const existing = ordersMap.get(inner.orderId);
-            if (existing) {
-              ordersMap.set(inner.orderId, { ...existing, status: inner.status });
+          parsedEvents.push(inner);
+          if (inner?.type === 'CLEAR_ORDERS' && inner.clearedAt) {
+            if (inner.clearedAt > latestClearedAt) {
+              latestClearedAt = inner.clearedAt;
             }
+          } else if (inner?.type === 'DELETE_ORDER' && inner.orderId) {
+            deletedOrderIds.add(inner.orderId);
           }
         }
       } catch {}
+    }
+
+    // Process orders in order, ignoring any cleared or deleted orders
+    for (const inner of parsedEvents) {
+      if (inner?.type === 'NEW_ORDER' && inner.order?.orderId) {
+        const o = inner.order;
+        if (deletedOrderIds.has(o.orderId)) continue;
+        const orderTime = new Date(o.createdAt || 0).getTime();
+        if (latestClearedAt > 0 && orderTime <= latestClearedAt) {
+          // Cleared before this timestamp
+          continue;
+        }
+        ordersMap.set(o.orderId, o);
+      } else if (inner?.type === 'ORDER_STATUS_UPDATE' && inner.orderId) {
+        if (deletedOrderIds.has(inner.orderId)) continue;
+        const existing = ordersMap.get(inner.orderId);
+        if (existing) {
+          ordersMap.set(inner.orderId, { ...existing, status: inner.status });
+        }
+      }
     }
 
     return Array.from(ordersMap.values()).sort((a, b) => {
@@ -410,7 +517,7 @@ export async function fetchHistoricalCloudOrders() {
  */
 export async function fetchHistoricalMenuActions() {
   try {
-    const res = await fetch(`${CLOUD_MENU_URL}/json?poll=1`);
+    const res = await fetch(`${CLOUD_MENU_URL}/json?poll=1&since=all`);
     if (!res.ok) return [];
     const text = await res.text();
     const lines = text.trim().split('\n');
@@ -441,7 +548,7 @@ export async function fetchHistoricalMenuActions() {
  */
 export async function fetchCloudPasswordHash() {
   try {
-    const res = await fetch(`${CLOUD_AUTH_URL}/json?poll=1`);
+    const res = await fetch(`${CLOUD_AUTH_URL}/json?poll=1&since=all`);
     if (!res.ok) return null;
     const text = await res.text();
     const lines = text.trim().split('\n');
