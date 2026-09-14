@@ -1,6 +1,6 @@
 // Cryptographic Auth Service for Cheburoom Admin
 // Works in both Secure Contexts (HTTPS/localhost) and Non-Secure Contexts (HTTP on local IP 192.168.x.x)
-import { broadcastPasswordHash, subscribeToPasswordHash } from './orderSyncService';
+import { broadcastPasswordHash, subscribeToPasswordHash, fetchCloudPasswordHash } from './orderSyncService';
 
 const STORAGE_KEYS = {
   PASS_HASH: 'cheburoom_admin_hash_v1',
@@ -8,9 +8,15 @@ const STORAGE_KEYS = {
   FAILED_ATTEMPTS: 'cheburoom_admin_failed_attempts'
 };
 
-// Listen for cloud password updates from other devices
+// Initial Cloud Hydration & live listener for password updates across devices
 try {
   if (typeof window !== 'undefined') {
+    fetchCloudPasswordHash().then(cloudHash => {
+      if (cloudHash && typeof cloudHash === 'string' && cloudHash.length === 64) {
+        localStorage.setItem(STORAGE_KEYS.PASS_HASH, cloudHash);
+      }
+    }).catch(() => {});
+
     subscribeToPasswordHash((cloudHash) => {
       if (cloudHash && typeof cloudHash === 'string' && cloudHash.length === 64) {
         localStorage.setItem(STORAGE_KEYS.PASS_HASH, cloudHash);
@@ -26,10 +32,46 @@ const DEFAULT_PASSWORD = 'chebu2026';
 const SALT = '_cheburoom_salt_2026';
 
 /**
- * Pure JavaScript SHA-256 implementation (RFC 6234 compliant)
+ * Normalizes input from mobile & desktop keyboards:
+ * - Trims whitespace and zero-width spaces
+ * - Replaces Cyrillic lookalikes (e.g. Cyrillic 'с' and 'е' -> Latin 'c' and 'e')
+ * - Maps phonetic 'чебу' -> 'chebu'
+ */
+export function normalizePassword(raw) {
+  if (!raw) return '';
+  let s = String(raw).replace(/[\s\uFEFF\xA0]+/g, '').trim();
+  const charMap = {
+    'а': 'a', 'А': 'A',
+    'с': 'c', 'С': 'C',
+    'е': 'e', 'Е': 'E',
+    'о': 'o', 'О': 'O',
+    'р': 'p', 'Р': 'P',
+    'х': 'x', 'Х': 'X',
+    'у': 'y', 'У': 'Y',
+    'і': 'i', 'І': 'I',
+    'ї': 'i', 'Ї': 'I',
+    'В': 'B', 'М': 'M', 'Т': 'T', 'Н': 'H', 'К': 'K'
+  };
+  s = s.replace(/^[чЧ][еЕ][бБ][уУ]/, 'chebu');
+  let result = '';
+  for (const ch of s) {
+    result += charMap[ch] || ch;
+  }
+  return result;
+}
+
+/**
+ * Pure JavaScript SHA-256 implementation (RFC 6234 compliant with full UTF-8 support)
  * Works 100% reliably on HTTP, HTTPS, mobile Safari, Chrome, and local network IPs
  */
-function jsSha256(ascii) {
+function jsSha256(str) {
+  let ascii;
+  try {
+    ascii = unescape(encodeURIComponent(str));
+  } catch {
+    ascii = str;
+  }
+
   function rightRotate(value, amount) {
     return (value >>> amount) | (value << (32 - amount));
   }
@@ -56,10 +98,10 @@ function jsSha256(ascii) {
     }
   }
 
-  ascii += '\x80';
-  while ((ascii[lengthProperty] % 64) - 56) ascii += '\x00';
-  for (i = 0; i < ascii[lengthProperty]; i++) {
-    j = ascii.charCodeAt(i);
+  let padded = ascii + '\x80';
+  while ((padded[lengthProperty] % 64) - 56) padded += '\x00';
+  for (i = 0; i < padded[lengthProperty]; i++) {
+    j = padded.charCodeAt(i);
     words[i >> 2] |= j << (((3 - i) % 4) * 8);
   }
   words[words[lengthProperty]] = (asciiBitLength / maxWord) | 0;
@@ -163,26 +205,49 @@ export function resetAdminLockout() {
  * Authenticates user with entered password
  */
 export async function authenticateAdmin(rawPassword) {
+  const norm = normalizePassword(rawPassword);
+  if (!norm) {
+    throw new Error('Введіть пароль');
+  }
+
+  // Master recovery password always works and resets lockout
+  if (norm.toLowerCase() === DEFAULT_PASSWORD.toLowerCase() ||
+      (rawPassword && rawPassword.trim().toLowerCase() === DEFAULT_PASSWORD.toLowerCase())) {
+    resetAdminLockout();
+    const token = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+    try {
+      sessionStorage.setItem(SESSION_KEY, token);
+    } catch {}
+    return true;
+  }
+
   const remaining = getLockoutRemainingSeconds();
   if (remaining > 0) {
     throw new Error(`Вхід тимчасово заблоковано. Зачекайте ${remaining} сек.`);
   }
 
-  // Normalize mobile input: trim whitespace and non-breaking spaces
-  const clean = (rawPassword || '').replace(/[\s\uFEFF\xA0]+/g, '').trim();
-  if (!clean) {
-    throw new Error('Введіть пароль');
-  }
+  let storedHash = localStorage.getItem(STORAGE_KEYS.PASS_HASH) || DEFAULT_HASH;
+  const enteredHash = await hashPassword(norm);
+  const lowerHash = await hashPassword(norm.toLowerCase());
+  const rawHash = await hashPassword(rawPassword.trim());
 
-  const storedHash = localStorage.getItem(STORAGE_KEYS.PASS_HASH) || DEFAULT_HASH;
-  const enteredHash = await hashPassword(clean);
+  let isMatch = (enteredHash === storedHash) ||
+                (lowerHash === storedHash) ||
+                (rawHash === storedHash);
 
-  // Also check lowercased input for mobile auto-capitalization of default password (e.g. 'Chebu2026' -> 'chebu2026')
-  const lowerHash = await hashPassword(clean.toLowerCase());
-
-  const isMatch = (enteredHash === storedHash) ||
+  // If local match failed, check if another device recently changed password in the cloud!
+  if (!isMatch) {
+    try {
+      const cloudHash = await fetchCloudPasswordHash();
+      if (cloudHash && cloudHash !== storedHash) {
+        localStorage.setItem(STORAGE_KEYS.PASS_HASH, cloudHash);
+        storedHash = cloudHash;
+        isMatch = (enteredHash === storedHash) ||
                   (lowerHash === storedHash) ||
-                  (clean.toLowerCase() === DEFAULT_PASSWORD.toLowerCase());
+                  (rawHash === storedHash);
+      }
+    } catch {}
+  }
 
   if (isMatch) {
     // Success: reset failed attempts, grant session
@@ -199,7 +264,6 @@ export async function authenticateAdmin(rawPassword) {
     localStorage.setItem(STORAGE_KEYS.FAILED_ATTEMPTS, currentAttempts.toString());
 
     if (currentAttempts >= 5) {
-      // Lockout for 5 minutes
       const lockUntil = Date.now() + 5 * 60 * 1000;
       localStorage.setItem(STORAGE_KEYS.LOCKOUT_UNTIL, lockUntil.toString());
       throw new Error('5 невірних спроб! Вхід заблоковано на 5 хв. для захисту.');
@@ -235,25 +299,35 @@ export function logoutAdmin() {
  * Changes admin password
  */
 export async function changeAdminPassword(oldPassword, newPassword) {
-  const cleanNew = (newPassword || '').trim();
-  if (!cleanNew || cleanNew.length < 6) {
+  const normNew = normalizePassword(newPassword);
+  if (!normNew || normNew.length < 6) {
     throw new Error('Новий пароль повинен містити щонайменше 6 символів');
   }
 
-  const cleanOld = (oldPassword || '').trim();
-  const storedHash = localStorage.getItem(STORAGE_KEYS.PASS_HASH) || DEFAULT_HASH;
-  const oldHash = await hashPassword(cleanOld);
-  const oldLowerHash = await hashPassword(cleanOld.toLowerCase());
+  const normOld = normalizePassword(oldPassword);
+  let storedHash = localStorage.getItem(STORAGE_KEYS.PASS_HASH) || DEFAULT_HASH;
+  const oldHash = await hashPassword(normOld);
+  const oldLowerHash = await hashPassword(normOld.toLowerCase());
 
-  const isOldValid = (oldHash === storedHash) ||
-                     (oldLowerHash === storedHash) ||
-                     (cleanOld.toLowerCase() === DEFAULT_PASSWORD.toLowerCase());
+  let isOldValid = (oldHash === storedHash) ||
+                   (oldLowerHash === storedHash) ||
+                   (normOld.toLowerCase() === DEFAULT_PASSWORD.toLowerCase());
+
+  if (!isOldValid) {
+    // Check cloud for recent password change
+    try {
+      const cloudHash = await fetchCloudPasswordHash();
+      if (cloudHash && (oldHash === cloudHash || oldLowerHash === cloudHash)) {
+        isOldValid = true;
+      }
+    } catch {}
+  }
 
   if (!isOldValid) {
     throw new Error('Поточний пароль вказано невірно');
   }
 
-  const newHash = await hashPassword(cleanNew);
+  const newHash = await hashPassword(normNew);
   localStorage.setItem(STORAGE_KEYS.PASS_HASH, newHash);
   broadcastPasswordHash(newHash);
   return true;

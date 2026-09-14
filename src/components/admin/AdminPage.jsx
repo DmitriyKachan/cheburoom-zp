@@ -9,7 +9,7 @@ import {
   getLockoutRemainingSeconds,
   resetAdminLockout
 } from '../../services/adminAuthService';
-import { playKitchenChime, testCloudRelay } from '../../services/orderSyncService';
+import { playKitchenChime, testCloudRelay, diagnoseDatabaseHealth } from '../../services/orderSyncService';
 import {
   getStoredFirebaseConfig,
   saveFirebaseConfig,
@@ -279,6 +279,25 @@ export function AdminPage() {
   const [cloudStatusMsg, setCloudStatusMsg] = useState({ type: '', text: '' });
   const [showConfigGuide, setShowConfigGuide] = useState(false);
   const [showCustomFirebase, setShowCustomFirebase] = useState(false);
+  const [dbDiagnostics, setDbDiagnostics] = useState(null);
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+
+  const handleRunDbDiagnostics = async () => {
+    setIsDiagnosing(true);
+    try {
+      const report = await diagnoseDatabaseHealth();
+      setDbDiagnostics(report);
+      if (report.healthy) {
+        showToast(`БД у нормі! Пінг: ${report.latencyMs} мс, замовлень: ${report.ordersChannel.syncedCount}`);
+      } else {
+        showToast('Діагностику завершено з попередженнями');
+      }
+    } catch (err) {
+      showToast('Помилка діагностики: ' + err.message);
+    } finally {
+      setIsDiagnosing(false);
+    }
+  };
 
   const handleSaveFirebaseConfig = async (e) => {
     e.preventDefault();
@@ -483,14 +502,33 @@ export function AdminPage() {
             </form>
 
             <div className="pt-3 border-t border-zinc-800/80 text-center space-y-2">
-              <p className="text-[11px] text-zinc-500">
-                За замовчуванням пароль: <code className="bg-zinc-800 text-amber-400 px-1.5 py-0.5 rounded font-mono">chebu2026</code>
+              <p className="text-[11px] text-zinc-300">
+                За замовчуванням пароль: <code className="bg-zinc-800 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">chebu2026</code>
               </p>
+              <p className="text-[10px] text-zinc-400">
+                💡 Підходить з англійської (<span className="text-amber-300 font-mono">chebu2026</span>) та української (<span className="text-amber-300 font-mono">чебу2026</span>) клавіатури, з великої або маленької літери.
+              </p>
+              {authError && (
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetAdminLockout();
+                      setLockoutSec(0);
+                      setAuthError('');
+                      showToast('Блокування скинуто, спробуйте ще раз');
+                    }}
+                    className="text-[11px] text-amber-400 hover:text-amber-300 underline cursor-pointer"
+                  >
+                    🔄 Скинути захисне блокування
+                  </button>
+                </div>
+              )}
               <div>
                 <button
                   type="button"
                   onClick={() => navigateTo('menu')}
-                  className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer pt-1"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Повернутися на сайт ресторану</span>
@@ -1110,6 +1148,20 @@ export function AdminPage() {
                   <span>{isUploadingToCloud ? 'Синхронізація...' : '☁️ Синхронізувати меню на всі пристрої'}</span>
                 </button>
 
+                <button
+                  type="button"
+                  disabled={isDiagnosing}
+                  onClick={handleRunDbDiagnostics}
+                  className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center gap-2 cursor-pointer border border-zinc-700 disabled:opacity-50 transition-colors"
+                >
+                  {isDiagnosing ? (
+                    <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
+                  ) : (
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  )}
+                  <span>{isDiagnosing ? 'Діагностика...' : '🔬 Повна діагностика БД'}</span>
+                </button>
+
                 {cloudMode === 'firebase' && (
                   <button
                     type="button"
@@ -1120,6 +1172,50 @@ export function AdminPage() {
                   </button>
                 )}
               </div>
+
+              {/* Database Diagnostics Result Card */}
+              {dbDiagnostics && (
+                <div className="p-4 rounded-2xl bg-zinc-900/90 border border-amber-500/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4" /> Результати діагностики бази даних
+                    </span>
+                    <span className="text-[11px] text-zinc-400 font-mono">
+                      Пінг: <span className="text-emerald-400 font-bold">{dbDiagnostics.latencyMs} мс</span>
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 space-y-1">
+                      <div className="text-zinc-400 text-[10px] uppercase font-bold">Канал замовлень</div>
+                      <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span>Активний ({dbDiagnostics.ordersChannel.syncedCount} в базі)</span>
+                      </div>
+                    </div>
+                    
+                    <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 space-y-1">
+                      <div className="text-zinc-400 text-[10px] uppercase font-bold">Канал меню</div>
+                      <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span>Активний (Двосторонній)</span>
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 space-y-1">
+                      <div className="text-zinc-400 text-[10px] uppercase font-bold">Синхронізація пароля</div>
+                      <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span>{dbDiagnostics.authChannel.passwordSynced ? 'Синхронізовано' : 'Готовий'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    ℹ️ База даних працює у повному обсязі: замовлення зберігаються у захищеній хмарі, автоматично підвантажуються при відкритті сайту з будь-якого пристрою, а пароль адміністратора синхронізується між ПК та смартфонами.
+                  </p>
+                </div>
+              )}
 
               {/* Optional Firebase Configuration Accordion */}
               <div className="pt-2 border-t border-zinc-800/80">

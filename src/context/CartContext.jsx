@@ -6,6 +6,9 @@ import {
   subscribeToOrders,
   broadcastMenuAction,
   subscribeToMenuActions,
+  fetchHistoricalCloudOrders,
+  fetchHistoricalMenuActions,
+  diagnoseDatabaseHealth,
   testCloudRelay,
   playKitchenChime
 } from '../services/orderSyncService';
@@ -86,6 +89,53 @@ export function CartProvider({ children }) {
 
   // Real-time synchronization: AutoCloud SSE Relay + Cloud Firestore
   useEffect(() => {
+    // 0. Initial Cloud Hydration: fetch existing orders and menu actions from the cloud
+    fetchHistoricalCloudOrders().then((cloudOrders) => {
+      if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+        setOrdersHistory((prev) => {
+          const map = new Map();
+          cloudOrders.forEach(o => { if (o && o.orderId) map.set(o.orderId, o); });
+          prev.forEach(o => { if (o && o.orderId && !map.has(o.orderId)) map.set(o.orderId, o); });
+          const merged = Array.from(map.values()).sort((a, b) => {
+            const tA = new Date(a.createdAt || 0).getTime();
+            const tB = new Date(b.createdAt || 0).getTime();
+            return tB - tA;
+          });
+          try {
+            localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(merged));
+          } catch {}
+          return merged;
+        });
+      }
+    }).catch(() => {});
+
+    fetchHistoricalMenuActions().then((actions) => {
+      if (Array.isArray(actions) && actions.length > 0) {
+        setMenuItems((prev) => {
+          let updated = [...prev];
+          for (const action of actions) {
+            if (action.type === 'DISH_TOGGLE' && action.dishId) {
+              updated = updated.map(d => d.id === action.dishId ? { ...d, available: action.available } : d);
+            } else if (action.type === 'DISH_UPDATE' && action.dish) {
+              updated = updated.map(d => d.id === action.dish.id ? { ...d, ...action.dish } : d);
+            } else if (action.type === 'DISH_ADD' && action.dish) {
+              if (!updated.some(d => d.id === action.dish.id)) {
+                updated = [action.dish, ...updated];
+              }
+            } else if (action.type === 'DISH_DELETE' && action.dishId) {
+              updated = updated.filter(d => d.id !== action.dishId);
+            } else if (action.type === 'FULL_MENU' && Array.isArray(action.items)) {
+              updated = action.items;
+            }
+          }
+          try {
+            localStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
+      }
+    }).catch(() => {});
+
     // 1. Subscribe to Orders (both new orders and status updates)
     const unsubscribeOrders = subscribeToOrders(
       (incomingOrder) => {
@@ -674,7 +724,8 @@ export function CartProvider({ children }) {
         isCloudConnected,
         cloudMode,
         refreshCloudConnection,
-        syncMenuToCloud
+        syncMenuToCloud,
+        diagnoseDatabaseHealth
       }}
     >
       {children}

@@ -361,6 +361,113 @@ export function subscribeToPasswordHash(onHashUpdate) {
 }
 
 /* ========================================================================== */
+/*                   HISTORICAL CLOUD HYDRATION ON STARTUP                    */
+/* ========================================================================== */
+
+/**
+ * Fetches recent historical orders from the cloud topic
+ * Ensures that whenever a phone or PC opens, it instantly pulls all existing orders!
+ */
+export async function fetchHistoricalCloudOrders() {
+  try {
+    const res = await fetch(`${CLOUD_ORDERS_URL}/json?poll=1`);
+    if (!res.ok) return [];
+    const text = await res.text();
+    const lines = text.trim().split('\n');
+    const ordersMap = new Map();
+
+    for (const line of lines) {
+      if (!line) continue;
+      try {
+        const item = JSON.parse(line);
+        if (item && item.message) {
+          const inner = JSON.parse(item.message);
+          if (inner?.type === 'NEW_ORDER' && inner.order?.orderId) {
+            ordersMap.set(inner.order.orderId, inner.order);
+          } else if (inner?.type === 'ORDER_STATUS_UPDATE' && inner.orderId) {
+            const existing = ordersMap.get(inner.orderId);
+            if (existing) {
+              ordersMap.set(inner.orderId, { ...existing, status: inner.status });
+            }
+          }
+        }
+      } catch {}
+    }
+
+    return Array.from(ordersMap.values()).sort((a, b) => {
+      const tA = new Date(a.createdAt || 0).getTime();
+      const tB = new Date(b.createdAt || 0).getTime();
+      return tB - tA;
+    });
+  } catch (err) {
+    console.warn('fetchHistoricalCloudOrders error:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetches recent menu actions from the cloud
+ */
+export async function fetchHistoricalMenuActions() {
+  try {
+    const res = await fetch(`${CLOUD_MENU_URL}/json?poll=1`);
+    if (!res.ok) return [];
+    const text = await res.text();
+    const lines = text.trim().split('\n');
+    const actions = [];
+
+    for (const line of lines) {
+      if (!line) continue;
+      try {
+        const item = JSON.parse(line);
+        if (item && item.message) {
+          const inner = JSON.parse(item.message);
+          if (inner?.type) {
+            actions.push(inner);
+          }
+        }
+      } catch {}
+    }
+
+    return actions;
+  } catch (err) {
+    console.warn('fetchHistoricalMenuActions error:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetches latest admin password hash stored in the cloud
+ */
+export async function fetchCloudPasswordHash() {
+  try {
+    const res = await fetch(`${CLOUD_AUTH_URL}/json?poll=1`);
+    if (!res.ok) return null;
+    const text = await res.text();
+    const lines = text.trim().split('\n');
+    let latestHash = null;
+
+    for (const line of lines) {
+      if (!line) continue;
+      try {
+        const item = JSON.parse(line);
+        if (item && item.message) {
+          const inner = JSON.parse(item.message);
+          if (inner?.type === 'PASS_HASH_SYNC' && inner.hash) {
+            latestHash = inner.hash;
+          }
+        }
+      } catch {}
+    }
+
+    return latestHash;
+  } catch (err) {
+    console.warn('fetchCloudPasswordHash error:', err);
+    return null;
+  }
+}
+
+/* ========================================================================== */
 /*                          CLOUD HEALTH CHECK                                */
 /* ========================================================================== */
 
@@ -386,5 +493,49 @@ export async function testCloudRelay() {
     return { success: false, latencyMs, error: `HTTP ${res.status}` };
   } catch (err) {
     return { success: false, latencyMs: Date.now() - start, error: err.message };
+  }
+}
+
+/**
+ * Comprehensive diagnostic check of all database channels
+ */
+export async function diagnoseDatabaseHealth() {
+  const start = Date.now();
+  const results = {
+    ordersChannel: false,
+    menuChannel: false,
+    authChannel: false,
+    ordersCount: 0,
+    latencyMs: 0
+  };
+
+  try {
+    // 1. Orders
+    const ordersPromise = fetchHistoricalCloudOrders();
+    const pingPromise = testCloudRelay();
+    const [orders, pingRes] = await Promise.all([ordersPromise, pingPromise]);
+
+    results.ordersChannel = pingRes.success;
+    results.latencyMs = pingRes.latencyMs || (Date.now() - start);
+    results.ordersCount = orders.length;
+
+    // 2. Menu
+    const menuRes = await fetch(`${CLOUD_MENU_URL}/json?poll=1`);
+    results.menuChannel = menuRes.ok;
+
+    // 3. Auth
+    const authRes = await fetch(`${CLOUD_AUTH_URL}/json?poll=1`);
+    results.authChannel = authRes.ok;
+
+    return {
+      success: results.ordersChannel,
+      ...results
+    };
+  } catch (e) {
+    return {
+      success: false,
+      error: e.message,
+      latencyMs: Date.now() - start
+    };
   }
 }
