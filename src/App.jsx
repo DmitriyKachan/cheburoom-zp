@@ -12,7 +12,7 @@ import { CartCheckoutPage } from './components/CartCheckoutPage';
 import { SuccessModal } from './components/SuccessModal';
 import { LocationInfo } from './components/LocationInfo';
 import { Footer } from './components/Footer';
-import { AdminSyncModal } from './components/AdminSyncModal';
+import { AdminPage } from './components/admin/AdminPage';
 import { MENU_DATA } from './data/menuData';
 import { ShoppingBag, ChevronRight, Check, Search, X } from 'lucide-react';
 
@@ -38,6 +38,10 @@ export function App() {
       i.shortDesc.toLowerCase().includes(q) ||
       (i.desc && i.desc.toLowerCase().includes(q))
     );
+  }
+
+  if (currentPage === 'admin') {
+    return <AdminPage />;
   }
 
   return (
@@ -165,7 +169,6 @@ export function App() {
       {/* Modals */}
       <DishModal />
       <SuccessModal />
-      <AdminSyncModal />
 
       {/* Toast */}
       {toastMessage && (

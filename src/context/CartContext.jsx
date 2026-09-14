@@ -1,162 +1,46 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MENU_DATA } from '../data/menuData';
-import {
-  fetchMenuFromGoogleSheet,
-  extractSheetId,
-  STORAGE_KEYS
-} from '../services/googleSheetsService';
 
 const CartContext = createContext(null);
 
+const STORAGE_KEY_CART = 'cheburoom_react_cart_v1';
+const STORAGE_KEY_MENU = 'cheburoom_custom_menu';
+const STORAGE_KEY_ORDERS = 'cheburoom_orders_log';
+const STORAGE_KEY_THEME = 'cheburoom_theme';
+
 export function CartProvider({ children }) {
-  const storageKey = 'cheburoom_react_cart_v1';
-  
-  // Menu items state (from Google Sheets or local default)
+  // Menu items state (persisted locally with fallback to default MENU_DATA)
   const [menuItems, setMenuItems] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.MENU_ITEMS);
+      const saved = localStorage.getItem(STORAGE_KEY_MENU);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (e) {
-      console.warn('Error reading cached menu', e);
+      console.warn('Error reading saved menu', e);
     }
     return MENU_DATA.items;
   });
 
-  const [sheetId, setSheetId] = useState(() => {
+  // Orders history (persisted locally for kitchen / staff admin)
+  const [ordersHistory, setOrdersHistory] = useState(() => {
     try {
-      return localStorage.getItem(STORAGE_KEYS.SHEET_ID) || '';
-    } catch {
-      return '';
-    }
-  });
-
-  const [lastSyncTime, setLastSyncTime] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEYS.LAST_SYNC) || null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-
-  // Background auto-refresh from Google Sheets if configured
-  useEffect(() => {
-    if (!sheetId) return;
-    let isMounted = true;
-
-    async function silentBackgroundSync() {
-      try {
-        const freshDishes = await fetchMenuFromGoogleSheet(sheetId);
-        if (isMounted && freshDishes && freshDishes.length > 0) {
-          setMenuItems(freshDishes);
-          const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          setLastSyncTime(nowStr);
-          localStorage.setItem(STORAGE_KEYS.MENU_ITEMS, JSON.stringify(freshDishes));
-          localStorage.setItem(STORAGE_KEYS.LAST_SYNC, nowStr);
-        }
-      } catch (err) {
-        // Silently use cached menu if offline or error
-        console.info('Background Google Sheet sync skipped or offline:', err.message);
+      const saved = localStorage.getItem(STORAGE_KEY_ORDERS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
       }
-    }
-
-    silentBackgroundSync();
-    return () => { isMounted = false; };
-  }, [sheetId]);
-
-  const syncFromGoogleSheets = async (urlOrId) => {
-    const cleanId = extractSheetId(urlOrId);
-    if (!cleanId) {
-      throw new Error('Некоректний URL або ID Google Таблиці');
-    }
-
-    setIsSyncing(true);
-    try {
-      const freshDishes = await fetchMenuFromGoogleSheet(cleanId);
-      if (!freshDishes || freshDishes.length === 0) {
-        throw new Error('Таблиця не містить валідних страв');
-      }
-
-      setMenuItems(freshDishes);
-      setSheetId(cleanId);
-      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setLastSyncTime(nowStr);
-
-      localStorage.setItem(STORAGE_KEYS.MENU_ITEMS, JSON.stringify(freshDishes));
-      localStorage.setItem(STORAGE_KEYS.SHEET_ID, cleanId);
-      localStorage.setItem(STORAGE_KEYS.LAST_SYNC, nowStr);
-
-      return freshDishes;
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const toggleDishAvailability = (dishId) => {
-    setMenuItems(prev => {
-      const updated = prev.map(d => {
-        if (d.id === dishId) {
-          const newAvail = d.available === false ? true : false;
-          showToast(`«${d.name}» ${newAvail ? 'повернуто в наявність' : 'поставлено в стоп-лист'}`);
-          return { ...d, available: newAvail };
-        }
-        return d;
-      });
-
-      try {
-        localStorage.setItem(STORAGE_KEYS.MENU_ITEMS, JSON.stringify(updated));
-      } catch (e) {
-        console.warn('LocalStorage error', e);
-      }
-
-      return updated;
-    });
-  };
-
-  const updateDishImage = (dishId, newImageDataUrl) => {
-    setMenuItems(prev => {
-      const updated = prev.map(d => {
-        if (d.id === dishId) {
-          return { ...d, image: newImageDataUrl };
-        }
-        return d;
-      });
-      try {
-        localStorage.setItem(STORAGE_KEYS.MENU_ITEMS, JSON.stringify(updated));
-      } catch (e) {
-        console.warn('LocalStorage error', e);
-      }
-      return updated;
-    });
-    showToast('Фото страви успішно оновлено!');
-  };
-
-  const resetToDefaultMenu = () => {
-    setMenuItems(MENU_DATA.items);
-    setSheetId('');
-    setLastSyncTime(null);
-    try {
-      localStorage.removeItem(STORAGE_KEYS.MENU_ITEMS);
-      localStorage.removeItem(STORAGE_KEYS.SHEET_ID);
-      localStorage.removeItem(STORAGE_KEYS.LAST_SYNC);
     } catch (e) {
-      console.warn('LocalStorage error', e);
+      console.warn('Error reading orders history', e);
     }
-  };
+    return [];
+  });
 
-  const setSheetIdAndSave = (id) => {
-    setSheetId(id);
-    localStorage.setItem(STORAGE_KEYS.SHEET_ID, id);
-  };
-  
+  // Cart items
   const [items, setItems] = useState(() => {
     try {
-      const saved = localStorage.getItem(storageKey);
+      const saved = localStorage.getItem(STORAGE_KEY_CART);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -166,13 +50,16 @@ export function CartProvider({ children }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedDishForModal, setSelectedDishForModal] = useState(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [successOrder, setSuccessOrder] = useState(null);
+  const [successOrder, setSuccessOrderState] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Page Routing State ('menu' | 'checkout')
+  // Page Routing State ('menu' | 'checkout' | 'admin')
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
+      if (hash === '#admin' || hash === '#/admin') {
+        return 'admin';
+      }
       if (hash === '#checkout' || hash === '#cart' || hash === '#order') {
         return 'checkout';
       }
@@ -183,7 +70,9 @@ export function CartProvider({ children }) {
   const navigateTo = (page) => {
     setCurrentPage(page);
     if (typeof window !== 'undefined') {
-      if (page === 'checkout') {
+      if (page === 'admin') {
+        window.history.pushState({ page: 'admin' }, '', '#admin');
+      } else if (page === 'checkout') {
         window.history.pushState({ page: 'checkout' }, '', '#checkout');
       } else {
         window.history.pushState({ page: 'menu' }, '', '#menu');
@@ -195,7 +84,9 @@ export function CartProvider({ children }) {
   useEffect(() => {
     const handleHashOrPopState = () => {
       const hash = window.location.hash.toLowerCase();
-      if (hash === '#checkout' || hash === '#cart' || hash === '#order') {
+      if (hash === '#admin' || hash === '#/admin') {
+        setCurrentPage('admin');
+      } else if (hash === '#checkout' || hash === '#cart' || hash === '#order') {
         setCurrentPage('checkout');
       } else {
         setCurrentPage('menu');
@@ -213,7 +104,7 @@ export function CartProvider({ children }) {
   // Theme management
   const [darkMode, setDarkMode] = useState(() => {
     try {
-      const saved = localStorage.getItem('cheburoom_theme');
+      const saved = localStorage.getItem(STORAGE_KEY_THEME);
       if (saved) return saved === 'dark';
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
     } catch {
@@ -223,7 +114,7 @@ export function CartProvider({ children }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify(items));
+      localStorage.setItem(STORAGE_KEY_CART, JSON.stringify(items));
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
@@ -233,10 +124,10 @@ export function CartProvider({ children }) {
     const root = document.documentElement;
     if (darkMode) {
       root.classList.add('dark');
-      localStorage.setItem('cheburoom_theme', 'dark');
+      localStorage.setItem(STORAGE_KEY_THEME, 'dark');
     } else {
       root.classList.remove('dark');
-      localStorage.setItem('cheburoom_theme', 'light');
+      localStorage.setItem(STORAGE_KEY_THEME, 'light');
     }
   }, [darkMode]);
 
@@ -249,6 +140,157 @@ export function CartProvider({ children }) {
     }, 2600);
   };
 
+  // Dish management (Admin CRUD)
+  const saveMenuItems = (newItems) => {
+    setMenuItems(newItems);
+    try {
+      localStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(newItems));
+    } catch (e) {
+      console.warn('Failed to save menuItems to localStorage', e);
+    }
+  };
+
+  const addDish = (dish) => {
+    const newDish = {
+      ...dish,
+      id: dish.id || `dish_${Date.now()}`,
+      price: Number(dish.price) || 0,
+      available: dish.available !== false
+    };
+    const updated = [newDish, ...menuItems];
+    saveMenuItems(updated);
+    return newDish;
+  };
+
+  const updateDish = (id, updatedFields) => {
+    const updated = menuItems.map(item => {
+      if (item.id === id) {
+        return {
+          ...item,
+          ...updatedFields,
+          price: Number(updatedFields.price !== undefined ? updatedFields.price : item.price)
+        };
+      }
+      return item;
+    });
+    saveMenuItems(updated);
+  };
+
+  const deleteDish = (id) => {
+    const updated = menuItems.filter(item => item.id !== id);
+    saveMenuItems(updated);
+  };
+
+  const toggleDishAvailability = (dishId) => {
+    const updated = menuItems.map(d => {
+      if (d.id === dishId) {
+        const newAvail = d.available === false ? true : false;
+        showToast(`«${d.name}» ${newAvail ? 'повернуто в наявність' : 'поставлено в стоп-лист'}`);
+        return { ...d, available: newAvail };
+      }
+      return d;
+    });
+    saveMenuItems(updated);
+  };
+
+  const updateDishImage = (dishId, newImageDataUrl) => {
+    const updated = menuItems.map(d => {
+      if (d.id === dishId) {
+        return { ...d, image: newImageDataUrl };
+      }
+      return d;
+    });
+    saveMenuItems(updated);
+    showToast('Фото страви успішно оновлено!');
+  };
+
+  const resetToDefaultMenu = () => {
+    setMenuItems(MENU_DATA.items);
+    try {
+      localStorage.removeItem(STORAGE_KEY_MENU);
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  };
+
+  const exportMenuBackup = () => {
+    try {
+      const jsonStr = JSON.stringify(menuItems, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cheburoom_menu_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Резервну копію збережено');
+    } catch {
+      showToast('Не вдалося зберегти резервну копію');
+    }
+  };
+
+  const importMenuBackup = (data) => {
+    if (Array.isArray(data) && data.length > 0) {
+      saveMenuItems(data);
+      return true;
+    }
+    throw new Error('Некоректний формат файлу');
+  };
+
+  // Orders logging & management
+  const setSuccessOrder = (order) => {
+    setSuccessOrderState(order);
+    if (order && order.orderId) {
+      const newEntry = {
+        ...order,
+        status: order.status || 'new',
+        createdAt: new Date().toISOString(),
+        timing: order.timing || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setOrdersHistory(prev => {
+        const filtered = prev.filter(o => o.orderId !== order.orderId);
+        const updated = [newEntry, ...filtered];
+        try {
+          localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
+        } catch (e) {
+          console.warn('LocalStorage error', e);
+        }
+        return updated;
+      });
+    }
+  };
+
+  const updateOrderStatus = (orderId, status) => {
+    setOrdersHistory(prev => {
+      const updated = prev.map(o => {
+        if (o.orderId === orderId) {
+          return { ...o, status };
+        }
+        return o;
+      });
+      try {
+        localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('LocalStorage error', e);
+      }
+      return updated;
+    });
+    showToast(`Статус замовлення #${orderId} оновлено`);
+  };
+
+  const clearOrdersHistory = () => {
+    setOrdersHistory([]);
+    try {
+      localStorage.removeItem(STORAGE_KEY_ORDERS);
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+    showToast('Історію замовлень очищено');
+  };
+
+  // Cart operations
   const addItem = (dish, options = {}) => {
     const crust = options.crust || (dish.options?.crust ? dish.options.crust[0].name : null);
     const extras = options.extras || [];
@@ -310,11 +352,8 @@ export function CartProvider({ children }) {
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-
   const getDeliveryFee = () => 0;
-
   const getDiscount = () => 0;
-
   const getTotal = () => subtotal;
 
   return (
@@ -345,18 +384,20 @@ export function CartProvider({ children }) {
         showToast,
         darkMode,
         toggleTheme,
-        // Menu management & Google Sheets sync
+        // Menu management (Admin CRUD)
         menuItems,
-        sheetId,
-        lastSyncTime,
-        isSyncing,
-        isAdminOpen,
-        setIsAdminOpen,
-        syncFromGoogleSheets,
-        setSheetIdAndSave,
+        addDish,
+        updateDish,
+        deleteDish,
         toggleDishAvailability,
         updateDishImage,
-        resetToDefaultMenu
+        resetToDefaultMenu,
+        exportMenuBackup,
+        importMenuBackup,
+        // Orders logging & management
+        ordersHistory,
+        updateOrderStatus,
+        clearOrdersHistory
       }}
     >
       {children}
