@@ -8,7 +8,6 @@ import { CategoryNav } from './components/CategoryNav';
 import { DishCard } from './components/DishCard';
 import { DishModal } from './components/DishModal';
 import { CartDrawer } from './components/CartDrawer';
-import { CheckoutModal } from './components/CheckoutModal';
 import { CartCheckoutPage } from './components/CartCheckoutPage';
 import { SuccessModal } from './components/SuccessModal';
 import { LocationInfo } from './components/LocationInfo';

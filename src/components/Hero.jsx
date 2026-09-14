@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
-import { Sparkles, Plus, Clock, Bike, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Sparkles, Plus, Clock, ShoppingBag, ShieldCheck, ArrowRight } from 'lucide-react';
 import { MENU_DATA } from '../data/menuData';
 
 export function Hero() {
@@ -14,7 +14,7 @@ export function Hero() {
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* Left: Headline & Delivery Badges */}
+          {/* Left: Headline & Benefits Badges */}
           <div className="lg:col-span-7 text-center lg:text-left">
             
             {/* Headline */}
@@ -24,7 +24,14 @@ export function Hero() {
               transition={{ duration: 0.4, delay: 0.1 }}
               className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-zinc-950 dark:text-white leading-[1.12] mb-4 tracking-tight"
             >
-              Гарячі крафтові чебуреки прямо до дверей
+              Справжні соковиті{' '}
+              <span className="text-amber-500 underline decoration-glovo-yellow decoration-wavy decoration-from-font">
+                чебуреки
+              </span>
+              <br />
+              <span className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-zinc-800 dark:text-zinc-200">
+                у центрі Запоріжжя
+              </span>
             </motion.h1>
 
             {/* Subtext */}
@@ -37,7 +44,7 @@ export function Hero() {
               Тонке пухирчасте тісто, багато соковитого рубаного м'яса та ароматного бульйону. Готуємо під ваше замовлення!
             </motion.p>
 
-            {/* Delivery Info Chips (Glovo / RnR style) */}
+            {/* Info Chips (Preparation / Pickup / Quality) */}
             <div className="grid grid-cols-3 gap-2 sm:gap-2.5 max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 text-left">
               <motion.div 
                 whileHover={{ y: -4, scale: 1.03 }}
@@ -46,8 +53,8 @@ export function Hero() {
                 className="bg-white dark:bg-[#121215] p-2.5 sm:p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-amber-400/50 transition-colors cursor-pointer select-none group"
               >
                 <Clock className="w-4 h-4 text-amber-500 mb-1 group-hover:scale-120 group-hover:rotate-12 transition-transform duration-300" />
-                <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium whitespace-nowrap">Час доставки</div>
-                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">25-40 хв</div>
+                <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium whitespace-nowrap">Приготування</div>
+                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">7-10 хв</div>
               </motion.div>
 
               <motion.div 
@@ -56,9 +63,9 @@ export function Hero() {
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 className="bg-white dark:bg-[#121215] p-2.5 sm:p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-emerald-400/50 transition-colors cursor-pointer select-none group"
               >
-                <Bike className="w-4 h-4 text-emerald-500 mb-1 group-hover:scale-120 group-hover:-rotate-12 transition-transform duration-300" />
-                <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium whitespace-nowrap">Доставка</div>
-                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">від 0 ₴</div>
+                <ShoppingBag className="w-4 h-4 text-emerald-500 mb-1 group-hover:scale-120 group-hover:-rotate-12 transition-transform duration-300" />
+                <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium whitespace-nowrap">Самовивіз</div>
+                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">-10% знижка</div>
               </motion.div>
 
               <motion.div 

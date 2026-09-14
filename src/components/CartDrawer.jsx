@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
-import { ShoppingBag, X, Trash2, Plus, Minus, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { MENU_DATA } from '../data/menuData';
+import { ShoppingBag, X, Trash2, Plus, Minus, ArrowRight, Sparkles } from 'lucide-react';
 
 export function CartDrawer() {
   const {
@@ -13,18 +12,14 @@ export function CartDrawer() {
     removeItem,
     itemCount,
     subtotal,
-    setIsCheckoutOpen
+    navigateTo
   } = useCart();
 
   if (!isCartOpen) return null;
 
-  const threshold = MENU_DATA.info.freeDeliveryThreshold;
-  const diff = threshold - subtotal;
-  const percent = Math.min(100, Math.round((subtotal / threshold) * 100));
-
   const handleProceed = () => {
     setIsCartOpen(false);
-    setIsCheckoutOpen(true);
+    navigateTo('checkout');
   };
 
   return (
@@ -73,30 +68,11 @@ export function CartDrawer() {
           </button>
         </div>
 
-        {/* Free Delivery Goal Tracker (Glovo / RnR Style) */}
-        <div className="px-5 py-3.5 bg-zinc-50 dark:bg-rnr-dark border-b border-zinc-100 dark:border-rnr-border">
-          <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-            {diff > 0 ? (
-              <span className="text-zinc-700 dark:text-zinc-300">
-                Додайте ще на <span className="text-amber-500 font-extrabold">{diff} ₴</span> для безкоштовної доставки!
-              </span>
-            ) : (
-              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Безкоштовна доставка активована! 🛵</span>
-              </span>
-            )}
-            <span className="text-zinc-400 text-[11px]">{percent}%</span>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="h-2 w-full bg-zinc-200 dark:bg-rnr-border rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-300 ${
-                diff <= 0 ? 'bg-emerald-500' : 'bg-glovo-yellow'
-              }`}
-              style={{ width: `${percent}%` }}
-            />
+        {/* Takeaway Info Notice */}
+        <div className="px-5 py-3 bg-amber-500/10 border-b border-amber-500/20">
+          <div className="flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-300">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>Самовивіз: пр. Соборний, 142 • Знижка -10%</span>
           </div>
         </div>
 
@@ -198,7 +174,7 @@ export function CartDrawer() {
             </div>
 
             <p className="text-[11px] text-zinc-400 mb-4">
-              Самовивіз зі знижкою 10% або кур'єрська доставка
+              Швидкий самовивіз без черги • Знижка 10%
             </p>
 
             <button

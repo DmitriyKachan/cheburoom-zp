@@ -7,7 +7,6 @@ import {
   Trash2,
   Plus,
   Minus,
-  Truck,
   Store,
   MapPin,
   Phone,
@@ -34,7 +33,6 @@ export function CartCheckoutPage() {
     clearCart,
     itemCount,
     subtotal,
-    getDeliveryFee,
     getDiscount,
     getTotal,
     navigateTo,
@@ -43,28 +41,18 @@ export function CartCheckoutPage() {
   } = useCart();
 
   // Checkout form state
-  const [orderType, setOrderType] = useState('delivery'); // 'delivery' | 'pickup'
-  const [deliveryTiming, setDeliveryTiming] = useState('asap'); // 'asap' | 'preorder'
+  const [pickupTiming, setPickupTiming] = useState('asap'); // 'asap' | 'preorder'
   const [preorderTime, setPreorderTime] = useState('14:00');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+380 (');
-  const [street, setStreet] = useState('');
-  const [house, setHouse] = useState('');
-  const [apt, setApt] = useState('');
-  const [entrance, setEntrance] = useState('');
-  const [intercom, setIntercom] = useState('');
   const [payment, setPayment] = useState('Готівка');
   const [comment, setComment] = useState('');
   const [cutleryCount, setCutleryCount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Delivery calculations
-  const threshold = MENU_DATA.info.freeDeliveryThreshold;
-  const diffToFree = Math.max(0, threshold - subtotal);
-  const progressPercent = Math.min(100, Math.round((subtotal / threshold) * 100));
-  const deliveryFee = getDeliveryFee(orderType);
-  const discount = getDiscount(orderType);
-  const total = getTotal(orderType);
+  // Takeaway calculations
+  const discount = getDiscount();
+  const total = getTotal();
 
   // Cross-sell items (quick additions like coffee, desserts & fries)
   const crossSellItems = useMemo(() => {
@@ -107,23 +95,7 @@ export function CartCheckoutPage() {
       return;
     }
 
-    let addressStr = '';
-    if (orderType === 'delivery') {
-      if (subtotal < MENU_DATA.info.minOrderDelivery) {
-        showToast(`Мінімальна сума для доставки: ${MENU_DATA.info.minOrderDelivery} ₴`);
-        return;
-      }
-      if (!street.trim() || !house.trim()) {
-        showToast('Вкажіть вулицю та номер будинку для доставки');
-        return;
-      }
-      addressStr = `м. Запоріжжя, вул. ${street.trim()}, буд. ${house.trim()}`;
-      if (entrance.trim()) addressStr += `, під'їзд ${entrance.trim()}`;
-      if (apt.trim()) addressStr += `, кв./оф. ${apt.trim()}`;
-      if (intercom.trim()) addressStr += `, домофон: ${intercom.trim()}`;
-    } else {
-      addressStr = `Самовивіз з ресторану: ${MENU_DATA.info.address}`;
-    }
+    const addressStr = `м. Запоріжжя, ${MENU_DATA.info.address}`;
 
     setIsSubmitting(true);
 
@@ -140,8 +112,8 @@ export function CartCheckoutPage() {
       })
       .join('\n');
 
-    const timingText = deliveryTiming === 'asap' 
-      ? '🔥 Якнайшвидше (орієнтовно 30-45 хв)' 
+    const timingText = pickupTiming === 'asap' 
+      ? '🔥 Якнайшвидше (орієнтовно 7-10 хв)' 
       : `⏰ На певний час (${preorderTime})`;
 
     const fullOrderText = 
@@ -150,9 +122,9 @@ export function CartCheckoutPage() {
 ━━━━━━━━━━━━━━━━━━━━
 👤 Клієнт: ${name}
 📞 Телефон: ${phone}
-📍 Отримання: ${orderType === 'delivery' ? '🚗 Доставка кур\'єром' : '🏃 Самовивіз (-10%)'}
+📍 Отримання: 🏃 Самовивіз (-10%)
 ⏱ Час: ${timingText}
-🏠 Адреса: ${addressStr}
+🏠 Точка видачі: ${addressStr}
 💳 Оплата: ${payment}
 🍴 Прибори/серветки: ${cutleryCount} шт.
 ${comment.trim() ? '💬 Коментар: ' + comment.trim() + '\n' : ''}━━━━━━━━━━━━━━━━━━━━
@@ -160,8 +132,7 @@ ${comment.trim() ? '💬 Коментар: ' + comment.trim() + '\n' : ''}━━
 ${itemsText}
 
 💰 Вартість страв: ${subtotal} ₴
-${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\n` : ''}🚗 Доставка: ${deliveryFee === 0 ? 'Безкоштовно 🎉' : deliveryFee + ' ₴'}
-🔥 РАЗОМ ДО СПЛАТИ: ${total} ₴`;
+${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\n` : ''}🔥 РАЗОМ ДО СПЛАТИ: ${total} ₴`;
 
     // Open success modal
     setTimeout(() => {
@@ -171,9 +142,8 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
         phone,
         total,
         subtotal,
-        deliveryFee,
         discount,
-        orderType,
+        orderType: 'pickup',
         address: addressStr,
         timing: timingText,
         payment,
@@ -229,7 +199,7 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
             Кошик та оформлення замовлення
           </h1>
           <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-            Перевірте обрані чебуреки та вкажіть контактні дані для швидкої доставки
+            Перевірте обрані страви та вкажіть час для швидкого самовивозу
           </p>
         </div>
 
@@ -265,38 +235,23 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
           /* Main 2-Column Grid Layout */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* LEFT COLUMN: Cart Review & Free Delivery Tracker (7 cols) */}
+            {/* LEFT COLUMN: Cart Review & Takeaway Benefit (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
               
-              {/* Free Delivery Bar */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] shadow-sm">
-                <div className="flex items-center justify-between text-xs sm:text-sm font-bold mb-2.5">
-                  {diffToFree > 0 ? (
-                    <span className="text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-                      <span>
-                        Додайте ще на{' '}
-                        <strong className="text-amber-500 font-black">{diffToFree} ₴</strong> для безкоштовної доставки!
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-                      <span>Вітаємо! У вас активовано безкоштовну доставку по Запоріжжю! 🛵</span>
-                    </span>
-                  )}
-                  <span className="text-zinc-400 text-xs font-semibold">{progressPercent}%</span>
-                </div>
-
-                <div className="h-2.5 w-full bg-zinc-100 dark:bg-[#1A1A22] rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressPercent}%` }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className={`h-full rounded-full transition-colors ${
-                      diffToFree <= 0 ? 'bg-emerald-500' : 'bg-glovo-yellow'
-                    }`}
-                  />
+              {/* Pickup Discount Card */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent dark:from-amber-500/15 dark:via-transparent border border-amber-500/25 shadow-sm">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-500 text-zinc-950 flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+                    -10%
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-extrabold text-zinc-950 dark:text-white">
+                      Знижка 10% на все замовлення з собою!
+                    </h3>
+                    <p className="text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
+                      Готуємо з-під ножа за 7–10 хвилин до вашого приходу • пр. Соборний, 142
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -491,48 +446,23 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                     Оформлення замовлення
                   </h2>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Заповніть інформацію для кур'єра або точки видачі
+                    Швидкий самовивіз без черги: приготуємо до вашого приходу
                   </p>
                 </div>
 
-                {/* Toggle Delivery vs Pickup */}
-                <div>
-                  <label className="block text-xs font-bold text-zinc-900 dark:text-white mb-2">
-                    Спосіб отримання:
-                  </label>
-                  <div className="grid grid-cols-2 p-1 rounded-2xl bg-zinc-100 dark:bg-[#1A1A22] border border-zinc-200/80 dark:border-[#23232E]">
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                      onClick={() => setOrderType('delivery')}
-                      className={`py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                        orderType === 'delivery'
-                          ? 'bg-glovo-yellow text-zinc-950 shadow-sm ring-1 ring-amber-400/50'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                      }`}
-                    >
-                      <Truck className="w-3.5 h-3.5" />
-                      <span>Кур'єром</span>
-                    </motion.button>
-
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                      onClick={() => setOrderType('pickup')}
-                      className={`py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                        orderType === 'pickup'
-                          ? 'bg-glovo-yellow text-zinc-950 shadow-sm ring-1 ring-amber-400/50'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                      }`}
-                    >
-                      <Store className="w-3.5 h-3.5" />
-                      <span>Самовивіз (-10%)</span>
-                    </motion.button>
+                {/* Pickup Location Info */}
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs">
+                  <div className="font-black flex items-center gap-1.5 mb-1 text-zinc-950 dark:text-white">
+                    <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>Точка видачі замовлення:</span>
                   </div>
+                  <p className="font-bold text-zinc-800 dark:text-zinc-200">
+                    м. Запоріжжя, {MENU_DATA.info.address}
+                  </p>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 font-semibold flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span>Знижка 10% на все замовлення вже врахована!</span>
+                  </p>
                 </div>
 
                 {/* Timing selector */}
@@ -546,15 +476,15 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.96 }}
                       transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                      onClick={() => setDeliveryTiming('asap')}
+                      onClick={() => setPickupTiming('asap')}
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                        deliveryTiming === 'asap'
+                        pickupTiming === 'asap'
                           ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-1 ring-glovo-yellow shadow-xs'
                           : 'border-zinc-200 dark:border-[#23232E] text-zinc-500 bg-zinc-50 dark:bg-[#1A1A22]/40 hover:border-zinc-300'
                       }`}
                     >
                       <Clock className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Якнайшвидше (~35 хв)</span>
+                      <span>Якнайшвидше (~7-10 хв)</span>
                     </motion.button>
 
                     <motion.button
@@ -562,9 +492,9 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.96 }}
                       transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                      onClick={() => setDeliveryTiming('preorder')}
+                      onClick={() => setPickupTiming('preorder')}
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                        deliveryTiming === 'preorder'
+                        pickupTiming === 'preorder'
                           ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-1 ring-glovo-yellow shadow-xs'
                           : 'border-zinc-200 dark:border-[#23232E] text-zinc-500 bg-zinc-50 dark:bg-[#1A1A22]/40 hover:border-zinc-300'
                       }`}
@@ -573,7 +503,7 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                     </motion.button>
                   </div>
 
-                  {deliveryTiming === 'preorder' && (
+                  {pickupTiming === 'preorder' && (
                     <div className="mt-2.5">
                       <input
                         type="time"
@@ -622,74 +552,6 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                   </div>
                 </div>
 
-                {/* Delivery Address OR Pickup Info */}
-                {orderType === 'delivery' ? (
-                  <div className="space-y-2.5 pt-1">
-                    <label className="block text-xs font-bold text-zinc-900 dark:text-white">
-                      Адреса доставки (Запоріжжя) *
-                    </label>
-                    <div className="grid grid-cols-12 gap-2">
-                      <div className="col-span-8">
-                        <input
-                          type="text"
-                          required
-                          value={street}
-                          onChange={(e) => setStreet(e.target.value)}
-                          placeholder="Вулиця / проспект"
-                          className="w-full px-3 py-2.5 text-xs rounded-xl bg-zinc-50 dark:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white focus:ring-2 focus:ring-glovo-yellow focus:outline-none"
-                        />
-                      </div>
-                      <div className="col-span-4">
-                        <input
-                          type="text"
-                          required
-                          value={house}
-                          onChange={(e) => setHouse(e.target.value)}
-                          placeholder="Будинок"
-                          className="w-full px-3 py-2.5 text-xs rounded-xl bg-zinc-50 dark:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white text-center focus:ring-2 focus:ring-glovo-yellow focus:outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <input
-                        type="text"
-                        value={entrance}
-                        onChange={(e) => setEntrance(e.target.value)}
-                        placeholder="Під'їзд"
-                        className="w-full px-2 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white text-center focus:ring-2 focus:ring-glovo-yellow focus:outline-none"
-                      />
-                      <input
-                        type="text"
-                        value={apt}
-                        onChange={(e) => setApt(e.target.value)}
-                        placeholder="Кв./оф."
-                        className="w-full px-2 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white text-center focus:ring-2 focus:ring-glovo-yellow focus:outline-none"
-                      />
-                      <input
-                        type="text"
-                        value={intercom}
-                        onChange={(e) => setIntercom(e.target.value)}
-                        placeholder="Код / дом."
-                        className="w-full px-2 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white text-center focus:ring-2 focus:ring-glovo-yellow focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-950 dark:text-amber-300">
-                    <div className="font-black flex items-center gap-1.5 mb-1 text-zinc-950 dark:text-white">
-                      <MapPin className="w-4 h-4 text-amber-500" />
-                      <span>Точка видачі замовлення:</span>
-                    </div>
-                    <p className="font-semibold text-zinc-700 dark:text-zinc-300">
-                      м. Запоріжжя, {MENU_DATA.info.address}
-                    </p>
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-bold">
-                      🔥 Знижка 10% на все замовлення вже застосована!
-                    </p>
-                  </div>
-                )}
-
                 {/* Payment Methods */}
                 <div>
                   <label className="block text-xs font-bold text-zinc-900 dark:text-white mb-2">
@@ -698,7 +560,7 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { id: 'Готівка', label: 'Готівка', Icon: Banknote },
-                      { id: 'Термінал кур\'єру', label: 'Термінал', Icon: CreditCard },
+                      { id: 'Карткою в закладі', label: 'Термінал', Icon: CreditCard },
                       { id: 'Онлайн карткою', label: 'Онлайн', Icon: Smartphone }
                     ].map((item) => (
                       <motion.button
@@ -724,7 +586,7 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
-                      Коментар для кухаря або кур'єра:
+                      Коментар до замовлення:
                     </label>
                     <input
                       type="text"
@@ -781,17 +643,6 @@ ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\
                       <span>-{discount} ₴</span>
                     </div>
                   )}
-
-                  <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
-                    <span>Доставка кур'єром:</span>
-                    <span className="font-bold text-zinc-900 dark:text-white">
-                      {orderType === 'pickup'
-                        ? 'Самовивіз (0 ₴)'
-                        : deliveryFee === 0
-                        ? 'Безкоштовно 🎉'
-                        : `${deliveryFee} ₴`}
-                    </span>
-                  </div>
 
                   <div className="flex justify-between items-baseline text-base font-black pt-2.5 border-t border-zinc-200 dark:border-[#23232E] text-zinc-950 dark:text-white">
                     <span>Разом до сплати:</span>

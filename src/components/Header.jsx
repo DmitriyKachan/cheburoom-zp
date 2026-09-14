@@ -10,12 +10,12 @@ export function Header() {
 
   return (
     <>
-      {/* RnR / Glovo Top Delivery Promo Bar (scrolls away to free maximum vertical screen space) */}
+      {/* Top Promo Bar (scrolls away to free maximum vertical screen space) */}
       <div className="bg-glovo-yellow text-zinc-950 font-bold h-7 px-3 sm:px-4 text-center flex items-center justify-center gap-1.5 sm:gap-2 select-none">
         <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse text-zinc-950" />
         <span className="text-[10.5px] sm:text-xs font-bold text-zinc-950 tracking-tight whitespace-nowrap">
-          <span className="sm:hidden">Безкоштовна доставка від 450 ₴ • Свіже за 10 хв</span>
-          <span className="hidden sm:inline">Безкоштовна доставка від 450 ₴ по Запоріжжю • Готуємо свіже за 10 хв</span>
+          <span className="sm:hidden">Знижка 10% на самовивіз • Свіже за 10 хв</span>
+          <span className="hidden sm:inline">Знижка 10% на самовивіз • Готуємо свіже з-під ножа за 10 хв</span>
         </span>
       </div>
 
@@ -75,7 +75,7 @@ export function Header() {
             </div>
             <div>
               <span className="text-xs font-black block leading-tight text-zinc-950 dark:text-white">+380 (95) 199 15 99</span>
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block leading-tight font-medium">Замовлення та доставка</span>
+              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block leading-tight font-medium">Замовлення та самовивіз</span>
             </div>
           </motion.a>
 

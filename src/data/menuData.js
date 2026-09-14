@@ -1033,9 +1033,7 @@ export const MENU_DATA = {
     hours: "Щодня з 9:00 до 20:00",
     instagram: "https://www.instagram.com/cheburoom.zp/",
     instagramUsername: "cheburoom.zp",
-    minOrderDelivery: 200,
-    freeDeliveryThreshold: 450,
-    deliveryCost: 50,
+    pickupDiscountPercent: 10,
     estimatedCookTime: "7-12 хв"
   }
 };

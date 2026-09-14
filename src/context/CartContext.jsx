@@ -163,22 +163,14 @@ export function CartProvider({ children }) {
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
 
-  const getDeliveryFee = (type = 'delivery') => {
-    if (type === 'pickup' || subtotal === 0 || subtotal >= MENU_DATA.info.freeDeliveryThreshold) {
-      return 0;
-    }
-    return MENU_DATA.info.deliveryCost;
+  const getDeliveryFee = () => 0;
+
+  const getDiscount = () => {
+    return Math.round(subtotal * 0.10);
   };
 
-  const getDiscount = (type = 'delivery') => {
-    if (type === 'pickup') {
-      return Math.round(subtotal * 0.10);
-    }
-    return 0;
-  };
-
-  const getTotal = (type = 'delivery') => {
-    return Math.max(0, subtotal - getDiscount(type) + getDeliveryFee(type));
+  const getTotal = () => {
+    return Math.max(0, subtotal - getDiscount());
   };
 
   return (

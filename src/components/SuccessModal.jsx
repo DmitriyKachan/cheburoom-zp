@@ -15,8 +15,6 @@ export function SuccessModal() {
     }
   };
 
-  const isDelivery = successOrder.orderType === 'delivery';
-
   return (
     <AnimatePresence>
       <div 
@@ -72,10 +70,10 @@ export function SuccessModal() {
               <div className="flex items-start justify-between gap-3">
                 <span className="text-zinc-500 dark:text-zinc-400 font-medium flex items-center gap-1.5 shrink-0">
                   <MapPin className="w-3.5 h-3.5 text-amber-500" />
-                  <span>{isDelivery ? "Адреса доставки:" : "Самовивіз:"}</span>
+                  <span>Самовивіз:</span>
                 </span>
                 <span className="font-bold text-right text-zinc-950 dark:text-white">
-                  {successOrder.address || (isDelivery ? "м. Запоріжжя" : "пр. Соборний, 142 (центр)")}
+                  {successOrder.address || "м. Запоріжжя, пр. Соборний, 142"}
                 </span>
               </div>
 
@@ -183,14 +181,6 @@ export function SuccessModal() {
                 <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
                   <span>Знижка (самовивіз -10%):</span>
                   <span>-{successOrder.discount} ₴</span>
-                </div>
-              )}
-              {successOrder.deliveryFee !== undefined && (
-                <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
-                  <span>Доставка:</span>
-                  <span className="font-semibold text-zinc-950 dark:text-white">
-                    {successOrder.deliveryFee === 0 ? "Безкоштовно 🎉" : `${successOrder.deliveryFee} ₴`}
-                  </span>
                 </div>
               )}
               <div className="flex justify-between items-baseline pt-2 border-t border-amber-200 dark:border-amber-900/50">
