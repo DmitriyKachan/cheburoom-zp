@@ -1,10 +1,140 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MENU_DATA } from '../data/menuData';
+import {
+  fetchMenuFromGoogleSheet,
+  extractSheetId,
+  STORAGE_KEYS
+} from '../services/googleSheetsService';
 
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
   const storageKey = 'cheburoom_react_cart_v1';
+  
+  // Menu items state (from Google Sheets or local default)
+  const [menuItems, setMenuItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.MENU_ITEMS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Error reading cached menu', e);
+    }
+    return MENU_DATA.items;
+  });
+
+  const [sheetId, setSheetId] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.SHEET_ID) || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [lastSyncTime, setLastSyncTime] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.LAST_SYNC) || null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  // Background auto-refresh from Google Sheets if configured
+  useEffect(() => {
+    if (!sheetId) return;
+    let isMounted = true;
+
+    async function silentBackgroundSync() {
+      try {
+        const freshDishes = await fetchMenuFromGoogleSheet(sheetId);
+        if (isMounted && freshDishes && freshDishes.length > 0) {
+          setMenuItems(freshDishes);
+          const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          setLastSyncTime(nowStr);
+          localStorage.setItem(STORAGE_KEYS.MENU_ITEMS, JSON.stringify(freshDishes));
+          localStorage.setItem(STORAGE_KEYS.LAST_SYNC, nowStr);
+        }
+      } catch (err) {
+        // Silently use cached menu if offline or error
+        console.info('Background Google Sheet sync skipped or offline:', err.message);
+      }
+    }
+
+    silentBackgroundSync();
+    return () => { isMounted = false; };
+  }, [sheetId]);
+
+  const syncFromGoogleSheets = async (urlOrId) => {
+    const cleanId = extractSheetId(urlOrId);
+    if (!cleanId) {
+      throw new Error('Некоректний URL або ID Google Таблиці');
+    }
+
+    setIsSyncing(true);
+    try {
+      const freshDishes = await fetchMenuFromGoogleSheet(cleanId);
+      if (!freshDishes || freshDishes.length === 0) {
+        throw new Error('Таблиця не містить валідних страв');
+      }
+
+      setMenuItems(freshDishes);
+      setSheetId(cleanId);
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setLastSyncTime(nowStr);
+
+      localStorage.setItem(STORAGE_KEYS.MENU_ITEMS, JSON.stringify(freshDishes));
+      localStorage.setItem(STORAGE_KEYS.SHEET_ID, cleanId);
+      localStorage.setItem(STORAGE_KEYS.LAST_SYNC, nowStr);
+
+      return freshDishes;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const toggleDishAvailability = (dishId) => {
+    setMenuItems(prev => {
+      const updated = prev.map(d => {
+        if (d.id === dishId) {
+          const newAvail = d.available === false ? true : false;
+          showToast(`«${d.name}» ${newAvail ? 'повернуто в наявність' : 'поставлено в стоп-лист'}`);
+          return { ...d, available: newAvail };
+        }
+        return d;
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEYS.MENU_ITEMS, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('LocalStorage error', e);
+      }
+
+      return updated;
+    });
+  };
+
+  const resetToDefaultMenu = () => {
+    setMenuItems(MENU_DATA.items);
+    setSheetId('');
+    setLastSyncTime(null);
+    try {
+      localStorage.removeItem(STORAGE_KEYS.MENU_ITEMS);
+      localStorage.removeItem(STORAGE_KEYS.SHEET_ID);
+      localStorage.removeItem(STORAGE_KEYS.LAST_SYNC);
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  };
+
+  const setSheetIdAndSave = (id) => {
+    setSheetId(id);
+    localStorage.setItem(STORAGE_KEYS.SHEET_ID, id);
+  };
   
   const [items, setItems] = useState(() => {
     try {
@@ -196,7 +326,18 @@ export function CartProvider({ children }) {
         toastMessage,
         showToast,
         darkMode,
-        toggleTheme
+        toggleTheme,
+        // Menu management & Google Sheets sync
+        menuItems,
+        sheetId,
+        lastSyncTime,
+        isSyncing,
+        isAdminOpen,
+        setIsAdminOpen,
+        syncFromGoogleSheets,
+        setSheetIdAndSave,
+        toggleDishAvailability,
+        resetToDefaultMenu
       }}
     >
       {children}

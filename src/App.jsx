@@ -12,19 +12,20 @@ import { CartCheckoutPage } from './components/CartCheckoutPage';
 import { SuccessModal } from './components/SuccessModal';
 import { LocationInfo } from './components/LocationInfo';
 import { Footer } from './components/Footer';
+import { AdminSyncModal } from './components/AdminSyncModal';
 import { MENU_DATA } from './data/menuData';
 import { ShoppingBag, ChevronRight, Check, Search, X } from 'lucide-react';
 
 import { PromoBanners } from './components/PromoBanners';
 
 export function App() {
-  const { itemCount, subtotal, currentPage, navigateTo, toastMessage } = useCart();
+  const { itemCount, subtotal, currentPage, navigateTo, toastMessage, menuItems } = useCart();
   
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter items
-  let filteredItems = MENU_DATA.items;
+  // Filter items (from synced Google Sheets or local default)
+  let filteredItems = menuItems;
 
   if (activeCategory !== 'all') {
     filteredItems = filteredItems.filter(i => i.category === activeCategory);
@@ -164,6 +165,7 @@ export function App() {
       {/* Modals */}
       <DishModal />
       <SuccessModal />
+      <AdminSyncModal />
 
       {/* Toast */}
       {toastMessage && (
