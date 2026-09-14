@@ -1,15 +1,66 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
-import { Check, Clock, MapPin, Phone, CreditCard, X, ChevronRight } from 'lucide-react';
+import { Check, Clock, MapPin, Phone, CreditCard, X, ChevronRight, AlertCircle, ChefHat, Sparkles } from 'lucide-react';
 
 export function SuccessModal() {
   const { successOrder, setSuccessOrder, navigateTo } = useCart();
 
   if (!successOrder) return null;
 
+  const isCancelled = successOrder.status === 'cancelled' || successOrder.isDeleted;
+  const currentStatus = isCancelled ? 'cancelled' : (successOrder.status || 'new');
+
+  const statusConfig = {
+    new: {
+      title: 'Замовлення прийнято!',
+      subtitle: 'Передано на кухню ресторану',
+      badge: '🟡 Нове замовлення',
+      stepIndex: 0,
+      icon: Clock,
+      color: 'text-amber-500 bg-amber-500/10 border-amber-500/30'
+    },
+    preparing: {
+      title: 'Готується на кухні! 👨‍🍳',
+      subtitle: 'Кухар смажить ваші гарячі чебуреки з-під ножа',
+      badge: '🔵 Готується',
+      stepIndex: 1,
+      icon: ChefHat,
+      color: 'text-blue-500 bg-blue-500/10 border-blue-500/30'
+    },
+    ready: {
+      title: 'Замовлення готове! 🎉',
+      subtitle: 'Гаряче та запаковане чекає на вас',
+      badge: '🟢 Готове до видачі',
+      stepIndex: 2,
+      icon: Sparkles,
+      color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30'
+    },
+    completed: {
+      title: 'Видано. Смачного! ❤️',
+      subtitle: 'Дякуємо, що обираєте ЧЕБУROOM!',
+      badge: '⚪ Видано клієнту',
+      stepIndex: 3,
+      icon: Check,
+      color: 'text-zinc-400 bg-zinc-500/10 border-zinc-500/30'
+    },
+    cancelled: {
+      title: 'Замовлення скасовано',
+      subtitle: 'Замовлення було скасовано або видалено адміністратором',
+      badge: '❌ Скасовано',
+      stepIndex: -1,
+      icon: AlertCircle,
+      color: 'text-rose-500 bg-rose-500/10 border-rose-500/30'
+    }
+  };
+
+  const activeConfig = statusConfig[currentStatus] || statusConfig.new;
+  const StatusIcon = activeConfig.icon;
+
   const handleClose = () => {
-    setSuccessOrder(null);
+    if (isCancelled) {
+      setSuccessOrder(null);
+    }
     if (navigateTo) {
       navigateTo('menu');
     }
@@ -43,16 +94,66 @@ export function SuccessModal() {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-3 shadow-xs">
-              <Check className="w-7 h-7" strokeWidth={2.5} />
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-xs border ${
+              isCancelled 
+                ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900' 
+                : currentStatus === 'ready'
+                ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900 ring-4 ring-emerald-500/20 animate-pulse'
+                : currentStatus === 'preparing'
+                ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900 animate-bounce'
+                : 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900'
+            }`}>
+              <StatusIcon className="w-7 h-7" strokeWidth={2.5} />
             </div>
 
             <h3 className="font-display text-xl sm:text-2xl font-black text-zinc-950 dark:text-white mb-1">
-              Замовлення прийнято!
+              {activeConfig.title}
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Кухар уже смажить ваші гарячі чебуреки з-під ножа
+              {activeConfig.subtitle}
             </p>
+
+            {/* Live Progress Stepper */}
+            {!isCancelled && (
+              <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
+                <div className="flex items-center justify-between gap-1 max-w-sm mx-auto">
+                  {[
+                    { key: 'new', label: 'Прийнято', idx: 0 },
+                    { key: 'preparing', label: 'Готується', idx: 1 },
+                    { key: 'ready', label: 'Готово!', idx: 2 },
+                    { key: 'completed', label: 'Видано', idx: 3 }
+                  ].map((step, i) => {
+                    const isPassed = activeConfig.stepIndex > step.idx;
+                    const isCurrent = activeConfig.stepIndex === step.idx;
+                    return (
+                      <React.Fragment key={step.key}>
+                        <div className="flex flex-col items-center flex-1">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${
+                            isPassed 
+                              ? 'bg-emerald-500 text-white' 
+                              : isCurrent
+                              ? 'bg-amber-400 text-zinc-950 ring-4 ring-amber-400/20 font-black scale-110'
+                              : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {isPassed ? '✓' : (step.idx + 1)}
+                          </div>
+                          <span className={`text-[10px] mt-1 font-bold truncate max-w-[65px] ${
+                            isCurrent ? 'text-amber-500 dark:text-amber-400 font-black' : 'text-zinc-400'
+                          }`}>
+                            {step.label}
+                          </span>
+                        </div>
+                        {i < 3 && (
+                          <div className={`h-0.5 flex-1 -mt-4 transition-colors ${
+                            activeConfig.stepIndex > i ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-800'
+                          }`} />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Scrollable Content */}
@@ -191,16 +292,31 @@ export function SuccessModal() {
 
           {/* Footer Action Button */}
           <div className="p-4 sm:p-5 border-t border-zinc-100 dark:border-[#23232E] bg-[#F8F9FA] dark:bg-[#09090B] flex flex-col sm:flex-row gap-2.5 shrink-0">
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={handleClose}
-              className="w-full h-12 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-sm btn-glow-yellow flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
-            >
-              <span>Повернутися до меню</span>
-              <ChevronRight className="w-4 h-4" />
-            </motion.button>
+            {isCancelled ? (
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => {
+                  setSuccessOrder(null);
+                  if (navigateTo) navigateTo('menu');
+                }}
+                className="w-full h-12 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-display font-black text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
+              >
+                <span>Зрозуміло, закрити сповіщення</span>
+              </motion.button>
+            ) : (
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={handleClose}
+                className="w-full h-12 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-sm btn-glow-yellow flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
+              >
+                <span>Повернутися до меню</span>
+                <ChevronRight className="w-4 h-4" />
+              </motion.button>
+            )}
           </div>
 
         </motion.div>

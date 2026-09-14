@@ -6,7 +6,7 @@ import { InstagramIcon } from './InstagramIcon';
 import { CheburoomLogo } from './CheburoomLogo';
 
 export function Header() {
-  const { itemCount, subtotal, currentPage, navigateTo, darkMode, toggleTheme } = useCart();
+  const { itemCount, subtotal, currentPage, navigateTo, darkMode, toggleTheme, successOrder, setSuccessOrder } = useCart();
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-md border-b border-zinc-200 dark:border-[#23232E] transition-colors">
@@ -94,6 +94,39 @@ export function Header() {
           >
             {darkMode ? <Sun className="w-4 h-4 text-amber-400 fill-amber-400/20" /> : <Moon className="w-4 h-4 text-zinc-700" />}
           </motion.button>
+
+          {/* Active Order Live Tracker Pill */}
+          {successOrder && (
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setSuccessOrder({ ...successOrder })}
+              className={`h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl border flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0 text-xs font-bold transition-all ${
+                successOrder.status === 'ready'
+                  ? 'bg-emerald-500 text-white border-emerald-400 animate-pulse'
+                  : successOrder.status === 'preparing'
+                  ? 'bg-blue-500/15 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                  : (successOrder.status === 'cancelled' || successOrder.isDeleted)
+                  ? 'bg-rose-500/15 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                  : 'bg-amber-500/15 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border-amber-500/30'
+              }`}
+              title="Переглянути статус замовлення"
+            >
+              <span className="text-[11px] sm:text-xs whitespace-nowrap">
+                {successOrder.status === 'ready'
+                  ? '🎁 Готово!'
+                  : successOrder.status === 'preparing'
+                  ? '👨‍🍳 Готується'
+                  : (successOrder.status === 'cancelled' || successOrder.isDeleted)
+                  ? '❌ Скасовано'
+                  : '🟡 Замовлення'}
+              </span>
+              <span className="hidden sm:inline text-[10px] font-mono opacity-80">
+                #{successOrder.orderId}
+              </span>
+            </motion.button>
+          )}
 
           {/* Cart Button */}
           {currentPage === 'checkout' ? (

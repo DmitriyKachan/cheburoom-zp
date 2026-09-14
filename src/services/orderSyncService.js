@@ -144,6 +144,11 @@ export async function broadcastOrderStatus(orderId, status) {
  */
 export async function broadcastClearOrders(clearedAt = Date.now()) {
   const payload = { type: 'CLEAR_ORDERS', clearedAt };
+
+  try {
+    localStorage.setItem('cheburoom_orders_cleared_at', clearedAt.toString());
+  } catch {}
+
   try {
     if (ordersBroadcastChannel) {
       ordersBroadcastChannel.postMessage(payload);
@@ -151,43 +156,75 @@ export async function broadcastClearOrders(clearedAt = Date.now()) {
   } catch {}
 
   try {
-    fetch(CLOUD_ORDERS_URL, {
-      method: 'POST',
-      headers: {
-        'Title': 'Cheburoom Clear Orders',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
+    window.dispatchEvent(new CustomEvent('cheburoom_orders_cleared', { detail: clearedAt }));
   } catch {}
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(CLOUD_ORDERS_URL, {
+        method: 'POST',
+        headers: {
+          'Title': 'Cheburoom Clear Orders',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) break;
+    } catch {
+      await new Promise(r => setTimeout(r, 350));
+    }
+  }
 }
 
 /**
- * Broadcast deleting a single order
+ * Broadcast deleting a single order with persistent tombstone and retry
  */
 export async function broadcastDeleteOrder(orderId) {
   if (!orderId) return;
   const payload = { type: 'DELETE_ORDER', orderId, deletedAt: Date.now() };
+
+  // 1. Immediately store in local deleted orders list
+  try {
+    const deleted = JSON.parse(localStorage.getItem('cheburoom_deleted_orders') || '[]');
+    if (!deleted.includes(orderId)) {
+      deleted.push(orderId);
+      localStorage.setItem('cheburoom_deleted_orders', JSON.stringify(deleted));
+    }
+  } catch {}
+
+  // 2. BroadcastChannel (same browser other tabs)
   try {
     if (ordersBroadcastChannel) {
       ordersBroadcastChannel.postMessage(payload);
     }
   } catch {}
 
+  // 3. Window Custom Event (same tab)
   try {
-    fetch(CLOUD_ORDERS_URL, {
-      method: 'POST',
-      headers: {
-        'Title': `Cheburoom Delete Order #${orderId}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
+    window.dispatchEvent(new CustomEvent('cheburoom_order_deleted', { detail: orderId }));
   } catch {}
+
+  // 4. Cloud POST with retry
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(CLOUD_ORDERS_URL, {
+        method: 'POST',
+        headers: {
+          'Title': `Cheburoom Delete Order #${orderId}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) break;
+    } catch {
+      await new Promise(r => setTimeout(r, 350));
+    }
+  }
 }
 
 /**
  * Subscribe to realtime order events (new orders, status updates, clear, delete)
+ * Includes auto-reconnect and visibility change revival for mobile Safari/Chrome.
  */
 export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onDeleteOrder) {
   const processedOrderIds = new Set();
@@ -233,15 +270,18 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
     ordersBroadcastChannel.addEventListener('message', handleBcMessage);
   }
 
-  // 2. Window Custom Event
-  const handleCustomEvent = (e) => {
-    if (e.detail) {
-      handleOrder(e.detail);
-    }
-  };
-  window.addEventListener('cheburoom_new_order', handleCustomEvent);
+  // 2. Window Custom Events
+  const handleCustomNew = (e) => { if (e.detail) handleOrder(e.detail); };
+  const handleCustomDel = (e) => { if (e.detail) handleDelete(e.detail); };
+  const handleCustomClr = (e) => { if (e.detail) handleClear(e.detail); };
+  const handleCustomStat = (e) => { if (e.detail) handleStatus(e.detail.orderId, e.detail.status); };
 
-  // 3. Storage event listener
+  window.addEventListener('cheburoom_new_order', handleCustomNew);
+  window.addEventListener('cheburoom_order_deleted', handleCustomDel);
+  window.addEventListener('cheburoom_orders_cleared', handleCustomClr);
+  window.addEventListener('cheburoom_order_status', handleCustomStat);
+
+  // 3. Storage event listener (cross-tab)
   const handleStorageEvent = (e) => {
     if (e.key === 'cheburoom_orders_log' && e.newValue) {
       try {
@@ -252,15 +292,30 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
       } catch {}
     } else if (e.key === 'cheburoom_orders_cleared_at' && e.newValue) {
       handleClear(parseInt(e.newValue, 10));
+    } else if (e.key === 'cheburoom_deleted_orders' && e.newValue) {
+      try {
+        const ids = JSON.parse(e.newValue);
+        if (Array.isArray(ids) && ids.length > 0) {
+          ids.forEach(id => handleDelete(id));
+        }
+      } catch {}
     }
   };
   window.addEventListener('storage', handleStorageEvent);
 
-  // 4. Cloud Server-Sent Events (SSE) listener
+  // 4. Cloud Server-Sent Events (SSE) listener with auto-reconnect and mobile revival
   let eventSource = null;
-  try {
-    if (typeof EventSource !== 'undefined') {
+  let isClosed = false;
+  let reconnectTimeout = null;
+
+  function connectSSE() {
+    if (isClosed || typeof EventSource === 'undefined') return;
+    try {
+      if (eventSource) {
+        eventSource.close();
+      }
       eventSource = new EventSource(`${CLOUD_ORDERS_URL}/sse`);
+
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -278,18 +333,48 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
           }
         } catch {}
       };
+
+      eventSource.onerror = () => {
+        if (eventSource) eventSource.close();
+        if (!isClosed && !reconnectTimeout) {
+          reconnectTimeout = setTimeout(() => {
+            reconnectTimeout = null;
+            connectSSE();
+          }, 3000);
+        }
+      };
+    } catch (err) {
+      console.info('SSE initialization skipped:', err.message);
     }
-  } catch (err) {
-    console.info('SSE initialization skipped:', err.message);
   }
+
+  connectSSE();
+
+  // Mobile wake-up: if user unlocks phone or switches back to browser tab
+  const handleVisibility = () => {
+    if (document.visibilityState === 'visible') {
+      if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
+        connectSSE();
+      }
+    }
+  };
+  document.addEventListener('visibilitychange', handleVisibility);
+  window.addEventListener('online', connectSSE);
 
   // Cleanup
   return () => {
+    isClosed = true;
+    if (reconnectTimeout) clearTimeout(reconnectTimeout);
     if (ordersBroadcastChannel) {
       ordersBroadcastChannel.removeEventListener('message', handleBcMessage);
     }
-    window.removeEventListener('cheburoom_new_order', handleCustomEvent);
+    window.removeEventListener('cheburoom_new_order', handleCustomNew);
+    window.removeEventListener('cheburoom_order_deleted', handleCustomDel);
+    window.removeEventListener('cheburoom_orders_cleared', handleCustomClr);
+    window.removeEventListener('cheburoom_order_status', handleCustomStat);
     window.removeEventListener('storage', handleStorageEvent);
+    document.removeEventListener('visibilitychange', handleVisibility);
+    window.removeEventListener('online', connectSSE);
     if (eventSource) {
       eventSource.close();
     }
@@ -316,21 +401,31 @@ export async function broadcastMenuAction(action) {
     console.warn('menuBroadcastChannel post error', e);
   }
 
-  // 2. Cloud Relay (async background)
+  // 2. Window Custom Event (same tab)
   try {
-    fetch(CLOUD_MENU_URL, {
-      method: 'POST',
-      headers: {
-        'Title': `Cheburoom Menu ${action.type || 'Action'}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(action)
-    }).catch(() => {});
+    window.dispatchEvent(new CustomEvent('cheburoom_menu_action', { detail: action }));
   } catch {}
+
+  // 3. Cloud Relay with retry
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(CLOUD_MENU_URL, {
+        method: 'POST',
+        headers: {
+          'Title': `Cheburoom Menu ${action.type || 'Action'}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(action)
+      });
+      if (res.ok) break;
+    } catch {
+      await new Promise(r => setTimeout(r, 350));
+    }
+  }
 }
 
 /**
- * Subscribe to realtime menu actions across devices
+ * Subscribe to realtime menu actions across devices with auto-reconnect and mobile revival
  * @param {Function} onMenuAction Callback receiving action object
  * @returns {Function} Unsubscribe cleanup function
  */
@@ -345,11 +440,27 @@ export function subscribeToMenuActions(onMenuAction) {
     menuBroadcastChannel.addEventListener('message', handleBcMessage);
   }
 
-  // 2. Cloud SSE listener
+  // 2. Window Custom Event
+  const handleCustomMenu = (e) => {
+    if (e.detail) {
+      onMenuAction(e.detail);
+    }
+  };
+  window.addEventListener('cheburoom_menu_action', handleCustomMenu);
+
+  // 3. Cloud SSE listener with auto-reconnect
   let eventSource = null;
-  try {
-    if (typeof EventSource !== 'undefined') {
+  let isClosed = false;
+  let reconnectTimeout = null;
+
+  function connectSSE() {
+    if (isClosed || typeof EventSource === 'undefined') return;
+    try {
+      if (eventSource) {
+        eventSource.close();
+      }
       eventSource = new EventSource(`${CLOUD_MENU_URL}/sse`);
+
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -361,16 +472,44 @@ export function subscribeToMenuActions(onMenuAction) {
           }
         } catch {}
       };
+
+      eventSource.onerror = () => {
+        if (eventSource) eventSource.close();
+        if (!isClosed && !reconnectTimeout) {
+          reconnectTimeout = setTimeout(() => {
+            reconnectTimeout = null;
+            connectSSE();
+          }, 3000);
+        }
+      };
+    } catch (err) {
+      console.info('Menu SSE init error:', err.message);
     }
-  } catch (err) {
-    console.info('Menu SSE init error:', err.message);
   }
+
+  connectSSE();
+
+  // Mobile wake-up
+  const handleVisibility = () => {
+    if (document.visibilityState === 'visible') {
+      if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
+        connectSSE();
+      }
+    }
+  };
+  document.addEventListener('visibilitychange', handleVisibility);
+  window.addEventListener('online', connectSSE);
 
   // Cleanup
   return () => {
+    isClosed = true;
+    if (reconnectTimeout) clearTimeout(reconnectTimeout);
     if (menuBroadcastChannel) {
       menuBroadcastChannel.removeEventListener('message', handleBcMessage);
     }
+    window.removeEventListener('cheburoom_menu_action', handleCustomMenu);
+    document.removeEventListener('visibilitychange', handleVisibility);
+    window.removeEventListener('online', connectSSE);
     if (eventSource) {
       eventSource.close();
     }
@@ -445,7 +584,12 @@ export function subscribeToPasswordHash(onHashUpdate) {
 export async function fetchHistoricalCloudOrders() {
   try {
     const res = await fetch(`${CLOUD_ORDERS_URL}/json?poll=1&since=all`);
-    if (!res.ok) return [];
+    if (!res.ok) {
+      const fallback = [];
+      fallback.deletedOrderIds = [];
+      fallback.clearedAt = 0;
+      return fallback;
+    }
     const text = await res.text();
     const lines = text.trim().split('\n');
     const ordersMap = new Map();
@@ -481,6 +625,14 @@ export async function fetchHistoricalCloudOrders() {
       } catch {}
     }
 
+    // Persist discovered deletions and cleared timestamp to localStorage immediately on all devices
+    try {
+      localStorage.setItem('cheburoom_deleted_orders', JSON.stringify(Array.from(deletedOrderIds)));
+      if (latestClearedAt > 0) {
+        localStorage.setItem('cheburoom_orders_cleared_at', latestClearedAt.toString());
+      }
+    } catch {}
+
     // Process orders in order, ignoring any cleared or deleted orders
     for (const inner of parsedEvents) {
       if (inner?.type === 'NEW_ORDER' && inner.order?.orderId) {
@@ -501,14 +653,21 @@ export async function fetchHistoricalCloudOrders() {
       }
     }
 
-    return Array.from(ordersMap.values()).sort((a, b) => {
+    const sorted = Array.from(ordersMap.values()).sort((a, b) => {
       const tA = new Date(a.createdAt || 0).getTime();
       const tB = new Date(b.createdAt || 0).getTime();
       return tB - tA;
     });
+
+    sorted.deletedOrderIds = Array.from(deletedOrderIds);
+    sorted.clearedAt = latestClearedAt;
+    return sorted;
   } catch (err) {
     console.warn('fetchHistoricalCloudOrders error:', err);
-    return [];
+    const fallback = [];
+    fallback.deletedOrderIds = [];
+    fallback.clearedAt = 0;
+    return fallback;
   }
 }
 
