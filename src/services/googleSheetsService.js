@@ -6,6 +6,56 @@ const STORAGE_KEYS = {
   LAST_SYNC: 'cheburoom_last_sync'
 };
 
+// Friendly Ukrainian category names mapping
+export const CATEGORY_MAP = {
+  'чебуреки': 'chebureks',
+  'чебурек': 'chebureks',
+  'chebureks': 'chebureks',
+  'вок': 'wok',
+  'wok': 'wok',
+  'локшина': 'wok',
+  'фритюр': 'deepfry',
+  'закуски': 'deepfry',
+  'снеки': 'deepfry',
+  'deepfry': 'deepfry',
+  'сніданки': 'breakfast',
+  'сніданок': 'breakfast',
+  'ранок': 'breakfast',
+  'breakfast': 'breakfast',
+  'салати': 'salads',
+  'салат': 'salads',
+  'salads': 'salads',
+  'кава': 'coffee',
+  'чай': 'coffee',
+  'напої гарячі': 'coffee',
+  'coffee': 'coffee',
+  'десерти': 'desserts',
+  'десерт': 'desserts',
+  'солодке': 'desserts',
+  'desserts': 'desserts',
+  'напої': 'drinks',
+  'напій': 'drinks',
+  'лимонади': 'drinks',
+  'drinks': 'drinks',
+  'сети': 'sets',
+  'сет': 'sets',
+  'комбо': 'sets',
+  'набори': 'sets',
+  'sets': 'sets'
+};
+
+export const CATEGORY_DISPLAY_NAMES = {
+  chebureks: 'Чебуреки',
+  wok: 'WOK',
+  deepfry: 'Фритюр',
+  breakfast: 'Сніданки',
+  salads: 'Салати',
+  coffee: 'Кава',
+  desserts: 'Десерти',
+  drinks: 'Напої',
+  sets: 'Сети'
+};
+
 /**
  * Extracts a Google Spreadsheet ID or valid CSV export URL from various user input formats
  */
@@ -13,7 +63,7 @@ export function extractSheetId(input) {
   if (!input) return null;
   const str = input.trim();
 
-  // If already full published CSV URL
+  // Full published CSV URL
   if (str.includes('pub?output=csv') || str.includes('output=csv')) {
     return str;
   }
@@ -58,7 +108,7 @@ export function buildCsvUrl(sheetIdOrUrl) {
 }
 
 /**
- * Robust CSV parser that correctly handles quoted fields, commas inside quotes, and newlines
+ * Robust CSV parser that handles quoted fields, commas inside quotes, and newlines
  */
 export function parseCSV(csvText) {
   const rows = [];
@@ -108,7 +158,38 @@ export function parseCSV(csvText) {
 function parseBool(val, defaultVal = false) {
   if (val === undefined || val === null || val === '') return defaultVal;
   const s = String(val).trim().toLowerCase();
-  return ['так', 'yes', 'true', '1', '+', 'да'].includes(s);
+  return ['так', 'yes', 'true', '1', '+', 'да', 'є', '+'].includes(s);
+}
+
+/**
+ * Cleans and converts image values (including Google Drive links and =IMAGE formulas)
+ */
+export function resolveImageUrl(val) {
+  if (!val) return '';
+  let str = String(val).trim();
+
+  // Strip formula wrapper: =IMAGE("url") or =IMAGE('url')
+  const formulaMatch = str.match(/=IMAGE\s*\(\s*["']([^"']+)["']/i);
+  if (formulaMatch && formulaMatch[1]) {
+    str = formulaMatch[1].trim();
+  }
+
+  // Google Drive links: convert to direct thumbnail / view URL
+  // Formats:
+  // https://drive.google.com/file/d/FILE_ID/view...
+  // https://drive.google.com/open?id=FILE_ID
+  // https://drive.google.com/uc?id=FILE_ID
+  const driveMatch = str.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${driveMatch[1]}`;
+  }
+
+  // Raw Google Drive ID
+  if (/^[a-zA-Z0-9_-]{28,35}$/.test(str)) {
+    return `https://lh3.googleusercontent.com/d/${str}`;
+  }
+
+  return str;
 }
 
 /**
@@ -123,19 +204,19 @@ export function normalizeMenuFromRows(rows) {
     return rawHeaders.findIndex(h => candidates.some(c => h.includes(c)));
   };
 
-  const idIdx = findIdx('id', 'код');
-  const nameIdx = findIdx('назва', 'name', 'наименование', 'блюдо');
   const catIdx = findIdx('категор', 'category');
+  const nameIdx = findIdx('назва', 'name', 'наименование', 'блюдо', 'страва');
   const priceIdx = findIdx('ціна', 'price', 'цена');
   const weightIdx = findIdx('вага', 'weight', 'вес', 'обєм');
   const availIdx = findIdx('наявн', 'avail', 'доступ', 'наличи');
+  const descIdx = findIdx('опис', 'desc', 'описание', 'склад');
+  const imageIdx = findIdx('фото', 'image', 'зображен', 'картинк');
+
+  // Optional legacy headers if present
+  const idIdx = findIdx('id', 'код');
   const hitIdx = findIdx('хіт', 'hit', 'популяр');
   const newIdx = findIdx('нов', 'new');
   const spicyIdx = findIdx('гостр', 'spicy', 'остр');
-  const shortDescIdx = findIdx('короткий опис', 'short');
-  const descIdx = findIdx('опис', 'desc', 'описание');
-  const imageIdx = findIdx('фото', 'image', 'зображен', 'картинк');
-  const customIdx = findIdx('додат', 'custom', 'опції');
 
   // Fallback defaults mapping by category
   const defaultImages = {
@@ -159,32 +240,39 @@ export function normalizeMenuFromRows(rows) {
     const name = nameIdx !== -1 ? row[nameIdx] : '';
     if (!name || name.length < 2) continue; // Skip empty rows
 
-    const category = catIdx !== -1 && row[catIdx] ? row[catIdx].trim().toLowerCase() : 'chebureks';
+    // Determine category from Ukrainian or English value
+    let rawCategory = catIdx !== -1 && row[catIdx] ? row[catIdx].trim().toLowerCase() : 'chebureks';
+    let category = CATEGORY_MAP[rawCategory] || 'chebureks';
+
     const rawPrice = priceIdx !== -1 ? row[priceIdx].replace(/[^\d.]/g, '') : '0';
     const price = Math.max(0, parseInt(rawPrice, 10) || 0);
 
     const id = (idIdx !== -1 && row[idIdx])
       ? row[idIdx].trim()
-      : `item-${r}-${name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]/gi, '-').substring(0, 16)}`;
+      : `dish-${r}-${name.toLowerCase().replace(/[^a-z0-9а-яіїєґ]/gi, '-').substring(0, 20)}`;
 
     const weight = weightIdx !== -1 && row[weightIdx] ? row[weightIdx].trim() : '200 г';
     const available = availIdx !== -1 ? parseBool(row[availIdx], true) : true;
-    const isHit = hitIdx !== -1 ? parseBool(row[hitIdx], false) : false;
-    const isNew = newIdx !== -1 ? parseBool(row[newIdx], false) : false;
-    const isSpicy = spicyIdx !== -1 ? parseBool(row[spicyIdx], false) : false;
 
-    const shortDesc = shortDescIdx !== -1 && row[shortDescIdx] ? row[shortDescIdx].trim() : '';
-    const desc = descIdx !== -1 && row[descIdx] ? row[descIdx].trim() : (shortDesc || name);
+    const fullDesc = descIdx !== -1 && row[descIdx] ? row[descIdx].trim() : name;
+    const shortDesc = fullDesc.length > 80 ? fullDesc.substring(0, 77) + '...' : fullDesc;
 
-    let image = imageIdx !== -1 && row[imageIdx] ? row[imageIdx].trim() : '';
+    // Detect badges from text or optional columns
+    const lowerText = (name + ' ' + fullDesc).toLowerCase();
+    const isHit = (hitIdx !== -1 && parseBool(row[hitIdx], false)) || lowerText.includes('хіт') || lowerText.includes('топ') || lowerText.includes('фірмов');
+    const isNew = (newIdx !== -1 && parseBool(row[newIdx], false)) || lowerText.includes('новинк') || lowerText.includes('сезонн');
+    const isSpicy = (spicyIdx !== -1 && parseBool(row[spicyIdx], false)) || lowerText.includes('гостр') || lowerText.includes('спайсі') || lowerText.includes('🌶');
+
+    // Resolve Image: Handles Drive links, =IMAGE(), or falls back to matching local image
+    let rawImg = imageIdx !== -1 && row[imageIdx] ? row[imageIdx].trim() : '';
+    let image = resolveImageUrl(rawImg);
+
     if (!image || (!image.startsWith('http') && !image.startsWith('/'))) {
       const localMatch = MENU_DATA.items.find(d => d.id === id || d.name.toLowerCase() === name.toLowerCase());
       image = localMatch ? localMatch.image : (defaultImages[category] || '/images/dishes/cheb-beef-pork.jpg');
     }
 
-    const isCustomizable = customIdx !== -1 
-      ? parseBool(row[customIdx], category === 'chebureks' || category === 'deepfry')
-      : (category === 'chebureks' || category === 'deepfry');
+    const isCustomizable = category === 'chebureks' || category === 'deepfry';
 
     // Attach options based on category
     let options = null;
@@ -226,7 +314,7 @@ export function normalizeMenuFromRows(rows) {
       isNew,
       isSpicy,
       shortDesc,
-      desc,
+      desc: fullDesc,
       image,
       customizable: isCustomizable,
       options
@@ -245,7 +333,6 @@ export async function fetchMenuFromGoogleSheet(sheetIdOrUrl) {
     throw new Error('Не вказано посилання або ID Google Таблиці');
   }
 
-  // Cache busting query
   const fetchUrl = url + (url.includes('?') ? '&' : '?') + `t=${Date.now()}`;
 
   const response = await fetch(fetchUrl);
@@ -265,23 +352,18 @@ export async function fetchMenuFromGoogleSheet(sheetIdOrUrl) {
 }
 
 /**
- * Generates an Excel-ready CSV string with UTF-8 BOM from a list of dishes
+ * Generates an ultra-clean, simplified 6-column CSV template
+ * Friendly for restaurant staff without technical IDs or complex tags
  */
 export function exportMenuToCSV(dishes = MENU_DATA.items) {
   const headers = [
-    'ID',
+    'Категорія',
     'Назва страви',
-    'Категорія (chebureks/deepfry/wok/breakfast/salads/coffee/desserts/drinks/sets)',
     'Ціна (грн)',
     'Вага',
     'В наявності (ТАК/НІ)',
-    'Хіт (ТАК/НІ)',
-    'Новинка (ТАК/НІ)',
-    'Гостре (ТАК/НІ)',
-    'Короткий опис',
-    'Повний опис',
-    'Посилання на фото',
-    'Можна соуси/додатки (ТАК/НІ)'
+    'Опис страви',
+    'Фото (Google Drive або посилання)'
   ];
 
   const escapeCSV = (val) => {
@@ -293,29 +375,26 @@ export function exportMenuToCSV(dishes = MENU_DATA.items) {
   const lines = [headers.map(escapeCSV).join(',')];
 
   dishes.forEach(d => {
+    const categoryName = CATEGORY_DISPLAY_NAMES[d.category] || d.category;
+    const description = d.desc || d.shortDesc || '';
+    const photoVal = d.image || '';
+
     lines.push([
-      escapeCSV(d.id),
+      escapeCSV(categoryName),
       escapeCSV(d.name),
-      escapeCSV(d.category),
       escapeCSV(d.price),
       escapeCSV(d.weight),
       escapeCSV(d.available !== false ? 'ТАК' : 'НІ'),
-      escapeCSV(d.isHit ? 'ТАК' : 'НІ'),
-      escapeCSV(d.isNew ? 'ТАК' : 'НІ'),
-      escapeCSV(d.isSpicy ? 'ТАК' : 'НІ'),
-      escapeCSV(d.shortDesc || ''),
-      escapeCSV(d.desc || ''),
-      escapeCSV(d.image || ''),
-      escapeCSV(d.customizable ? 'ТАК' : 'НІ')
+      escapeCSV(description),
+      escapeCSV(photoVal)
     ].join(','));
   });
 
-  // Include UTF-8 BOM so Excel opens Cyrillic characters properly
   return '\uFEFF' + lines.join('\r\n');
 }
 
 /**
- * Triggers a browser download of the CSV template
+ * Triggers browser download of the clean CSV template
  */
 export function downloadMenuCSVTemplate(dishes = MENU_DATA.items) {
   const csvContent = exportMenuToCSV(dishes);
@@ -323,7 +402,7 @@ export function downloadMenuCSVTemplate(dishes = MENU_DATA.items) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
-  link.setAttribute('download', 'cheburoom_menu_template.csv');
+  link.setAttribute('download', 'cheburoom_menu_prostiy.csv');
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

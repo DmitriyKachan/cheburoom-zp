@@ -118,6 +118,24 @@ export function CartProvider({ children }) {
     });
   };
 
+  const updateDishImage = (dishId, newImageDataUrl) => {
+    setMenuItems(prev => {
+      const updated = prev.map(d => {
+        if (d.id === dishId) {
+          return { ...d, image: newImageDataUrl };
+        }
+        return d;
+      });
+      try {
+        localStorage.setItem(STORAGE_KEYS.MENU_ITEMS, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('LocalStorage error', e);
+      }
+      return updated;
+    });
+    showToast('Фото страви успішно оновлено!');
+  };
+
   const resetToDefaultMenu = () => {
     setMenuItems(MENU_DATA.items);
     setSheetId('');
@@ -337,6 +355,7 @@ export function CartProvider({ children }) {
         syncFromGoogleSheets,
         setSheetIdAndSave,
         toggleDishAvailability,
+        updateDishImage,
         resetToDefaultMenu
       }}
     >
