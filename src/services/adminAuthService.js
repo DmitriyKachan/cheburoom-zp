@@ -1,11 +1,25 @@
 // Cryptographic Auth Service for Cheburoom Admin
 // Works in both Secure Contexts (HTTPS/localhost) and Non-Secure Contexts (HTTP on local IP 192.168.x.x)
+import { broadcastPasswordHash, subscribeToPasswordHash } from './orderSyncService';
 
 const STORAGE_KEYS = {
   PASS_HASH: 'cheburoom_admin_hash_v1',
   LOCKOUT_UNTIL: 'cheburoom_admin_lockout_until',
   FAILED_ATTEMPTS: 'cheburoom_admin_failed_attempts'
 };
+
+// Listen for cloud password updates from other devices
+try {
+  if (typeof window !== 'undefined') {
+    subscribeToPasswordHash((cloudHash) => {
+      if (cloudHash && typeof cloudHash === 'string' && cloudHash.length === 64) {
+        localStorage.setItem(STORAGE_KEYS.PASS_HASH, cloudHash);
+      }
+    });
+  }
+} catch (e) {
+  console.warn('Password hash cloud sync listener error', e);
+}
 
 const SESSION_KEY = 'cheburoom_admin_session_token';
 const DEFAULT_PASSWORD = 'chebu2026';
@@ -241,5 +255,6 @@ export async function changeAdminPassword(oldPassword, newPassword) {
 
   const newHash = await hashPassword(cleanNew);
   localStorage.setItem(STORAGE_KEYS.PASS_HASH, newHash);
+  broadcastPasswordHash(newHash);
   return true;
 }

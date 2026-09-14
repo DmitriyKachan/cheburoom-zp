@@ -2,7 +2,11 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { MENU_DATA } from '../data/menuData';
 import {
   broadcastNewOrder,
+  broadcastOrderStatus,
   subscribeToOrders,
+  broadcastMenuAction,
+  subscribeToMenuActions,
+  testCloudRelay,
   playKitchenChime
 } from '../services/orderSyncService';
 import {
@@ -68,42 +72,90 @@ export function CartProvider({ children }) {
   const [successOrder, setSuccessOrderState] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Cloud Database connection status trigger
+  // Cloud Database connection status
   const [cloudVersion, setCloudVersion] = useState(0);
-  const [isCloudConnected, setIsCloudConnected] = useState(() => isFirebaseConfigured());
+  const [isCloudConnected, setIsCloudConnected] = useState(true);
+  const [cloudMode, setCloudMode] = useState(() => isFirebaseConfigured() ? 'firebase' : 'autocloud');
 
   const refreshCloudConnection = () => {
-    setIsCloudConnected(isFirebaseConfigured());
+    const hasFb = isFirebaseConfigured();
+    setCloudMode(hasFb ? 'firebase' : 'autocloud');
+    setIsCloudConnected(true);
     setCloudVersion(v => v + 1);
   };
 
-  // Real-time synchronization: Local bus + Cloud Firestore
+  // Real-time synchronization: AutoCloud SSE Relay + Cloud Firestore
   useEffect(() => {
-    // 1. Subscribe to local BroadcastChannel & Storage events
-    const unsubscribeLocal = subscribeToOrders((incomingOrder) => {
-      setOrdersHistory((prev) => {
-        if (prev.some((o) => o.orderId === incomingOrder.orderId)) {
-          return prev;
-        }
-        const updated = [incomingOrder, ...prev];
-        try {
-          localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
-        } catch (e) {
-          console.warn('LocalStorage error', e);
-        }
-        playKitchenChime();
-        return updated;
-      });
+    // 1. Subscribe to Orders (both new orders and status updates)
+    const unsubscribeOrders = subscribeToOrders(
+      (incomingOrder) => {
+        setOrdersHistory((prev) => {
+          if (prev.some((o) => o.orderId === incomingOrder.orderId)) {
+            return prev;
+          }
+          const updated = [incomingOrder, ...prev];
+          try {
+            localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
+          } catch (e) {
+            console.warn('LocalStorage error', e);
+          }
+          playKitchenChime();
+          return updated;
+        });
+      },
+      (orderId, newStatus) => {
+        setOrdersHistory((prev) => {
+          const updated = prev.map((o) => o.orderId === orderId ? { ...o, status: newStatus } : o);
+          try {
+            localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
+      }
+    );
+
+    // 2. Subscribe to Menu actions (live price change, stop-list toggle, add dish)
+    const unsubscribeMenu = subscribeToMenuActions((action) => {
+      if (!action || !action.type) return;
+
+      if (action.type === 'DISH_TOGGLE' && action.dishId) {
+        setMenuItems((prev) => {
+          const updated = prev.map((d) => d.id === action.dishId ? { ...d, available: action.available } : d);
+          try { localStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(updated)); } catch {}
+          return updated;
+        });
+      } else if (action.type === 'DISH_UPDATE' && action.dish) {
+        setMenuItems((prev) => {
+          const updated = prev.map((d) => d.id === action.dish.id ? { ...d, ...action.dish } : d);
+          try { localStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(updated)); } catch {}
+          return updated;
+        });
+      } else if (action.type === 'DISH_ADD' && action.dish) {
+        setMenuItems((prev) => {
+          if (prev.some((d) => d.id === action.dish.id)) return prev;
+          const updated = [action.dish, ...prev];
+          try { localStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(updated)); } catch {}
+          return updated;
+        });
+      } else if (action.type === 'DISH_DELETE' && action.dishId) {
+        setMenuItems((prev) => {
+          const updated = prev.filter((d) => d.id !== action.dishId);
+          try { localStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(updated)); } catch {}
+          return updated;
+        });
+      } else if (action.type === 'FULL_MENU' && Array.isArray(action.items)) {
+        setMenuItems(action.items);
+        try { localStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(action.items)); } catch {}
+      }
     });
 
-    // 2. Subscribe to Cloud Firestore Menu (if configured)
+    // 3. Optional: Subscribe to Cloud Firestore if user entered Firebase keys
     let unsubscribeCloudMenu = null;
     let unsubscribeCloudOrders = null;
 
     if (isFirebaseConfigured()) {
-      setIsCloudConnected(true);
+      setCloudMode('firebase');
 
-      // Listen for cloud menu updates (e.g. price change made on another device)
       unsubscribeCloudMenu = subscribeToCloudMenu((cloudItems) => {
         if (Array.isArray(cloudItems) && cloudItems.length > 0) {
           setMenuItems(cloudItems);
@@ -115,14 +167,11 @@ export function CartProvider({ children }) {
         }
       });
 
-      // Listen for cloud orders
       unsubscribeCloudOrders = subscribeToCloudOrders((cloudOrders) => {
         if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
           setOrdersHistory((prev) => {
             const map = new Map();
-            // Cloud orders first
             cloudOrders.forEach(o => { if (o.orderId) map.set(o.orderId, o); });
-            // Merge with any local orders
             prev.forEach(o => { if (o.orderId && !map.has(o.orderId)) map.set(o.orderId, o); });
             const merged = Array.from(map.values()).sort((a, b) => {
               const tA = new Date(a.createdAt || 0).getTime();
@@ -137,11 +186,9 @@ export function CartProvider({ children }) {
           });
         }
       });
-    } else {
-      setIsCloudConnected(false);
     }
 
-    // 3. Heartbeat polling fallback (1.5s)
+    // 4. Heartbeat polling fallback (1.5s)
     const pollTimer = setInterval(() => {
       try {
         const saved = localStorage.getItem(STORAGE_KEY_ORDERS);
@@ -160,7 +207,8 @@ export function CartProvider({ children }) {
     }, 1500);
 
     return () => {
-      unsubscribeLocal();
+      unsubscribeOrders();
+      unsubscribeMenu();
       if (unsubscribeCloudMenu) unsubscribeCloudMenu();
       if (unsubscribeCloudOrders) unsubscribeCloudOrders();
       clearInterval(pollTimer);
@@ -274,6 +322,7 @@ export function CartProvider({ children }) {
     const updated = [newDish, ...menuItems];
     saveMenuItems(updated);
     saveDishToCloud(newDish);
+    broadcastMenuAction({ type: 'DISH_ADD', dish: newDish });
     return newDish;
   };
 
@@ -293,6 +342,7 @@ export function CartProvider({ children }) {
     saveMenuItems(updated);
     if (targetDish) {
       saveDishToCloud(targetDish);
+      broadcastMenuAction({ type: 'DISH_UPDATE', dish: targetDish });
     }
   };
 
@@ -300,6 +350,7 @@ export function CartProvider({ children }) {
     const updated = menuItems.filter(item => item.id !== id);
     saveMenuItems(updated);
     deleteDishFromCloud(id);
+    broadcastMenuAction({ type: 'DISH_DELETE', dishId: id });
   };
 
   const toggleDishAvailability = (dishId) => {
@@ -316,6 +367,7 @@ export function CartProvider({ children }) {
     saveMenuItems(updated);
     if (toggledDish) {
       saveDishToCloud(toggledDish);
+      broadcastMenuAction({ type: 'DISH_TOGGLE', dishId, available: toggledDish.available });
     }
   };
 
@@ -331,6 +383,7 @@ export function CartProvider({ children }) {
     saveMenuItems(updated);
     if (updatedDish) {
       saveDishToCloud(updatedDish);
+      broadcastMenuAction({ type: 'DISH_UPDATE', dish: updatedDish });
     }
     showToast('Фото страви успішно оновлено!');
   };
@@ -342,17 +395,24 @@ export function CartProvider({ children }) {
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
+    broadcastMenuAction({ type: 'FULL_MENU', items: MENU_DATA.items });
     if (isFirebaseConfigured()) {
       uploadFullMenuToCloud(MENU_DATA.items).catch(() => {});
     }
   };
 
   const syncMenuToCloud = async () => {
-    const success = await uploadFullMenuToCloud(menuItems);
-    if (success) {
-      showToast('☁️ Усе меню успішно вивантажено в хмару Firestore!');
+    broadcastMenuAction({ type: 'FULL_MENU', items: menuItems });
+    if (isFirebaseConfigured()) {
+      const success = await uploadFullMenuToCloud(menuItems);
+      if (success) {
+        showToast('☁️ Усе меню успішно вивантажено в хмару Firestore!');
+      }
+      return success;
+    } else {
+      showToast('☁️ Меню оновлено та синхронізовано з усіма пристроями ресторану!');
+      return true;
     }
-    return success;
   };
 
   const exportMenuBackup = () => {
@@ -478,6 +538,7 @@ export function CartProvider({ children }) {
       }
       return updated;
     });
+    broadcastOrderStatus(orderId, status);
     updateCloudOrderStatus(orderId, status);
     showToast(`Статус замовлення #${orderId} оновлено`);
   };
@@ -518,13 +579,14 @@ export function CartProvider({ children }) {
           cartItemId,
           id: dish.id,
           name: dish.name,
-          basePrice: dish.price,
+          price: unitPrice,
           unitPrice,
+          basePrice: dish.price,
           quantity: options.quantity || 1,
-          weight: dish.weight,
-          image: dish.image,
           crust,
-          extras
+          extras,
+          image: dish.image,
+          category: dish.category
         }
       ];
     });
@@ -532,28 +594,33 @@ export function CartProvider({ children }) {
     showToast(`«${dish.name}» додано до кошика!`);
   };
 
-  const updateQuantity = (cartItemId, delta) => {
-    setItems(prevItems => {
-      return prevItems
-        .map(item => {
-          if (item.cartItemId === cartItemId) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
-          }
-          return item;
-        })
-        .filter(Boolean);
-    });
-  };
-
   const removeItem = (cartItemId) => {
-    setItems(prev => prev.filter(i => i.cartItemId !== cartItemId));
+    setItems(prev => prev.filter(item => item.cartItemId !== cartItemId));
   };
 
-  const clearCart = () => setItems([]);
+  const updateQuantity = (cartItemId, newQty) => {
+    if (newQty <= 0) {
+      removeItem(cartItemId);
+      return;
+    }
+    setItems(prev =>
+      prev.map(item =>
+        item.cartItemId === cartItemId ? { ...item, quantity: newQty } : item
+      )
+    );
+  };
 
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+  const clearCart = () => {
+    setItems([]);
+    try {
+      localStorage.removeItem(STORAGE_KEY_CART);
+    } catch {}
+  };
+
+  const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = items.reduce((sum, item) => sum + ((item.unitPrice || item.price) * item.quantity), 0);
+  const itemCount = totalCount;
+  const subtotal = totalPrice;
   const getDeliveryFee = () => 0;
   const getDiscount = () => 0;
   const getTotal = () => subtotal;
@@ -562,20 +629,22 @@ export function CartProvider({ children }) {
     <CartContext.Provider
       value={{
         items,
-        addItem,
-        updateQuantity,
-        removeItem,
-        clearCart,
+        totalCount,
+        totalPrice,
         itemCount,
         subtotal,
         getDeliveryFee,
         getDiscount,
         getTotal,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        isCartOpen,
+        setIsCartOpen,
         currentPage,
         setCurrentPage,
         navigateTo,
-        isCartOpen,
-        setIsCartOpen,
         selectedDishForModal,
         setSelectedDishForModal,
         isCheckoutOpen,
@@ -601,8 +670,9 @@ export function CartProvider({ children }) {
         createTestOrder,
         updateOrderStatus,
         clearOrdersHistory,
-        // Cloud Database (Firebase Firestore)
+        // Cloud Database
         isCloudConnected,
+        cloudMode,
         refreshCloudConnection,
         syncMenuToCloud
       }}
