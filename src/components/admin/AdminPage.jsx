@@ -8,6 +8,7 @@ import {
   changeAdminPassword,
   getLockoutRemainingSeconds
 } from '../../services/adminAuthService';
+import { playKitchenChime } from '../../services/orderSyncService';
 import {
   Lock,
   Unlock,
@@ -62,6 +63,7 @@ export function AdminPage() {
     exportMenuBackup,
     importMenuBackup,
     ordersHistory,
+    createTestOrder,
     updateOrderStatus,
     clearOrdersHistory,
     navigateTo,
@@ -355,14 +357,23 @@ export function AdminPage() {
             <button
               type="button"
               onClick={() => setActiveTab('orders')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 relative ${
                 activeTab === 'orders'
                   ? 'bg-amber-500 text-zinc-950 shadow-sm'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
-              <span>Замовлення ({ordersHistory.length})</span>
+              <span>Замовлення</span>
+              {ordersHistory.length > 0 && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                  activeTab === 'orders'
+                    ? 'bg-zinc-950 text-amber-400'
+                    : 'bg-amber-400 text-zinc-950 animate-pulse'
+                }`}>
+                  {ordersHistory.length}
+                </span>
+              )}
             </button>
 
             <button
@@ -610,41 +621,79 @@ export function AdminPage() {
         {/* ========================================== */}
         {activeTab === 'orders' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="font-display font-black text-xl sm:text-2xl text-white">
-                  Журнал онлайн-замовлень
-                </h1>
-                <p className="text-xs text-zinc-400 mt-0.5">
-                  Всі замовлення, оформлені клієнтами через сайт у реальному часі
+                <div className="flex items-center gap-2.5">
+                  <h1 className="font-display font-black text-xl sm:text-2xl text-white">
+                    Журнал онлайн-замовлень
+                  </h1>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span>Live Sync</span>
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Замовлення надходять миттєво з сайту в реальному часі зі звуковим сигналом
                 </p>
               </div>
 
-              {ordersHistory.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => createTestOrder()}
+                  className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                  title="Згенерувати тестове замовлення клієнта"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>⚡ Тестове замовлення</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
-                    if (window.confirm('Очистити історію замовлень?')) {
-                      clearOrdersHistory();
-                      showToast('Історію очищено');
-                    }
+                    playKitchenChime();
+                    showToast('🔔 Звуковий сигнал кухні перевірено');
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-rose-950 hover:text-rose-400 text-xs font-bold text-zinc-400 transition-colors cursor-pointer"
+                  className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer border border-zinc-700 transition-colors"
+                  title="Перевірити звук дзвінка замовлення"
                 >
-                  Очистити список
+                  <span>🔔 Перевірити звук</span>
                 </button>
-              )}
+
+                {ordersHistory.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('Очистити історію замовлень?')) {
+                        clearOrdersHistory();
+                        showToast('Історію очищено');
+                      }
+                    }}
+                    className="px-3 py-2 rounded-xl bg-zinc-800/80 hover:bg-rose-950 hover:text-rose-400 text-xs font-bold text-zinc-400 transition-colors cursor-pointer border border-zinc-800"
+                  >
+                    Очистити
+                  </button>
+                )}
+              </div>
             </div>
 
             {ordersHistory.length === 0 ? (
-              <div className="p-12 text-center rounded-3xl bg-[#13131A] border border-zinc-800">
+              <div className="p-10 sm:p-14 text-center rounded-3xl bg-[#13131A] border border-zinc-800">
                 <ShoppingBag className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-                <h3 className="font-bold text-base text-zinc-300 mb-1">
+                <h3 className="font-bold text-base text-zinc-200 mb-1">
                   Нових замовлень поки немає
                 </h3>
-                <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-                  Як тільки клієнт оформить замовлення на сайті, воно миттєво з'явиться тут із контактами та складом.
+                <p className="text-xs text-zinc-500 max-w-sm mx-auto mb-5">
+                  Як тільки клієнт оформить замовлення на сайті, воно миттєво з'явиться тут із контактами, складом та звуковим сигналом.
                 </p>
+                <button
+                  type="button"
+                  onClick={() => createTestOrder()}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-zinc-950 text-xs font-black shadow-lg shadow-amber-400/20 cursor-pointer transition-all"
+                >
+                  <Sparkles className="w-4 h-4 text-zinc-950" />
+                  <span>Створити тестове замовлення для перевірки</span>
+                </button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -924,6 +973,37 @@ export function AdminPage() {
               {/* Modal Form Content */}
               <form onSubmit={handleSaveDish} className="p-5 overflow-y-auto flex-1 space-y-4 text-xs">
                 
+                {/* Instant Test Sample preset */}
+                {isNewDish && (
+                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-amber-300">
+                      <Sparkles className="w-4 h-4 shrink-0 text-amber-400" />
+                      <span className="text-[11px] font-bold">Спробувати новинку з фотографією?</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingDish({
+                          id: `dish_royal_${Date.now()}`,
+                          name: 'Чебурек Королівський з мармуровою яловичиною',
+                          category: 'chebureks',
+                          price: 135,
+                          weight: '260 г',
+                          badge: 'hit',
+                          shortDesc: 'Мармурова яловичина, моцарела, соус сальса',
+                          desc: 'Преміальний пухирчастий чебурек із соковитою рубаною мармуровою яловичиною, ніжним сиром моцарела та ароматною кінзою.',
+                          image: '/images/cheburek-royal-beef.jpg',
+                          available: true
+                        });
+                        showToast('Дані та фото новинки підставлено!');
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black text-[11px] cursor-pointer transition-colors shrink-0"
+                    >
+                      Вставити зразок
+                    </button>
+                  </div>
+                )}
+
                 {/* Photo Preview & Upload */}
                 <div>
                   <label className="block text-xs font-bold text-zinc-300 mb-1.5">

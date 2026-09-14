@@ -1,5 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { MENU_DATA } from '../data/menuData';
+import {
+  broadcastNewOrder,
+  subscribeToOrders,
+  playKitchenChime
+} from '../services/orderSyncService';
 
 const CartContext = createContext(null);
 
@@ -52,6 +57,48 @@ export function CartProvider({ children }) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [successOrder, setSuccessOrderState] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Real-time synchronization across tabs & devices
+  useEffect(() => {
+    const unsubscribe = subscribeToOrders((incomingOrder) => {
+      setOrdersHistory((prev) => {
+        if (prev.some((o) => o.orderId === incomingOrder.orderId)) {
+          return prev;
+        }
+        const updated = [incomingOrder, ...prev];
+        try {
+          localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
+        } catch (e) {
+          console.warn('LocalStorage error', e);
+        }
+        playKitchenChime();
+        return updated;
+      });
+    });
+
+    // 1.5s active storage polling heartbeat
+    const pollTimer = setInterval(() => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_ORDERS);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setOrdersHistory((prev) => {
+              if (parsed.length !== prev.length || (parsed[0]?.orderId !== prev[0]?.orderId)) {
+                return parsed;
+              }
+              return prev;
+            });
+          }
+        }
+      } catch {}
+    }, 1500);
+
+    return () => {
+      unsubscribe();
+      clearInterval(pollTimer);
+    };
+  }, []);
 
   // Page Routing State ('menu' | 'checkout' | 'admin')
   const [currentPage, setCurrentPage] = useState(() => {
@@ -133,12 +180,12 @@ export function CartProvider({ children }) {
 
   const toggleTheme = () => setDarkMode(prev => !prev);
 
-  const showToast = (msg) => {
+  const showToast = useCallback((msg) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
     }, 2600);
-  };
+  }, []);
 
   // Dish management (Admin CRUD)
   const saveMenuItems = (newItems) => {
@@ -249,6 +296,7 @@ export function CartProvider({ children }) {
         createdAt: new Date().toISOString(),
         timing: order.timing || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
+
       setOrdersHistory(prev => {
         const filtered = prev.filter(o => o.orderId !== order.orderId);
         const updated = [newEntry, ...filtered];
@@ -259,7 +307,60 @@ export function CartProvider({ children }) {
         }
         return updated;
       });
+
+      // Broadcast order across all tabs and cloud devices immediately
+      broadcastNewOrder(newEntry);
+      playKitchenChime();
     }
+  };
+
+  const createTestOrder = () => {
+    const testId = 'CR-' + Math.floor(100000 + Math.random() * 900000);
+    const testNames = ['Олександр (Тест)', 'Марія (Тест)', 'Дмитро (Тест)', 'Катерина (Тест)', 'Богдан (Тест)'];
+    const randomName = testNames[Math.floor(Math.random() * testNames.length)];
+    const randomPhone = '+380 ' + Math.floor(500000000 + Math.random() * 499999999);
+
+    const dish1 = menuItems[0] || { id: 'ch1', name: 'Чебурек з телятиною', price: 90 };
+    const dish2 = menuItems[1] || { id: 'df1', name: 'Картопля фрі', price: 65 };
+
+    const testItems = [
+      { id: dish1.id, name: dish1.name, quantity: 2, unitPrice: dish1.price, crust: 'Класичне' },
+      { id: dish2.id, name: dish2.name, quantity: 1, unitPrice: dish2.price }
+    ];
+    const total = (dish1.price * 2) + dish2.price;
+
+    const testOrder = {
+      orderId: testId,
+      name: randomName,
+      phone: randomPhone,
+      total,
+      subtotal: total,
+      discount: 0,
+      orderType: 'pickup',
+      address: `м. Запоріжжя, ${MENU_DATA.info.address}`,
+      timing: '🔥 Якнайшвидше (~7-10 хв)',
+      payment: 'Готівкою при отриманні',
+      cutleryCount: 2,
+      comment: 'Тестове замовлення для перевірки адмінки',
+      items: testItems,
+      status: 'new',
+      createdAt: new Date().toISOString()
+    };
+
+    setOrdersHistory(prev => {
+      const updated = [testOrder, ...prev.filter(o => o.orderId !== testId)];
+      try {
+        localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('LocalStorage error', e);
+      }
+      return updated;
+    });
+
+    broadcastNewOrder(testOrder);
+    playKitchenChime();
+    showToast(`⚡ Створено тестове замовлення #${testId}!`);
+    return testOrder;
   };
 
   const updateOrderStatus = (orderId, status) => {
@@ -396,6 +497,7 @@ export function CartProvider({ children }) {
         importMenuBackup,
         // Orders logging & management
         ordersHistory,
+        createTestOrder,
         updateOrderStatus,
         clearOrdersHistory
       }}

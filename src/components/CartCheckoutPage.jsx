@@ -97,8 +97,8 @@ export function CartCheckoutPage() {
     }
 
     const digitsOnly = phone.replace(/\D/g, '');
-    if (digitsOnly.length < 12) {
-      showToast('Вкажіть коректний номер телефону (+380...)');
+    if (digitsOnly.length < 9) {
+      showToast('Вкажіть номер телефону (мінімум 9-10 цифр)');
       return;
     }
 
