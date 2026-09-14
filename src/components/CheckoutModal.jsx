@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { X, Truck, Store, Banknote, CreditCard, Smartphone, CheckCircle, MapPin } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { MENU_DATA } from '../data/menuData';
 
 export function CheckoutModal() {
@@ -98,18 +97,6 @@ ${itemsText}
 💰 Страви: ${subtotal} ₴
 🚗 Доставка: ${deliveryFee === 0 ? 'Безкоштовно' : deliveryFee + ' ₴'}
 🔥 ДО СПЛАТИ: ${total} ₴`;
-
-    // Confetti effect
-    try {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#D97706', '#E11D48', '#10B981', '#FBBF24']
-      });
-    } catch {
-      // fallback
-    }
 
     setSuccessOrder({
       orderId,

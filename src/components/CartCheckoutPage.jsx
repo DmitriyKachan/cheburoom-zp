@@ -23,7 +23,6 @@ import {
   Info,
   Utensils
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { MENU_DATA } from '../data/menuData';
 
 export function CartCheckoutPage() {
@@ -164,18 +163,7 @@ ${itemsText}
 ${discount > 0 ? `🎁 Знижка (самовивіз -10%): -${discount} ₴\n` : ''}🚗 Доставка: ${deliveryFee === 0 ? 'Безкоштовно 🎉' : deliveryFee + ' ₴'}
 🔥 РАЗОМ ДО СПЛАТИ: ${total} ₴`;
 
-    // Confetti burst
-    try {
-      confetti({
-        particleCount: 110,
-        spread: 80,
-        origin: { y: 0.5 },
-        colors: ['#FFC244', '#00A082', '#E11D48', '#3B82F6']
-      });
-    } catch (e) {
-      console.error(e);
-    }
-
+    // Open success modal
     setTimeout(() => {
       setSuccessOrder({
         orderId,

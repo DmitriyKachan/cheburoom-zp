@@ -468,23 +468,11 @@ ${itemsList}
       }
     });
 
-    // Launch Confetti animation
-    this.launchConfetti();
+    // Confetti animation disabled per user request
   },
 
   launchConfetti() {
-    if (typeof confetti !== 'undefined') {
-      try {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#DC2626', '#D97706', '#10B981', '#FBBF24']
-        });
-      } catch (e) {
-        console.log('Confetti effect triggered');
-      }
-    }
+    // Disabled
   },
 
   closeAllModals() {

@@ -9,8 +9,8 @@ export function Header() {
   const { itemCount, subtotal, currentPage, navigateTo, darkMode, toggleTheme } = useCart();
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-[#09090B] border-b border-zinc-200 dark:border-[#23232E] transition-colors">
-      {/* RnR / Glovo Top Delivery Promo Bar */}
+    <>
+      {/* RnR / Glovo Top Delivery Promo Bar (scrolls away to free maximum vertical screen space) */}
       <div className="bg-glovo-yellow text-zinc-950 font-bold h-7 px-3 sm:px-4 text-center flex items-center justify-center gap-1.5 sm:gap-2 select-none">
         <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse text-zinc-950" />
         <span className="text-[10.5px] sm:text-xs font-bold text-zinc-950 tracking-tight whitespace-nowrap">
@@ -19,7 +19,8 @@ export function Header() {
         </span>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-md border-b border-zinc-200 dark:border-[#23232E] transition-colors">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Left: Brand Logo & Location */}
         <div className="flex items-center gap-2.5 sm:gap-6 shrink-0">
@@ -152,5 +153,6 @@ export function Header() {
 
       </div>
     </header>
+    </>
   );
 }
