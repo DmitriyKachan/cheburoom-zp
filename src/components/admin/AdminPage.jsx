@@ -11,6 +11,13 @@ import {
 } from '../../services/adminAuthService';
 import { playKitchenChime } from '../../services/orderSyncService';
 import {
+  getStoredFirebaseConfig,
+  saveFirebaseConfig,
+  removeFirebaseConfig,
+  testFirebaseConnection,
+  isFirebaseConfigured
+} from '../../services/firebaseService';
+import {
   Lock,
   Unlock,
   Shield,
@@ -36,7 +43,11 @@ import {
   X,
   Sparkles,
   Flame,
-  AlertTriangle
+  AlertTriangle,
+  Cloud,
+  Database,
+  ExternalLink,
+  RefreshCw
 } from 'lucide-react';
 import { CheburoomLogo } from '../CheburoomLogo';
 
@@ -114,7 +125,10 @@ export function AdminPage() {
     updateOrderStatus,
     clearOrdersHistory,
     navigateTo,
-    showToast
+    showToast,
+    isCloudConnected,
+    refreshCloudConnection,
+    syncMenuToCloud
   } = useCart();
 
   // Auth State
@@ -255,6 +269,98 @@ export function AdminPage() {
       }
     };
     reader.readAsText(file);
+  };
+
+  // Firebase Cloud State & Handlers
+  const [firebaseConfigInput, setFirebaseConfigInput] = useState('');
+  const [isTestingFirebase, setIsTestingFirebase] = useState(false);
+  const [isUploadingToCloud, setIsUploadingToCloud] = useState(false);
+  const [cloudStatusMsg, setCloudStatusMsg] = useState({ type: '', text: '' });
+  const [showConfigGuide, setShowConfigGuide] = useState(false);
+
+  const handleSaveFirebaseConfig = async (e) => {
+    e.preventDefault();
+    setCloudStatusMsg({ type: '', text: '' });
+    try {
+      let configObj = null;
+      const raw = firebaseConfigInput.trim();
+
+      if (raw.startsWith('{') && raw.endsWith('}')) {
+        configObj = JSON.parse(raw);
+      } else {
+        const apiKeyMatch = raw.match(/apiKey:\s*["']([^"']+)["']/);
+        const projectIdMatch = raw.match(/projectId:\s*["']([^"']+)["']/);
+        const authDomainMatch = raw.match(/authDomain:\s*["']([^"']+)["']/);
+        const storageBucketMatch = raw.match(/storageBucket:\s*["']([^"']+)["']/);
+        const messagingSenderIdMatch = raw.match(/messagingSenderId:\s*["']([^"']+)["']/);
+        const appIdMatch = raw.match(/appId:\s*["']([^"']+)["']/);
+
+        if (apiKeyMatch && projectIdMatch) {
+          configObj = {
+            apiKey: apiKeyMatch[1],
+            projectId: projectIdMatch[1],
+            authDomain: authDomainMatch ? authDomainMatch[1] : undefined,
+            storageBucket: storageBucketMatch ? storageBucketMatch[1] : undefined,
+            messagingSenderId: messagingSenderIdMatch ? messagingSenderIdMatch[1] : undefined,
+            appId: appIdMatch ? appIdMatch[1] : undefined
+          };
+        }
+      }
+
+      if (!configObj || !configObj.apiKey || !configObj.projectId) {
+        throw new Error('Не вдалося розпізнати конфігурацію. Переконайтеся, що є apiKey та projectId.');
+      }
+
+      setIsTestingFirebase(true);
+      const testRes = await testFirebaseConnection(configObj);
+      setIsTestingFirebase(false);
+
+      if (!testRes.success) {
+        throw new Error(testRes.message);
+      }
+
+      saveFirebaseConfig(configObj);
+      refreshCloudConnection();
+      setCloudStatusMsg({ type: 'success', text: 'Успішно підключено до Firebase Firestore!' });
+      showToast('Firebase Firestore активовано!');
+      setFirebaseConfigInput('');
+    } catch (err) {
+      setIsTestingFirebase(false);
+      setCloudStatusMsg({ type: 'error', text: err.message || 'Помилка збереження конфігурації' });
+    }
+  };
+
+  const handleTestCurrentCloud = async () => {
+    setIsTestingFirebase(true);
+    setCloudStatusMsg({ type: '', text: '' });
+    const res = await testFirebaseConnection();
+    setIsTestingFirebase(false);
+    if (res.success) {
+      setCloudStatusMsg({ type: 'success', text: 'З\'єднання з Firestore активне та працює стабільно!' });
+      showToast('З\'єднання з хмарою підтверджено!');
+    } else {
+      setCloudStatusMsg({ type: 'error', text: res.message });
+    }
+  };
+
+  const handleDisconnectCloud = () => {
+    if (window.confirm('Відключити хмарну базу даних і перейти в автономний локальний режим?')) {
+      removeFirebaseConfig();
+      refreshCloudConnection();
+      setCloudStatusMsg({ type: 'info', text: 'Хмарну базу відключено. Сайт працює автономно.' });
+      showToast('Хмару відключено');
+    }
+  };
+
+  const handleUploadMenuToCloud = async () => {
+    setIsUploadingToCloud(true);
+    try {
+      await syncMenuToCloud();
+    } catch (err) {
+      showToast('Помилка вивантаження: ' + err.message);
+    } finally {
+      setIsUploadingToCloud(false);
+    }
   };
 
   // Filtered dishes
@@ -402,6 +508,16 @@ export function AdminPage() {
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Панель керування</span>
             </div>
+
+            {/* Cloud Status Pill */}
+            <div className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+              isCloudConnected
+                ? 'bg-emerald-950/70 border-emerald-700/80 text-emerald-300'
+                : 'bg-zinc-900 border-zinc-700 text-zinc-400'
+            }`}>
+              <Cloud className={`w-3.5 h-3.5 ${isCloudConnected ? 'text-emerald-400' : 'text-zinc-500'}`} />
+              <span>{isCloudConnected ? 'Firestore Live' : 'Автономний режим'}</span>
+            </div>
           </div>
 
           {/* Nav Tabs */}
@@ -450,8 +566,12 @@ export function AdminPage() {
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Безпека</span>
+              <Database className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Хмара та Безпека</span>
+              <span className="sm:hidden">Хмара</span>
+              {isCloudConnected && (
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              )}
             </button>
           </div>
 
@@ -866,17 +986,203 @@ export function AdminPage() {
         )}
 
         {/* ========================================== */}
-        {/* TAB 3: SECURITY & BACKUP */}
+        {/* TAB 3: CLOUD DATABASE & SECURITY */}
         {/* ========================================== */}
         {activeTab === 'security' && (
           <div className="max-w-2xl space-y-6">
             <div>
               <h1 className="font-display font-black text-xl sm:text-2xl text-white">
-                Безпека та резервне копіювання
+                Хмарна база даних та безпека
               </h1>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Керування паролем доступу, збереження копій меню та аварійне відновлення
+                Підключення Google Firebase Firestore, синхронізація меню і замовлень та налаштування пароля
               </p>
+            </div>
+
+            {/* Firebase Cloud Synchronization Card */}
+            <div className="p-5 sm:p-6 rounded-3xl bg-[#13131A] border border-zinc-800 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-zinc-800/80">
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-9 h-9 rounded-2xl flex items-center justify-center border ${
+                    isCloudConnected 
+                      ? 'bg-emerald-950/60 border-emerald-700/80 text-emerald-400' 
+                      : 'bg-zinc-800/80 border-zinc-700 text-zinc-400'
+                  }`}>
+                    <Cloud className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-display font-bold text-base text-white flex items-center gap-2">
+                      <span>Хмарна база даних (Firebase)</span>
+                    </h2>
+                    <p className="text-[11px] text-zinc-400">
+                      Безкоштовна синхронізація в реальному часі між сайтом клієнтів і панеллю кухаря
+                    </p>
+                  </div>
+                </div>
+
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border self-start sm:self-auto ${
+                  isCloudConnected 
+                    ? 'bg-emerald-950/80 border-emerald-700 text-emerald-300' 
+                    : 'bg-zinc-900 border-zinc-700 text-zinc-400'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
+                  <span>{isCloudConnected ? 'Підключено до Firestore' : 'Автономний локальний режим'}</span>
+                </div>
+              </div>
+
+              {/* Status Message */}
+              {cloudStatusMsg.text && (
+                <div className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                  cloudStatusMsg.type === 'success'
+                    ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800'
+                    : cloudStatusMsg.type === 'error'
+                    ? 'bg-rose-950/60 text-rose-300 border border-rose-800'
+                    : 'bg-blue-950/60 text-blue-300 border border-blue-800'
+                }`}>
+                  {cloudStatusMsg.type === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  ) : cloudStatusMsg.type === 'error' ? (
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+                  ) : (
+                    <Cloud className="w-4 h-4 shrink-0 text-blue-400" />
+                  )}
+                  <span>{cloudStatusMsg.text}</span>
+                </div>
+              )}
+
+              {/* Action Buttons if Connected */}
+              {isCloudConnected ? (
+                <div className="space-y-4 pt-1">
+                  <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-xs text-zinc-300 space-y-2">
+                    <p className="flex items-center gap-2 text-emerald-400 font-bold">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Хмара активна. Всі зміни в меню та нові замовлення автоматично транслюються наживо.
+                    </p>
+                    <p className="text-zinc-400">
+                      Якщо ви щойно підключили нову порожню базу, натисніть кнопку нижче, щоб завантажити поточне меню ресторану (усі {menuItems.length} страв) у Firestore.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2.5">
+                    <button
+                      type="button"
+                      disabled={isUploadingToCloud}
+                      onClick={handleUploadMenuToCloud}
+                      className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-display font-black text-xs flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50 transition-colors"
+                    >
+                      {isUploadingToCloud ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4" />
+                      )}
+                      <span>{isUploadingToCloud ? 'Вивантаження...' : 'Вивантажити поточне меню в хмару'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isTestingFirebase}
+                      onClick={handleTestCurrentCloud}
+                      className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center gap-2 cursor-pointer border border-zinc-700 disabled:opacity-50 transition-colors"
+                    >
+                      {isTestingFirebase ? (
+                        <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4 text-emerald-400" />
+                      )}
+                      <span>Перевірити з'єднання</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDisconnectCloud}
+                      className="px-3.5 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-bold border border-rose-800/60 cursor-pointer transition-colors"
+                    >
+                      Відключити хмару
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Connect Form */
+                <form onSubmit={handleSaveFirebaseConfig} className="space-y-3 pt-1">
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    Вставте конфігурацію Firebase (об'єкт JavaScript або JSON з консолі Firebase), щоб увімкнути безкоштовну онлайн-базу даних для всіх телефонів та комп'ютерів ресторану:
+                  </p>
+
+                  <div>
+                    <textarea
+                      rows={5}
+                      value={firebaseConfigInput}
+                      onChange={(e) => setFirebaseConfigInput(e.target.value)}
+                      placeholder={`const firebaseConfig = {\n  apiKey: "AIzaSy...",\n  authDomain: "cheburoom-xxxx.firebaseapp.com",\n  projectId: "cheburoom-xxxx",\n  ...\n};`}
+                      className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-200 placeholder-zinc-600 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="submit"
+                      disabled={isTestingFirebase || !firebaseConfigInput.trim()}
+                      className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-display font-black text-xs flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50 transition-colors"
+                    >
+                      {isTestingFirebase ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <span>Підключення та тестування...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Cloud className="w-4 h-4" />
+                          <span>Зберегти та підключити</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowConfigGuide(!showConfigGuide)}
+                      className="px-3.5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer border border-zinc-700 transition-colors"
+                    >
+                      <span>{showConfigGuide ? 'Приховати інструкцію' : '📖 Як отримати ключі за 2 хв'}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Step-by-step setup guide */}
+              {showConfigGuide && (
+                <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-700/80 text-xs text-zinc-300 space-y-3">
+                  <div className="flex items-center justify-between font-bold text-amber-400 text-sm">
+                    <span>Швидка інструкція підключення Google Firebase</span>
+                    <a
+                      href="https://console.firebase.google.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-amber-400 hover:underline"
+                    >
+                      <span>Відкрити Firebase Console</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+
+                  <ol className="list-decimal list-inside space-y-2 text-zinc-300 leading-relaxed">
+                    <li>
+                      Перейдіть на <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" className="text-amber-400 underline font-semibold">console.firebase.google.com</a>, увійдіть під Google-акаунтом та натисніть <strong>«Створити проєкт»</strong> (наприклад, <code>cheburoom-zp</code>).
+                    </li>
+                    <li>
+                      У меню зліва оберіть <strong>Build &rarr; Firestore Database</strong> &rarr; натисніть <strong>«Create database»</strong>. Оберіть режим <strong>Start in test mode</strong> (або правила <code>allow read, write: if true;</code>) та найближчий сервер (наприклад, <code>eur3 (europe-west)</code>).
+                    </li>
+                    <li>
+                      Перейдіть у налаштування проєкту (значок шестерні ⚙️ вгорі зліва &rarr; <strong>Project settings</strong>). Прокрутіть сторінку вниз до блоку <strong>«Your apps»</strong> і натисніть веб-іконку <strong>&lt;/&gt;</strong>.
+                    </li>
+                    <li>
+                      Введіть назву (наприклад, <code>Cheburoom Web</code>) і зареєструйте застосунок. Firebase покаже блок коду з <code>firebaseConfig</code>.
+                    </li>
+                    <li>
+                      Скопіюйте вміст об'єкта <code>firebaseConfig</code> і вставте в поле вище, потім натисніть <strong>«Зберегти та підключити»</strong>. Меню та замовлення миттєво стануть онлайн!
+                    </li>
+                  </ol>
+                </div>
+              )}
             </div>
 
             {/* Change Password Form */}

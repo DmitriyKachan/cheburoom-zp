@@ -5,6 +5,16 @@ import {
   subscribeToOrders,
   playKitchenChime
 } from '../services/orderSyncService';
+import {
+  isFirebaseConfigured,
+  subscribeToCloudMenu,
+  subscribeToCloudOrders,
+  saveDishToCloud,
+  deleteDishFromCloud,
+  sendOrderToCloud,
+  updateCloudOrderStatus,
+  uploadFullMenuToCloud
+} from '../services/firebaseService';
 
 const CartContext = createContext(null);
 
@@ -58,9 +68,19 @@ export function CartProvider({ children }) {
   const [successOrder, setSuccessOrderState] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Real-time synchronization across tabs & devices
+  // Cloud Database connection status trigger
+  const [cloudVersion, setCloudVersion] = useState(0);
+  const [isCloudConnected, setIsCloudConnected] = useState(() => isFirebaseConfigured());
+
+  const refreshCloudConnection = () => {
+    setIsCloudConnected(isFirebaseConfigured());
+    setCloudVersion(v => v + 1);
+  };
+
+  // Real-time synchronization: Local bus + Cloud Firestore
   useEffect(() => {
-    const unsubscribe = subscribeToOrders((incomingOrder) => {
+    // 1. Subscribe to local BroadcastChannel & Storage events
+    const unsubscribeLocal = subscribeToOrders((incomingOrder) => {
       setOrdersHistory((prev) => {
         if (prev.some((o) => o.orderId === incomingOrder.orderId)) {
           return prev;
@@ -76,7 +96,52 @@ export function CartProvider({ children }) {
       });
     });
 
-    // 1.5s active storage polling heartbeat
+    // 2. Subscribe to Cloud Firestore Menu (if configured)
+    let unsubscribeCloudMenu = null;
+    let unsubscribeCloudOrders = null;
+
+    if (isFirebaseConfigured()) {
+      setIsCloudConnected(true);
+
+      // Listen for cloud menu updates (e.g. price change made on another device)
+      unsubscribeCloudMenu = subscribeToCloudMenu((cloudItems) => {
+        if (Array.isArray(cloudItems) && cloudItems.length > 0) {
+          setMenuItems(cloudItems);
+          try {
+            localStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(cloudItems));
+          } catch (e) {
+            console.warn('LocalStorage error', e);
+          }
+        }
+      });
+
+      // Listen for cloud orders
+      unsubscribeCloudOrders = subscribeToCloudOrders((cloudOrders) => {
+        if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+          setOrdersHistory((prev) => {
+            const map = new Map();
+            // Cloud orders first
+            cloudOrders.forEach(o => { if (o.orderId) map.set(o.orderId, o); });
+            // Merge with any local orders
+            prev.forEach(o => { if (o.orderId && !map.has(o.orderId)) map.set(o.orderId, o); });
+            const merged = Array.from(map.values()).sort((a, b) => {
+              const tA = new Date(a.createdAt || 0).getTime();
+              const tB = new Date(b.createdAt || 0).getTime();
+              return tB - tA;
+            });
+
+            try {
+              localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
+        }
+      });
+    } else {
+      setIsCloudConnected(false);
+    }
+
+    // 3. Heartbeat polling fallback (1.5s)
     const pollTimer = setInterval(() => {
       try {
         const saved = localStorage.getItem(STORAGE_KEY_ORDERS);
@@ -95,10 +160,12 @@ export function CartProvider({ children }) {
     }, 1500);
 
     return () => {
-      unsubscribe();
+      unsubscribeLocal();
+      if (unsubscribeCloudMenu) unsubscribeCloudMenu();
+      if (unsubscribeCloudOrders) unsubscribeCloudOrders();
       clearInterval(pollTimer);
     };
-  }, []);
+  }, [cloudVersion]);
 
   // Page Routing State ('menu' | 'checkout' | 'admin')
   const [currentPage, setCurrentPage] = useState(() => {
@@ -206,48 +273,65 @@ export function CartProvider({ children }) {
     };
     const updated = [newDish, ...menuItems];
     saveMenuItems(updated);
+    saveDishToCloud(newDish);
     return newDish;
   };
 
   const updateDish = (id, updatedFields) => {
+    let targetDish = null;
     const updated = menuItems.map(item => {
       if (item.id === id) {
-        return {
+        targetDish = {
           ...item,
           ...updatedFields,
           price: Number(updatedFields.price !== undefined ? updatedFields.price : item.price)
         };
+        return targetDish;
       }
       return item;
     });
     saveMenuItems(updated);
+    if (targetDish) {
+      saveDishToCloud(targetDish);
+    }
   };
 
   const deleteDish = (id) => {
     const updated = menuItems.filter(item => item.id !== id);
     saveMenuItems(updated);
+    deleteDishFromCloud(id);
   };
 
   const toggleDishAvailability = (dishId) => {
+    let toggledDish = null;
     const updated = menuItems.map(d => {
       if (d.id === dishId) {
         const newAvail = d.available === false ? true : false;
         showToast(`«${d.name}» ${newAvail ? 'повернуто в наявність' : 'поставлено в стоп-лист'}`);
-        return { ...d, available: newAvail };
+        toggledDish = { ...d, available: newAvail };
+        return toggledDish;
       }
       return d;
     });
     saveMenuItems(updated);
+    if (toggledDish) {
+      saveDishToCloud(toggledDish);
+    }
   };
 
   const updateDishImage = (dishId, newImageDataUrl) => {
+    let updatedDish = null;
     const updated = menuItems.map(d => {
       if (d.id === dishId) {
-        return { ...d, image: newImageDataUrl };
+        updatedDish = { ...d, image: newImageDataUrl };
+        return updatedDish;
       }
       return d;
     });
     saveMenuItems(updated);
+    if (updatedDish) {
+      saveDishToCloud(updatedDish);
+    }
     showToast('Фото страви успішно оновлено!');
   };
 
@@ -258,6 +342,17 @@ export function CartProvider({ children }) {
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
+    if (isFirebaseConfigured()) {
+      uploadFullMenuToCloud(MENU_DATA.items).catch(() => {});
+    }
+  };
+
+  const syncMenuToCloud = async () => {
+    const success = await uploadFullMenuToCloud(menuItems);
+    if (success) {
+      showToast('☁️ Усе меню успішно вивантажено в хмару Firestore!');
+    }
+    return success;
   };
 
   const exportMenuBackup = () => {
@@ -281,6 +376,9 @@ export function CartProvider({ children }) {
   const importMenuBackup = (data) => {
     if (Array.isArray(data) && data.length > 0) {
       saveMenuItems(data);
+      if (isFirebaseConfigured()) {
+        uploadFullMenuToCloud(data).catch(() => {});
+      }
       return true;
     }
     throw new Error('Некоректний формат файлу');
@@ -308,8 +406,9 @@ export function CartProvider({ children }) {
         return updated;
       });
 
-      // Broadcast order across all tabs and cloud devices immediately
+      // Broadcast order across all local tabs & cloud devices immediately
       broadcastNewOrder(newEntry);
+      sendOrderToCloud(newEntry);
       playKitchenChime();
     }
   };
@@ -358,6 +457,7 @@ export function CartProvider({ children }) {
     });
 
     broadcastNewOrder(testOrder);
+    sendOrderToCloud(testOrder);
     playKitchenChime();
     showToast(`⚡ Створено тестове замовлення #${testId}!`);
     return testOrder;
@@ -378,6 +478,7 @@ export function CartProvider({ children }) {
       }
       return updated;
     });
+    updateCloudOrderStatus(orderId, status);
     showToast(`Статус замовлення #${orderId} оновлено`);
   };
 
@@ -499,7 +600,11 @@ export function CartProvider({ children }) {
         ordersHistory,
         createTestOrder,
         updateOrderStatus,
-        clearOrdersHistory
+        clearOrdersHistory,
+        // Cloud Database (Firebase Firestore)
+        isCloudConnected,
+        refreshCloudConnection,
+        syncMenuToCloud
       }}
     >
       {children}
