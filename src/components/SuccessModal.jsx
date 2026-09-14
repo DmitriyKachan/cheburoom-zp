@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { Check, Clock, MapPin, Phone, CreditCard, X, ChevronRight, AlertCircle, ChefHat, Sparkles } from 'lucide-react';
@@ -6,10 +6,20 @@ import { Check, Clock, MapPin, Phone, CreditCard, X, ChevronRight, AlertCircle, 
 export function SuccessModal() {
   const { successOrder, setSuccessOrder, isSuccessModalOpen, closeSuccessModal, navigateTo, currentPage } = useCart();
 
-  if (!successOrder || !isSuccessModalOpen) return null;
+  const isCancelled = successOrder?.status === 'cancelled' || successOrder?.isDeleted;
+  const currentStatus = isCancelled ? 'cancelled' : (successOrder?.status || 'new');
 
-  const isCancelled = successOrder.status === 'cancelled' || successOrder.isDeleted;
-  const currentStatus = isCancelled ? 'cancelled' : (successOrder.status || 'new');
+  useEffect(() => {
+    if (isSuccessModalOpen && currentStatus === 'completed') {
+      const timer = setTimeout(() => {
+        closeSuccessModal();
+        setSuccessOrder(null);
+      }, 4500);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccessModalOpen, currentStatus, closeSuccessModal, setSuccessOrder]);
+
+  if (!successOrder || !isSuccessModalOpen) return null;
 
   const statusConfig = {
     new: {
@@ -56,16 +66,6 @@ export function SuccessModal() {
 
   const activeConfig = statusConfig[currentStatus] || statusConfig.new;
   const StatusIcon = activeConfig.icon;
-
-  useEffect(() => {
-    if (currentStatus === 'completed') {
-      const timer = setTimeout(() => {
-        closeSuccessModal();
-        setSuccessOrder(null);
-      }, 4500);
-      return () => clearTimeout(timer);
-    }
-  }, [currentStatus, closeSuccessModal, setSuccessOrder]);
 
   const handleClose = () => {
     closeSuccessModal();
@@ -230,7 +230,7 @@ export function SuccessModal() {
                 <span className="font-display font-bold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   Склад замовлення:
                 </span>
-                {successOrder.items && (
+                {Array.isArray(successOrder.items) && (
                   <span className="text-[11px] font-semibold text-zinc-400">
                     {successOrder.items.reduce((s, i) => s + (i.quantity || 1), 0)} шт.
                   </span>
@@ -238,7 +238,7 @@ export function SuccessModal() {
               </div>
 
               <div className="space-y-2 rounded-2xl bg-zinc-50/70 dark:bg-[#18181F]/70 border border-zinc-200/70 dark:border-[#262632] p-3 divide-y divide-zinc-200/50 dark:divide-zinc-800/70">
-                {successOrder.items && successOrder.items.length > 0 ? (
+                {Array.isArray(successOrder.items) && successOrder.items.length > 0 ? (
                   successOrder.items.map((item, idx) => (
                     <div key={item.cartItemId || idx} className={`flex items-start justify-between gap-3 ${idx > 0 ? 'pt-2' : ''}`}>
                       <div className="flex items-start gap-2.5 min-w-0">
