@@ -78,7 +78,15 @@ export function CartProvider({ children }) {
   const [successOrder, setSuccessOrderState] = useState(() => {
     try {
       const saved = localStorage.getItem('cheburoom_active_order');
-      return saved ? JSON.parse(saved) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && (parsed.status === 'completed' || parsed.isDeleted)) {
+          localStorage.removeItem('cheburoom_active_order');
+          return null;
+        }
+        return parsed;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -169,8 +177,22 @@ export function CartProvider({ children }) {
           const matching = cloudOrders.find(o => o.orderId === cur.orderId);
           if (matching && matching.status && matching.status !== cur.status) {
             const updated = { ...cur, status: matching.status };
+            if (matching.status === 'completed') {
+              setTimeout(() => {
+                setSuccessOrderState(null);
+                setIsSuccessModalOpen(false);
+                try { localStorage.removeItem('cheburoom_active_order'); } catch {}
+              }, 3500);
+            }
             try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
             return updated;
+          }
+          if (matching && matching.status === 'completed') {
+            setTimeout(() => {
+              setSuccessOrderState(null);
+              setIsSuccessModalOpen(false);
+              try { localStorage.removeItem('cheburoom_active_order'); } catch {}
+            }, 3500);
           }
           return cur;
         });
@@ -250,6 +272,13 @@ export function CartProvider({ children }) {
         setSuccessOrderState((cur) => {
           if (cur && cur.orderId === orderId) {
             const updated = { ...cur, status: newStatus };
+            if (newStatus === 'completed') {
+              setTimeout(() => {
+                setSuccessOrderState(null);
+                setIsSuccessModalOpen(false);
+                try { localStorage.removeItem('cheburoom_active_order'); } catch {}
+              }, 3500);
+            }
             try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
             return updated;
           }
@@ -762,6 +791,13 @@ export function CartProvider({ children }) {
     setSuccessOrderState((cur) => {
       if (cur && cur.orderId === orderId) {
         const updated = { ...cur, status };
+        if (status === 'completed') {
+          setTimeout(() => {
+            setSuccessOrderState(null);
+            setIsSuccessModalOpen(false);
+            try { localStorage.removeItem('cheburoom_active_order'); } catch {}
+          }, 3500);
+        }
         try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
         return updated;
       }

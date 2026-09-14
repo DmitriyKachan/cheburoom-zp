@@ -57,9 +57,19 @@ export function SuccessModal() {
   const activeConfig = statusConfig[currentStatus] || statusConfig.new;
   const StatusIcon = activeConfig.icon;
 
+  useEffect(() => {
+    if (currentStatus === 'completed') {
+      const timer = setTimeout(() => {
+        closeSuccessModal();
+        setSuccessOrder(null);
+      }, 4500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStatus, closeSuccessModal, setSuccessOrder]);
+
   const handleClose = () => {
     closeSuccessModal();
-    if (isCancelled) {
+    if (isCancelled || currentStatus === 'completed') {
       setSuccessOrder(null);
     }
     if (navigateTo && currentPage !== 'menu') {
@@ -306,6 +316,17 @@ export function SuccessModal() {
                 className="w-full h-12 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-display font-black text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
               >
                 <span>Зрозуміло, закрити сповіщення</span>
+              </motion.button>
+            ) : currentStatus === 'completed' ? (
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={handleClose}
+                className="w-full h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-display font-black text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
+              >
+                <span>Дякую, замовлення отримано!</span>
+                <Check className="w-4 h-4" />
               </motion.button>
             ) : (
               <motion.button

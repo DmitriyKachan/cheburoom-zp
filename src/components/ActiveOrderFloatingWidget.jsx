@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { Clock, ChefHat, Sparkles, Check, AlertCircle, ChevronRight, X } from 'lucide-react';
@@ -12,6 +12,16 @@ export function ActiveOrderFloatingWidget() {
     currentPage,
     itemCount
   } = useCart();
+
+  // Auto-dismiss floating widget 3.5s after order was marked as completed (issued)
+  useEffect(() => {
+    if (successOrder?.status === 'completed') {
+      const timer = setTimeout(() => {
+        setSuccessOrder(null);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [successOrder?.status, setSuccessOrder]);
 
   // Do not show on admin page, when full modal is open, or when no order exists
   if (!successOrder || isSuccessModalOpen || currentPage === 'admin') {
