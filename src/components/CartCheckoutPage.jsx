@@ -411,17 +411,12 @@ ${itemsText}
                             onClick={() => setSelectedDishForModal(dish)}
                             className="p-3 rounded-2xl bg-zinc-50 dark:bg-[#1A1A22]/50 border border-zinc-200/70 dark:border-[#23232E] flex flex-col justify-between group card-interactive cursor-pointer hover:border-amber-400/60 transition-colors"
                           >
-                            <div className="overflow-hidden rounded-xl mb-2 h-20 relative">
+                            <div className="overflow-hidden rounded-xl mb-2 h-20">
                               <img
                                 src={dish.image}
                                 alt={dish.name}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                               />
-                              {hasExtras && (
-                                <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-zinc-950/80 backdrop-blur-xs text-[9px] font-bold text-amber-400 border border-amber-400/30">
-                                  + допи
-                                </span>
-                              )}
                             </div>
                             <div>
                               <p className="font-bold text-xs text-zinc-900 dark:text-white line-clamp-1 leading-snug group-hover:text-amber-500 transition-colors">
@@ -433,36 +428,23 @@ ${itemsText}
                               <span className="font-display font-black text-xs text-zinc-900 dark:text-white">
                                 {dish.price} ₴
                               </span>
-                              {hasExtras ? (
-                                <motion.button
-                                  type="button"
-                                  whileHover={{ scale: 1.08 }}
-                                  whileTap={{ scale: 0.92 }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
+                              <motion.button
+                                type="button"
+                                whileHover={{ scale: 1.15 }}
+                                whileTap={{ scale: 0.85 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (hasExtras) {
                                     setSelectedDishForModal(dish);
-                                  }}
-                                  className="px-2 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-extrabold flex items-center gap-1 transition-all cursor-pointer"
-                                  title="Обрати додатки та соуси"
-                                >
-                                  <Plus className="w-2.5 h-2.5" />
-                                  <span>Допи</span>
-                                </motion.button>
-                              ) : (
-                                <motion.button
-                                  type="button"
-                                  whileHover={{ scale: 1.15 }}
-                                  whileTap={{ scale: 0.85 }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
+                                  } else {
                                     addItem(dish);
-                                  }}
-                                  className="w-7 h-7 rounded-xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-bold hover:bg-glovo-yellow-hover transition-all shadow-xs cursor-pointer group/plus"
-                                  title="Додати до кошика"
-                                >
-                                  <Plus className="w-3.5 h-3.5 group-hover/plus:rotate-90 transition-transform duration-200" />
-                                </motion.button>
-                              )}
+                                  }
+                                }}
+                                className="w-7 h-7 rounded-xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-bold hover:bg-glovo-yellow-hover transition-all shadow-xs cursor-pointer group/plus"
+                                title={hasExtras ? "Обрати додатки та соуси" : "Додати до кошика"}
+                              >
+                                <Plus className="w-3.5 h-3.5 group-hover/plus:rotate-90 transition-transform duration-200" />
+                              </motion.button>
                             </div>
                           </motion.div>
                         );

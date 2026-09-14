@@ -25,7 +25,7 @@ export function Hero() {
               className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-zinc-950 dark:text-white leading-[1.12] mb-4 tracking-tight"
             >
               Справжні соковиті{' '}
-              <span className="text-amber-500 underline decoration-glovo-yellow decoration-wavy decoration-from-font">
+              <span className="text-amber-500">
                 чебуреки
               </span>
               <br />
