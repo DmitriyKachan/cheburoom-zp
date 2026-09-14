@@ -49,17 +49,24 @@ export function DishModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-sm">
+      <div 
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-zinc-950/70 backdrop-blur-sm"
+        onClick={() => setSelectedDishForModal(null)}
+      >
         
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ duration: 0.2 }}
-          className="w-full max-w-lg bg-white dark:bg-[#121215] rounded-3xl overflow-hidden shadow-2xl border border-zinc-200 dark:border-[#23232E] flex flex-col max-h-[90vh]"
+          initial={{ opacity: 0, y: 40, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 40, scale: 0.96 }}
+          transition={{ type: "spring", stiffness: 350, damping: 28 }}
+          onClick={(e) => e.stopPropagation()}
+          className="w-full max-w-lg bg-white dark:bg-[#121215] rounded-t-[28px] sm:rounded-3xl overflow-hidden shadow-2xl border border-zinc-200 dark:border-[#23232E] flex flex-col max-h-[90vh] sm:max-h-[90vh]"
         >
+          {/* Mobile pull indicator */}
+          <div className="w-12 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700 mx-auto mt-2.5 mb-1 block sm:hidden shrink-0" />
+
           {/* Header Image */}
-          <div className="relative h-48 sm:h-56 w-full bg-zinc-100 dark:bg-zinc-900 shrink-0">
+          <div className="relative h-44 sm:h-56 w-full bg-zinc-100 dark:bg-zinc-900 shrink-0">
             <img
               src={dish.image}
               alt={dish.name}
@@ -71,7 +78,7 @@ export function DishModal() {
               whileTap={{ scale: 0.85 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
               onClick={() => setSelectedDishForModal(null)}
-              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer"
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm cursor-pointer z-10"
               aria-label="Закрити"
             >
               <X className="w-5 h-5" />
@@ -82,21 +89,21 @@ export function DishModal() {
           </div>
 
           {/* Body */}
-          <div className="p-5 sm:p-6 overflow-y-auto flex-1">
-            <h3 className="font-display font-black text-xl text-zinc-950 dark:text-white mb-2">
+          <div className="p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain">
+            <h3 className="font-display font-black text-lg sm:text-xl text-zinc-950 dark:text-white mb-1.5">
               {dish.name}
             </h3>
-            <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed mb-6">
+            <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed mb-5">
               {dish.desc || dish.shortDesc}
             </p>
 
             {/* Crust Choices */}
             {dish.options?.crust && dish.options.crust.length > 0 && (
-              <div className="mb-6">
-                <h4 className="text-xs font-display font-bold text-zinc-950 dark:text-white mb-2.5">
+              <div className="mb-5">
+                <h4 className="text-xs font-display font-bold text-zinc-950 dark:text-white mb-2">
                   Спосіб приготування:
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
                   {dish.options.crust.map((c, idx) => {
                     const isSelected = selectedCrust === c.name;
                     return (
@@ -137,7 +144,7 @@ export function DishModal() {
             {/* Extras */}
             {dish.options?.extras && dish.options.extras.length > 0 && (
               <div className="mb-4">
-                <h4 className="text-xs font-display font-bold text-zinc-950 dark:text-white mb-2.5">
+                <h4 className="text-xs font-display font-bold text-zinc-950 dark:text-white mb-2">
                   Додати до начинки:
                 </h4>
                 <div className="space-y-2">
@@ -166,7 +173,7 @@ export function DishModal() {
                             {extra.name}
                           </span>
                         </div>
-                        <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400">
+                        <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 whitespace-nowrap">
                           +{extra.price} ₴
                         </span>
                       </motion.label>
@@ -179,10 +186,10 @@ export function DishModal() {
           </div>
 
           {/* Footer */}
-          <div className="p-5 border-t border-zinc-100 dark:border-[#23232E] bg-[#F8F9FA] dark:bg-[#09090B] flex items-center justify-between gap-4 shrink-0">
+          <div className="p-4 sm:p-5 border-t border-zinc-100 dark:border-[#23232E] bg-[#F8F9FA] dark:bg-[#09090B] flex items-center justify-between gap-3 shrink-0">
             <div>
-              <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold">Вартість:</div>
-              <div className="font-display text-xl font-black text-zinc-950 dark:text-white">
+              <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold whitespace-nowrap">Разом:</div>
+              <div className="font-display text-lg sm:text-xl font-black text-zinc-950 dark:text-white whitespace-nowrap">
                 {totalPrice} ₴
               </div>
             </div>
@@ -193,7 +200,7 @@ export function DishModal() {
               whileTap={{ scale: 0.94 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
               onClick={handleAdd}
-              className="h-11 px-6 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs font-extrabold btn-glow-yellow animate-shimmer flex items-center gap-2 cursor-pointer group select-none shadow-sm"
+              className="flex-1 sm:flex-initial h-12 sm:h-11 px-5 sm:px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs sm:text-sm font-extrabold btn-glow-yellow animate-shimmer flex items-center justify-center gap-2 cursor-pointer group select-none shadow-sm whitespace-nowrap"
             >
               <Plus className="w-4 h-4 text-zinc-950 group-hover:rotate-90 group-hover:scale-125 transition-transform duration-200" />
               <span>Додати ({totalPrice} ₴)</span>

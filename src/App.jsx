@@ -77,7 +77,7 @@ export function App() {
               />
               <MarqueeRibbon />
 
-              <section id="menu-catalog" className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <section id="menu-catalog" className={`py-6 sm:py-12 max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 ${itemCount > 0 ? 'pb-24 lg:pb-12' : ''}`}>
                 <div className="mb-4">
                   <span className="text-xs font-black text-amber-500 uppercase tracking-wider block mb-1">
                     Швидке замовлення їжі
@@ -117,7 +117,7 @@ export function App() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                     {filteredItems.map(dish => (
                       <DishCard key={dish.id} dish={dish} />
                     ))}
@@ -145,24 +145,26 @@ export function App() {
 
       {/* Floating Mobile Cart Bar (Glovo style) - only shown on menu page */}
       {itemCount > 0 && currentPage === 'menu' && (
-        <div className="fixed bottom-4 inset-x-4 z-30 lg:hidden">
-          <button
+        <div className="fixed bottom-4 inset-x-3.5 z-30 lg:hidden">
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => navigateTo('checkout')}
-            className="w-full h-14 bg-glovo-yellow text-zinc-950 rounded-2xl shadow-xl flex items-center justify-between px-5 font-bold transition-transform active:scale-98 cursor-pointer"
+            className="w-full h-14 bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 rounded-2xl shadow-xl flex items-center justify-between px-4 sm:px-5 font-bold cursor-pointer btn-glow-yellow select-none"
           >
             <div className="flex items-center gap-2.5">
-              <span className="w-7 h-7 rounded-xl bg-zinc-950 text-white text-xs font-black flex items-center justify-center">
+              <span className="w-7 h-7 rounded-xl bg-zinc-950 text-white text-xs font-black flex items-center justify-center shrink-0">
                 {itemCount}
               </span>
-              <span className="font-display font-black text-sm">Оформити замовлення</span>
+              <span className="font-display font-black text-sm whitespace-nowrap">Оформити замовлення</span>
             </div>
             
-            <div className="flex items-center gap-1 font-display font-black text-base">
+            <div className="flex items-center gap-1 font-display font-black text-base shrink-0 whitespace-nowrap">
               <span>{subtotal} ₴</span>
               <ChevronRight className="w-5 h-5" />
             </div>
-          </button>
+          </motion.button>
         </div>
       )}
 

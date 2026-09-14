@@ -9,48 +9,39 @@ export function MarqueeRibbon() {
   const advantages = [
     {
       icon: "⚡",
-      title: "Готуємо під замовлення",
-      desc: "смажимо щойно після вашого кліку, жодних розігрівів"
+      title: "Готуємо під замовлення"
     },
     {
       icon: "🥟",
-      title: "Фірмове пухирчасте тісто",
-      desc: "ідеальний золотавий хрускіт та море гарячого бульйону"
+      title: "Фірмове пухирчасте тісто"
     },
     {
       icon: "🍳",
-      title: "Фритюр або Кримський янтик",
-      desc: "хрусткі пухирці або суха пательня без краплі олії"
+      title: "Фритюр або Кримський янтик"
     },
     {
       icon: "🥩",
-      title: "100% соковиті начинки",
-      desc: "томлена рвана телятина, 4 сири, лосось та свіжа вишня"
+      title: "100% соковиті начинки"
     },
     {
       icon: "🥢",
-      title: "Гарячий WOK та сніданки",
-      desc: "азійська локшина, шакшука на сковороді й сир моцарела"
+      title: "Гарячий WOK та сніданки"
     },
     {
       icon: "🛵",
-      title: "Доставка по Запоріжжю 25–40 хв",
-      desc: "привозимо свіжим і гарячим у термобоксах"
+      title: "Доставка по Запоріжжю 25–40 хв"
     },
     {
       icon: "🎁",
-      title: "Безкоштовна доставка від 450 ₴",
-      desc: "вигідно для компанії або швидкого обіду"
+      title: "Безкоштовна доставка від 450 ₴"
     },
     {
       icon: "📍",
-      title: "-10% на самовивіз",
-      desc: "забирайте без черги у центрі: пр. Соборний, 142"
+      title: "-10% на самовивіз"
     },
     {
       icon: "☕",
-      title: "Кава, Бамбл та десерти",
-      desc: "горішки з ірискою та лінійка безлактозних напоїв"
+      title: "Кава, Бамбл та десерти"
     }
   ];
 
@@ -61,32 +52,26 @@ export function MarqueeRibbon() {
       <div className="absolute right-0 inset-y-0 w-8 sm:w-16 bg-gradient-to-l from-zinc-950 dark:from-[#070709] to-transparent z-10 pointer-events-none" />
 
       <div className="flex overflow-hidden">
-        <div className="animate-marquee-infinite flex items-center gap-8 sm:gap-10 shrink-0 pr-8 sm:pr-10">
+        <div className="animate-marquee-infinite flex items-center gap-6 sm:gap-8 shrink-0 pr-6 sm:pr-8">
           {/* First sequence */}
           {advantages.map((item, idx) => (
-            <div key={`m1-${idx}`} className="flex items-center gap-3 whitespace-nowrap text-xs">
-              <span className="text-sm">{item.icon}</span>
+            <div key={`m1-${idx}`} className="flex items-center gap-2.5 whitespace-nowrap text-xs sm:text-sm">
+              <span className="text-base">{item.icon}</span>
               <span className="font-extrabold text-amber-400 tracking-wide">
                 {item.title}
               </span>
-              <span className="text-zinc-300 font-normal">
-                — {item.desc}
-              </span>
-              <span className="text-amber-500/60 font-bold ml-5 sm:ml-7">•</span>
+              <span className="text-amber-500/60 font-bold ml-4 sm:ml-6">•</span>
             </div>
           ))}
 
           {/* Duplicate sequence for seamless infinite loop */}
           {advantages.map((item, idx) => (
-            <div key={`m2-${idx}`} className="flex items-center gap-3 whitespace-nowrap text-xs">
-              <span className="text-sm">{item.icon}</span>
+            <div key={`m2-${idx}`} className="flex items-center gap-2.5 whitespace-nowrap text-xs sm:text-sm">
+              <span className="text-base">{item.icon}</span>
               <span className="font-extrabold text-amber-400 tracking-wide">
                 {item.title}
               </span>
-              <span className="text-zinc-300 font-normal">
-                — {item.desc}
-              </span>
-              <span className="text-amber-500/60 font-bold ml-5 sm:ml-7">•</span>
+              <span className="text-amber-500/60 font-bold ml-4 sm:ml-6">•</span>
             </div>
           ))}
         </div>

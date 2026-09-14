@@ -50,23 +50,23 @@ export function DishCard({ dish }) {
       </div>
 
       {/* Card Body */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div className="p-3.5 sm:p-5 flex-1 flex flex-col justify-between">
         <div>
           <h3
-            className="font-display font-bold text-base text-zinc-950 dark:text-white leading-snug hover:text-amber-500 transition-colors cursor-pointer mb-1.5 group-hover:translate-x-0.5 duration-200"
+            className="font-display font-bold text-sm sm:text-base text-zinc-950 dark:text-white leading-snug hover:text-amber-500 transition-colors cursor-pointer mb-1 group-hover:translate-x-0.5 duration-200"
             onClick={() => setSelectedDishForModal(dish)}
           >
             {dish.name}
           </h3>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-4">
+          <p className="text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-3 sm:mb-4">
             {dish.shortDesc}
           </p>
         </div>
 
         {/* Bottom Bar: Price and Interactive Quantity / Add Button */}
-        <div className="pt-3 border-t border-zinc-100 dark:border-[#23232E] flex items-center justify-between gap-2">
+        <div className="pt-2.5 sm:pt-3 border-t border-zinc-100 dark:border-[#23232E] flex items-center justify-between gap-2">
           <div>
-            <span className="font-display font-black text-xl text-zinc-950 dark:text-white">
+            <span className="font-display font-black text-lg sm:text-xl text-zinc-950 dark:text-white whitespace-nowrap">
               {dish.price} ₴
             </span>
           </div>
