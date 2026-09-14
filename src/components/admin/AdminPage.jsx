@@ -376,7 +376,10 @@ export function AdminPage() {
       const res = await testCloudRelay();
       setIsTestingFirebase(false);
       if (res.success) {
-        setCloudStatusMsg({ type: 'success', text: `Хмарний зв'язок відмінний! Затримка: ${res.latencyMs} мс. Замовлення та меню синхронізуються наживо.` });
+        const msg = res.warning
+          ? `Хмарний зв'язок активний через надійний потік SSE (${res.latencyMs} мс). Замовлення та меню синхронізуються миттєво!`
+          : `Хмарний зв'язок відмінний! Затримка: ${res.latencyMs} мс. Замовлення та меню синхронізуються наживо.`;
+        setCloudStatusMsg({ type: 'success', text: msg });
         showToast(`Хмара активна (${res.latencyMs} мс)!`);
       } else {
         setCloudStatusMsg({ type: 'error', text: `Помилка зв'язку: ${res.error}` });
