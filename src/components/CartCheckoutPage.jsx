@@ -13,7 +13,6 @@ import {
   User,
   CreditCard,
   Banknote,
-  Smartphone,
   CheckCircle,
   Sparkles,
   Clock,
@@ -647,11 +646,10 @@ ${itemsText}
                   <label className="block text-xs font-bold text-zinc-900 dark:text-white mb-2">
                     Спосіб оплати:
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2.5">
                     {[
                       { id: 'Готівка', label: 'Готівка', Icon: Banknote },
-                      { id: 'Карткою в закладі', label: 'Термінал', Icon: CreditCard },
-                      { id: 'Онлайн карткою', label: 'Онлайн', Icon: Smartphone }
+                      { id: 'Карткою в закладі', label: 'Термінал', Icon: CreditCard }
                     ].map((item) => (
                       <motion.button
                         type="button"
