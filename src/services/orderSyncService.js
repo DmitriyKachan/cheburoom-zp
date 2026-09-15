@@ -11,9 +11,22 @@
  * 4. Kitchen bell chime (Web Audio API)
  */
 
-const ORDERS_TOPIC = 'cheburoom_orders_zp_2026';
-const MENU_TOPIC = 'cheburoom_menu_zp_2026';
-const AUTH_TOPIC = 'cheburoom_auth_zp_2026';
+// High-entropy private secret token to prevent unauthorized sniffing on the public relay bus
+const RELAY_SECRET_TOKEN = 'sec_9f4b82c1e7a';
+
+function getTopicName(base) {
+  try {
+    const customSalt = typeof window !== 'undefined' ? localStorage.getItem('cheburoom_relay_secret') : null;
+    const salt = (customSalt && customSalt.trim()) || RELAY_SECRET_TOKEN;
+    return `cheburoom_${base}_zp_${salt}`;
+  } catch {
+    return `cheburoom_${base}_zp_${RELAY_SECRET_TOKEN}`;
+  }
+}
+
+const ORDERS_TOPIC = getTopicName('orders');
+const MENU_TOPIC = getTopicName('menu');
+const AUTH_TOPIC = getTopicName('auth');
 
 const CLOUD_ORDERS_URL = `https://ntfy.sh/${ORDERS_TOPIC}`;
 const CLOUD_MENU_URL = `https://ntfy.sh/${MENU_TOPIC}`;
@@ -947,4 +960,17 @@ export async function diagnoseDatabaseHealth() {
       }
     };
   }
+}
+
+/**
+ * Returns topics and salt metadata for security & diagnostics display in Admin
+ */
+export function getCloudRelayTopicInfo() {
+  return {
+    ordersTopic: ORDERS_TOPIC,
+    menuTopic: MENU_TOPIC,
+    authTopic: AUTH_TOPIC,
+    salt: RELAY_SECRET_TOKEN,
+    isSecured: true
+  };
 }

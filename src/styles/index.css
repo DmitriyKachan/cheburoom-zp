@@ -45,6 +45,13 @@ body {
   min-height: 100vh;
 }
 
+/* Image scraping and dragging protection */
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* Bulletproof safety fallbacks: ensure no white-on-white text in dark mode */
 .dark .bg-white:not([data-keep-white]) {
   background-color: #121215;

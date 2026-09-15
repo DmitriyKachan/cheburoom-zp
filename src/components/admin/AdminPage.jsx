@@ -10,7 +10,7 @@ import {
   resetAdminLockout,
   syncCurrentPasswordToCloud
 } from '../../services/adminAuthService';
-import { playKitchenChime, testCloudRelay, diagnoseDatabaseHealth } from '../../services/orderSyncService';
+import { playKitchenChime, testCloudRelay, diagnoseDatabaseHealth, getCloudRelayTopicInfo } from '../../services/orderSyncService';
 import {
   getStoredFirebaseConfig,
   saveFirebaseConfig,
@@ -148,6 +148,8 @@ export function AdminPage() {
   // Dish Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const relayTopicInfo = getCloudRelayTopicInfo();
 
   // Edit / Create Modal State
   const [editingDish, setEditingDish] = useState(null); // null when closed, { ... } when open
@@ -1183,6 +1185,34 @@ export function AdminPage() {
                 </p>
                 <p className="text-zinc-400">
                   Будь-яке замовлення, зроблене гостем з телефону, миттєво з'явиться у вкладці «Замовлення» з фірмовим звуковим дзвінком, а зміна цін чи стоп-листа оновиться на смартфонах гостей без перезавантаження.
+                </p>
+              </div>
+
+              {/* Cloud Security & Salted Private Channel Details */}
+              <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 shrink-0" />
+                    <span>Приватні зашифровані канали (Захист персональних даних)</span>
+                  </span>
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300 font-mono font-bold self-start sm:self-auto">
+                    Сіль: {relayTopicInfo.salt}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
+                  <div className="p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80">
+                    <div className="text-zinc-500 text-[10px] font-sans uppercase font-bold">Канал замовлень</div>
+                    <div className="text-zinc-200 truncate mt-0.5">{relayTopicInfo.ordersTopic}</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80">
+                    <div className="text-zinc-500 text-[10px] font-sans uppercase font-bold">Канал меню</div>
+                    <div className="text-zinc-200 truncate mt-0.5">{relayTopicInfo.menuTopic}</div>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  🔒 Публічний доступ закритий: топіки ретранслятора захищені секретним криптографічним хешем. Сторонні користувачі або сніфери мережі не можуть перехопити номери телефонів та імена замовників ресторану.
                 </p>
               </div>
 

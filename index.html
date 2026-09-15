@@ -26,6 +26,13 @@
             document.documentElement.classList.remove('dark');
           }
         } catch (e) {}
+
+        // Deter casual image right-click saving
+        document.addEventListener('contextmenu', function(e) {
+          if (e.target && e.target.tagName === 'IMG') {
+            e.preventDefault();
+          }
+        });
       })();
     </script>
   </head>

@@ -35,6 +35,7 @@ export function CartCheckoutPage() {
     subtotal,
     getTotal,
     navigateTo,
+    successOrder,
     setSuccessOrder,
     showToast,
     setSelectedDishForModal
@@ -46,9 +47,36 @@ export function CartCheckoutPage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+380 (');
   const [payment, setPayment] = useState('Готівка');
+  const [cashChange, setCashChange] = useState('no_change'); // 'no_change' | '200' | '500' | '1000'
   const [comment, setComment] = useState('');
   const [cutleryCount, setCutleryCount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Anti-Spam state
+  const [honeypot, setHoneypot] = useState('');
+  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(() => {
+    try {
+      const lastOrderAt = parseInt(localStorage.getItem('cheburoom_last_order_ts') || '0', 10);
+      const diff = Math.floor((Date.now() - lastOrderAt) / 1000);
+      if (diff < 60) return 60 - diff;
+    } catch {}
+    return 0;
+  });
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const timer = setInterval(() => {
+      setCooldownSeconds((sec) => {
+        if (sec <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return sec - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownSeconds]);
 
   // Takeaway calculations (no discount)
   const total = getTotal();
@@ -83,27 +111,8 @@ export function CartCheckoutPage() {
     setPhone(formatted);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (items.length === 0) {
-      showToast('Ваш кошик порожній! Оберіть страви з меню.');
-      return;
-    }
-
-    if (!name.trim()) {
-      showToast("Будь ласка, вкажіть ваше ім'я");
-      return;
-    }
-
-    const digitsOnly = phone.replace(/\D/g, '');
-    if (digitsOnly.length < 9) {
-      showToast('Вкажіть номер телефону (мінімум 9-10 цифр)');
-      return;
-    }
-
+  const processOrderSubmission = () => {
     const addressStr = `м. Запоріжжя, ${MENU_DATA.info.address}`;
-
     setIsSubmitting(true);
 
     const orderId = 'CR-' + Math.floor(100000 + Math.random() * 900000);
@@ -123,6 +132,10 @@ export function CartCheckoutPage() {
       ? '🔥 Якнайшвидше (орієнтовно 7-10 хв)' 
       : `⏰ На певний час (${preorderTime})`;
 
+    const paymentText = payment === 'Готівка' && cashChange !== 'no_change'
+      ? `Готівка (решта з ${cashChange} ₴)`
+      : payment;
+
     const fullOrderText = 
 `🔔 НОВЕ ЗАМОВЛЕННЯ №${orderId}
 🏛 Заклад: ЧЕБУROOM (@cheburoom.zp)
@@ -132,13 +145,19 @@ export function CartCheckoutPage() {
 📍 Отримання: 🏃 Самовивіз
 ⏱ Час: ${timingText}
 🏠 Точка видачі: ${addressStr}
-💳 Оплата: ${payment}
+💳 Оплата: ${paymentText}
 🍴 Прибори/серветки: ${cutleryCount} шт.
 ${comment.trim() ? '💬 Коментар: ' + comment.trim() + '\n' : ''}━━━━━━━━━━━━━━━━━━━━
 📋 СКЛАД ЗАМОВЛЕННЯ:
 ${itemsText}
 
 🔥 РАЗОМ ДО СПЛАТИ: ${total} ₴`;
+
+    // Anti-spam cooldown stamp
+    try {
+      localStorage.setItem('cheburoom_last_order_ts', Date.now().toString());
+    } catch {}
+    setCooldownSeconds(60);
 
     // Open success modal
     setTimeout(() => {
@@ -152,7 +171,7 @@ ${itemsText}
         orderType: 'pickup',
         address: addressStr,
         timing: timingText,
-        payment,
+        payment: paymentText,
         cutleryCount,
         comment,
         items: [...items],
@@ -161,6 +180,53 @@ ${itemsText}
       clearCart();
       setIsSubmitting(false);
     }, 400);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // 1. Honeypot check (Bots)
+    if (honeypot) {
+      showToast('Дякуємо! Замовлення надіслано.');
+      clearCart();
+      return;
+    }
+
+    // 2. Cooldown check (60s rate-limit per device)
+    if (cooldownSeconds > 0) {
+      showToast(`Зачекайте ще ${cooldownSeconds} с перед оформленням наступного замовлення`);
+      return;
+    }
+
+    if (items.length === 0) {
+      showToast('Ваш кошик порожній! Оберіть страви з меню.');
+      return;
+    }
+
+    if (!name.trim()) {
+      showToast("Будь ласка, вкажіть ваше ім'я");
+      return;
+    }
+
+    // 3. Strict Phone validation
+    const digitsOnly = phone.replace(/\D/g, '');
+    if (digitsOnly.length < 9) {
+      showToast('Вкажіть номер телефону (мінімум 9-10 цифр)');
+      return;
+    }
+    const last9 = digitsOnly.substring(digitsOnly.length - 9);
+    if (/^(\d)\1+$/.test(last9) || last9 === '123456789' || last9 === '987654321') {
+      showToast('Будь ласка, вкажіть дійсний контактний номер телефону');
+      return;
+    }
+
+    // 4. Duplicate active order confirmation
+    if (successOrder && !successOrder.isDeleted && (successOrder.status === 'new' || successOrder.status === 'preparing')) {
+      setShowDuplicateConfirm(true);
+      return;
+    }
+
+    processOrderSubmission();
   };
 
   return (
@@ -604,6 +670,40 @@ ${itemsText}
                       </motion.button>
                     ))}
                   </div>
+
+                  {/* Cash Change option */}
+                  {payment === 'Готівка' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="pt-2 space-y-1.5"
+                    >
+                      <label className="block text-[11px] font-bold text-zinc-700 dark:text-zinc-300">
+                        Потрібна решта?
+                      </label>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {[
+                          { id: 'no_change', label: 'Без решти' },
+                          { id: '200', label: 'З 200 ₴' },
+                          { id: '500', label: 'З 500 ₴' },
+                          { id: '1000', label: 'З 1000 ₴' }
+                        ].map((c) => (
+                          <button
+                            type="button"
+                            key={c.id}
+                            onClick={() => setCashChange(c.id)}
+                            className={`py-2 px-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer text-center ${
+                              cashChange === c.id
+                                ? 'bg-amber-400 text-zinc-950 border-amber-400 font-black shadow-xs'
+                                : 'bg-zinc-50 dark:bg-[#1A1A22] border-zinc-200 dark:border-[#23232E] text-zinc-600 dark:text-zinc-400'
+                            }`}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* Comment & Cutlery */}
@@ -667,18 +767,34 @@ ${itemsText}
                   </div>
                 </div>
 
+                {/* Security honeypot field - invisible to genuine users */}
+                <div className="opacity-0 absolute -top-[9999px] -left-[9999px] h-0 w-0 pointer-events-none" aria-hidden="true" tabIndex={-1}>
+                  <input
+                    type="text"
+                    name="b_security_verification"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    autoComplete="off"
+                    tabIndex={-1}
+                  />
+                </div>
+
                 {/* Submit Order CTA */}
                 <motion.button
                   type="submit"
-                  disabled={isSubmitting}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.96 }}
+                  disabled={isSubmitting || cooldownSeconds > 0}
+                  whileHover={{ scale: (isSubmitting || cooldownSeconds > 0) ? 1 : 1.02, y: (isSubmitting || cooldownSeconds > 0) ? 0 : -2 }}
+                  whileTap={{ scale: (isSubmitting || cooldownSeconds > 0) ? 1 : 0.96 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  className="w-full h-14 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-sm sm:text-base flex items-center justify-center gap-2.5 btn-glow-yellow animate-shimmer disabled:opacity-75 cursor-pointer group/submit select-none shadow-md shadow-amber-400/25"
+                  className="w-full h-14 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-sm sm:text-base flex items-center justify-center gap-2.5 btn-glow-yellow animate-shimmer disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer group/submit select-none shadow-md shadow-amber-400/25"
                 >
                   <CheckCircle className="w-5 h-5 text-zinc-950 group-hover/submit:scale-120 group-hover/submit:rotate-6 transition-transform duration-300" />
                   <span>
-                    {isSubmitting ? 'Оформлення...' : `Підтвердити замовлення • ${total} ₴`}
+                    {isSubmitting
+                      ? 'Оформлення...'
+                      : cooldownSeconds > 0
+                      ? `⏱️ Зачекайте ${cooldownSeconds} с...`
+                      : `Підтвердити замовлення • ${total} ₴`}
                   </span>
                 </motion.button>
 
@@ -693,6 +809,52 @@ ${itemsText}
         )}
 
       </div>
+
+      {/* Duplicate Active Order Warning Modal */}
+      <AnimatePresence>
+        {showDuplicateConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 15 }}
+              className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-[#15151C] border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto text-xl">
+                ⚠️
+              </div>
+              <div className="text-center space-y-1.5">
+                <h3 className="font-display font-black text-base text-zinc-950 dark:text-white">
+                  У вас вже є активне замовлення!
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                  Ваше попереднє замовлення <span className="font-mono font-bold text-zinc-900 dark:text-zinc-200">#{successOrder?.orderId}</span> вже обробляється на кухні. Бажаєте створити ще одне окреме замовлення?
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowDuplicateConfirm(false)}
+                  className="px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Скасувати
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDuplicateConfirm(false);
+                    processOrderSubmission();
+                  }}
+                  className="px-4 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-zinc-950 text-xs font-black shadow-sm transition-colors cursor-pointer"
+                >
+                  Так, оформити ще одне
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
