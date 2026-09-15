@@ -516,12 +516,6 @@ export function AdminPage() {
             </form>
 
             <div className="pt-3 border-t border-zinc-800/80 text-center space-y-2">
-              <p className="text-[11px] text-zinc-300">
-                Пароль за замовчуванням: <code className="bg-zinc-800 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">chebu2026</code> або <code className="bg-zinc-800 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">123456</code>
-              </p>
-              <p className="text-[10px] text-zinc-400">
-                💡 Підходить з англійської (<span className="text-amber-300 font-mono">chebu2026</span>) та української (<span className="text-amber-300 font-mono">чебу2026</span>) розкладки, або <span className="text-amber-300 font-mono">123456</span>. Змінені паролі миттєво синхронізуються між ПК та телефонами через хмару.
-              </p>
               {authError && (
                 <div className="pt-1">
                   <button
