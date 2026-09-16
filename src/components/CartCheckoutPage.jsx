@@ -24,10 +24,8 @@ import {
 } from 'lucide-react';
 import { MENU_DATA } from '../data/menuData';
 import { getUkrainianPhoneInfo } from '../services/phoneValidation';
-import { useBrand } from '../config/brandingConfig';
 
 export function CartCheckoutPage() {
-  const brand = useBrand();
   const {
     items,
     addItem,
@@ -143,7 +141,7 @@ export function CartCheckoutPage() {
 
     const fullOrderText = 
 `🔔 НОВЕ ЗАМОВЛЕННЯ №${orderId}
-🏛 Заклад: ${brand.name}${brand.instagramUsername ? ` (@${brand.instagramUsername})` : ''}
+🏛 Заклад: ЧЕБУROOM (@cheburoom.zp)
 ━━━━━━━━━━━━━━━━━━━━
 👤 Клієнт: ${name}
 📞 Телефон: ${phone}

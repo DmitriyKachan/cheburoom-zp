@@ -1,15 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { NEON_SIGN } from './neonSignData';
-import { useBrand } from '../config/brandingConfig';
 
 /**
- * Pure Neon Logo Component (Dual-Mode: White-Label Demo & Authentic Cheburoom)
+ * Pure Neon Logo Component (Without black background plate or side text)
+ * Hand-drawn vector replica of the authentic Cheburoom restaurant neon signage (@cheburoom.zp)
  * Specifically optimized with dual-tone contrast layers to be 100% legible on both White and Black themes.
  */
 export function CheburoomLogo({ size = 'md', className = '' }) {
-  const brand = useBrand();
-
   const heightClasses = {
     sm: 'h-9 sm:h-10',
     md: 'h-11 sm:h-13',
@@ -17,39 +15,6 @@ export function CheburoomLogo({ size = 'md', className = '' }) {
   };
 
   const heightClass = heightClasses[size] || heightClasses.md;
-
-  if (brand.isDemo) {
-    return (
-      <motion.div
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-        className={`relative inline-flex items-center gap-2.5 select-none cursor-pointer group ${heightClass} ${className}`}
-        aria-label="Логотип КРАФТ & CHEBUR"
-      >
-        <div className={`rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-zinc-950 font-black shadow-md shadow-amber-500/20 group-hover:shadow-amber-500/40 transition-all ${
-          size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-12 h-12' : 'w-9 h-9 sm:w-10 sm:h-10'
-        }`}>
-          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-zinc-950" stroke="currentColor" strokeWidth="0.5">
-            <path d="M3 16C4.5 9 10 4 19 3C19.5 7.5 18 13.5 13 18C8.5 22 4.5 20 3 16Z" />
-            <circle cx="9" cy="11" r="1.1" fill="#FEF08A" />
-            <circle cx="13" cy="9" r="1.3" fill="#FEF08A" />
-            <circle cx="12" cy="13" r="1" fill="#FEF08A" />
-          </svg>
-        </div>
-        <div className="flex flex-col text-left justify-center">
-          <span className={`font-display font-black tracking-tight leading-none text-zinc-950 dark:text-white group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors ${
-            size === 'sm' ? 'text-xs sm:text-sm' : size === 'lg' ? 'text-lg sm:text-xl' : 'text-sm sm:text-base font-black'
-          }`}>
-            КРАФТ <span className="text-amber-500">&</span> CHEBUR
-          </span>
-          <span className="text-[8px] sm:text-[9px] font-bold tracking-wider uppercase text-zinc-400 dark:text-zinc-500 mt-0.5">
-            Street Food Kitchen
-          </span>
-        </div>
-      </motion.div>
-    );
-  }
 
   return (
     <motion.div

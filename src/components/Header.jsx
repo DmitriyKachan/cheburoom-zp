@@ -4,10 +4,8 @@ import { useCart } from '../context/CartContext';
 import { ShoppingBag, Sun, Moon, Phone, MapPin } from 'lucide-react';
 import { InstagramIcon } from './InstagramIcon';
 import { CheburoomLogo } from './CheburoomLogo';
-import { useBrand } from '../config/brandingConfig';
 
 export function Header() {
-  const brand = useBrand();
   const { itemCount, subtotal, currentPage, navigateTo, darkMode, toggleTheme, successOrder, setSuccessOrder, openSuccessModal } = useCart();
 
   return (
@@ -23,7 +21,7 @@ export function Header() {
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={() => navigateTo('menu')}
             className="focus:outline-none cursor-pointer text-left"
-            aria-label={`Головна ${brand.name}`}
+            aria-label="Головна ЧЕБУROOM"
           >
             <CheburoomLogo size="md" />
           </motion.button>
@@ -57,34 +55,30 @@ export function Header() {
           </div>
 
           {/* Phone Contact */}
-          {brand.phone && (
-            <motion.a
-              whileHover={{ y: -1 }}
-              whileTap={{ scale: 0.97 }}
-              href={`tel:${brand.phoneRaw}`}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-xs font-bold text-zinc-900 dark:text-white hover:text-amber-500 dark:hover:text-amber-400 transition-all cursor-pointer group"
-              title="Зателефонувати в заклад"
-            >
-              <Phone className="w-3.5 h-3.5 text-amber-500 shrink-0 group-hover:rotate-12 transition-transform" />
-              <span>{brand.phone}</span>
-            </motion.a>
-          )}
+          <motion.a
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.97 }}
+            href="tel:+380951991599"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-xs font-bold text-zinc-900 dark:text-white hover:text-amber-500 dark:hover:text-amber-400 transition-all cursor-pointer group"
+            title="Зателефонувати в заклад"
+          >
+            <Phone className="w-3.5 h-3.5 text-amber-500 shrink-0 group-hover:rotate-12 transition-transform" />
+            <span>+380 (95) 199 15 99</span>
+          </motion.a>
 
-          {/* Instagram Link (only if configured) */}
-          {brand.instagram && (
-            <motion.a
-              whileHover={{ y: -1 }}
-              whileTap={{ scale: 0.97 }}
-              href={brand.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:text-pink-500 dark:hover:text-pink-400 transition-all cursor-pointer group"
-              title={`Instagram @${brand.instagramUsername}`}
-            >
-              <InstagramIcon className="w-3.5 h-3.5 text-pink-500 shrink-0 group-hover:scale-115 transition-transform" />
-              <span>@{brand.instagramUsername}</span>
-            </motion.a>
-          )}
+          {/* Instagram Link */}
+          <motion.a
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.97 }}
+            href="https://www.instagram.com/cheburoom.zp/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:text-pink-500 dark:hover:text-pink-400 transition-all cursor-pointer group"
+            title="Instagram @cheburoom.zp"
+          >
+            <InstagramIcon className="w-3.5 h-3.5 text-pink-500 shrink-0 group-hover:scale-115 transition-transform" />
+            <span>@cheburoom.zp</span>
+          </motion.a>
 
           <div className="hidden md:block h-5 w-px bg-zinc-200 dark:bg-zinc-800" />
 

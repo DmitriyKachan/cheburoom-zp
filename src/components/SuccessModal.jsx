@@ -2,10 +2,8 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { Check, Clock, MapPin, Phone, CreditCard, X, ChevronRight, AlertCircle, ChefHat, Sparkles } from 'lucide-react';
-import { useBrand } from '../config/brandingConfig';
 
 export function SuccessModal() {
-  const brand = useBrand();
   const { successOrder, setSuccessOrder, isSuccessModalOpen, closeSuccessModal, navigateTo, currentPage } = useCart();
 
   const isCancelled = successOrder?.status === 'cancelled' || successOrder?.isDeleted;
@@ -50,7 +48,7 @@ export function SuccessModal() {
     },
     completed: {
       title: 'Видано. Смачного! ❤️',
-      subtitle: `Дякуємо, що обираєте ${brand.name}!`,
+      subtitle: 'Дякуємо, що обираєте ЧЕБУROOM!',
       badge: '⚪ Видано клієнту',
       stepIndex: 3,
       icon: Check,

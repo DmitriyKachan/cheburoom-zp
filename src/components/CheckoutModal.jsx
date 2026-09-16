@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { X, Store, Banknote, CreditCard, CheckCircle, MapPin } from 'lucide-react';
-import { useBrand } from '../config/brandingConfig';
 
 export function CheckoutModal() {
-  const brand = useBrand();
   const {
     items,
     subtotal,
@@ -68,7 +66,7 @@ export function CheckoutModal() {
 
     const fullOrderText = 
 `🔔 НОВЕ ЗАМОВЛЕННЯ №${orderId}
-🏛 Заклад: ${brand.name}${brand.instagramUsername ? ` (@${brand.instagramUsername})` : ''}
+🏛 Заклад: ЧЕБУROOM (@cheburoom.zp)
 ━━━━━━━━━━━━━━━━━━━━
 👤 Клієнт: ${name}
 📞 Телефон: ${phone}
