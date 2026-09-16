@@ -29,6 +29,8 @@ import {
   deleteDishFromCloud,
   sendOrderToCloud,
   updateCloudOrderStatus,
+  deleteCloudOrder,
+  clearCloudOrders,
   uploadFullMenuToCloud
 } from '../services/firebaseService';
 
@@ -435,35 +437,51 @@ export function CartProvider({ children }) {
       });
 
       unsubscribeCloudOrders = subscribeToCloudOrders((cloudOrders) => {
-        if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+        if (Array.isArray(cloudOrders)) {
           setOrdersHistory((prev) => {
-            const map = new Map();
-            prev.forEach(o => { if (o && o.orderId) map.set(o.orderId, o); });
-            cloudOrders.forEach(co => {
-              if (!co || !co.orderId) return;
-              if (!map.has(co.orderId)) {
-                map.set(co.orderId, co);
-              } else {
-                const local = map.get(co.orderId);
-                const localTime = new Date(local.statusUpdatedAt || local.createdAt || 0).getTime();
-                const cloudTime = new Date(co.statusUpdatedAt || co.createdAt || 0).getTime();
-                if (cloudTime > localTime) {
-                  map.set(co.orderId, { ...local, ...co });
-                } else {
-                  map.set(co.orderId, { ...co, ...local });
+            const localDeleted = new Set(JSON.parse(localStorage.getItem('cheburoom_deleted_orders') || '[]'));
+            const localCleared = parseInt(localStorage.getItem('cheburoom_orders_cleared_at') || '0', 10);
+
+            // Filter out locally deleted or cleared orders
+            const validCloudOrders = cloudOrders.filter(co => {
+              if (!co || !co.orderId) return false;
+              if (localDeleted.has(co.orderId)) return false;
+              const orderTime = new Date(co.createdAt || 0).getTime();
+              if (localCleared > 0 && orderTime <= localCleared) return false;
+              return true;
+            });
+
+            // Detect brand-new orders for kitchen alert
+            const prevIds = new Set(prev.map(o => o.orderId));
+            validCloudOrders.forEach(no => {
+              if (!prevIds.has(no.orderId)) {
+                const orderAgeMs = Date.now() - new Date(no.createdAt || 0).getTime();
+                // If created in the last 15 minutes, ring the chime and trigger kitchen alert
+                if (orderAgeMs < 15 * 60 * 1000) {
+                  triggerKitchenAlert(no);
                 }
               }
             });
-            const merged = Array.from(map.values()).sort((a, b) => {
-              const tA = new Date(a.createdAt || 0).getTime();
-              const tB = new Date(b.createdAt || 0).getTime();
-              return tB - tA;
-            });
 
             try {
-              localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(merged));
+              localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(validCloudOrders));
             } catch {}
-            return merged;
+
+            return validCloudOrders;
+          });
+
+          // Sync active customer order status from cloud
+          setSuccessOrderState((cur) => {
+            const savedRaw = localStorage.getItem('cheburoom_active_order');
+            const targetId = cur?.orderId || (savedRaw ? JSON.parse(savedRaw)?.orderId : null);
+            if (targetId) {
+              const cloudMatch = cloudOrders.find(o => o.orderId === targetId);
+              if (cloudMatch) {
+                try { localStorage.setItem('cheburoom_active_order', JSON.stringify(cloudMatch)); } catch {}
+                return cloudMatch;
+              }
+            }
+            return cur;
           });
         }
       });
@@ -823,6 +841,7 @@ export function CartProvider({ children }) {
 
   const clearOrdersHistory = () => {
     const clearedAt = Date.now();
+    const currentOrders = [...ordersHistory];
     setOrdersHistory([]);
     try {
       localStorage.removeItem(STORAGE_KEY_ORDERS);
@@ -835,6 +854,7 @@ export function CartProvider({ children }) {
     try { localStorage.removeItem('cheburoom_active_order'); } catch {}
 
     broadcastClearOrders(clearedAt);
+    clearCloudOrders(currentOrders);
     showToast('Історію замовлень очищено');
   };
 
@@ -865,6 +885,7 @@ export function CartProvider({ children }) {
     });
 
     broadcastDeleteOrder(orderId);
+    deleteCloudOrder(orderId);
     showToast(`Замовлення #${orderId} видалено`);
   };
 

@@ -26,6 +26,15 @@ import {
 
 const CONFIG_STORAGE_KEY = 'cheburoom_firebase_config';
 
+export const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA0Fjxp7YPbNWG0JOLGp8zF7AwXAbsqk3s",
+  authDomain: "cheburoom-25fb6.firebaseapp.com",
+  projectId: "cheburoom-25fb6",
+  storageBucket: "cheburoom-25fb6.firebasestorage.app",
+  messagingSenderId: "205431891685",
+  appId: "1:205431891685:web:219b8ca0857b2deed2160c"
+};
+
 /**
  * Retrieves the currently active Firebase configuration object
  */
@@ -54,7 +63,7 @@ export function getStoredFirebaseConfig() {
     };
   }
 
-  return null;
+  return DEFAULT_FIREBASE_CONFIG;
 }
 
 /**
@@ -289,12 +298,19 @@ export function subscribeToCloudOrders(onOrdersUpdate) {
 
   try {
     const ordersRef = collection(db, ORDERS_COLLECTION);
-    const q = query(ordersRef, orderBy('createdAt', 'desc'), limit(100));
 
-    return onSnapshot(q, (snapshot) => {
+    return onSnapshot(ordersRef, (snapshot) => {
       const orders = [];
       snapshot.forEach(d => {
-        orders.push(d.data());
+        const data = d.data();
+        if (data && data.orderId) {
+          orders.push(data);
+        }
+      });
+      orders.sort((a, b) => {
+        const tA = new Date(a.createdAt || 0).getTime();
+        const tB = new Date(b.createdAt || 0).getTime();
+        return tB - tA;
       });
       onOrdersUpdate(orders);
     }, (err) => {
@@ -339,6 +355,27 @@ export async function deleteCloudOrder(orderId) {
     return true;
   } catch (e) {
     console.warn('deleteCloudOrder error', e);
+    return false;
+  }
+}
+
+/**
+ * Clears multiple orders from Firestore
+ */
+export async function clearCloudOrders(orders) {
+  const db = getFirestoreDb();
+  if (!db || !Array.isArray(orders)) return false;
+
+  try {
+    await Promise.all(orders.map(o => {
+      if (o && o.orderId) {
+        return deleteDoc(doc(db, ORDERS_COLLECTION, o.orderId)).catch(() => {});
+      }
+      return Promise.resolve();
+    }));
+    return true;
+  } catch (e) {
+    console.warn('clearCloudOrders error', e);
     return false;
   }
 }
