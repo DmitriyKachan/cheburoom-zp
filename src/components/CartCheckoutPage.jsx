@@ -46,7 +46,6 @@ export function CartCheckoutPage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+380 (');
   const [payment, setPayment] = useState('Готівка');
-  const [cashChange, setCashChange] = useState('no_change'); // 'no_change' | '200' | '500' | '1000'
   const [comment, setComment] = useState('');
   const [cutleryCount, setCutleryCount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -133,9 +132,7 @@ export function CartCheckoutPage() {
       ? '🔥 Якнайшвидше (орієнтовно 7-10 хв)' 
       : `⏰ На певний час (${preorderTime})`;
 
-    const paymentText = payment === 'Готівка' && cashChange !== 'no_change'
-      ? `Готівка (решта з ${cashChange} ₴)`
-      : payment;
+    const paymentText = payment;
 
     const fullOrderText = 
 `🔔 НОВЕ ЗАМОВЛЕННЯ №${orderId}
@@ -684,40 +681,6 @@ ${itemsText}
                       </motion.button>
                     ))}
                   </div>
-
-                  {/* Cash Change option */}
-                  {payment === 'Готівка' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="pt-2 space-y-1.5"
-                    >
-                      <label className="block text-[11px] font-bold text-zinc-700 dark:text-zinc-300">
-                        Потрібна решта?
-                      </label>
-                      <div className="grid grid-cols-4 gap-1.5">
-                        {[
-                          { id: 'no_change', label: 'Без решти' },
-                          { id: '200', label: 'З 200 ₴' },
-                          { id: '500', label: 'З 500 ₴' },
-                          { id: '1000', label: 'З 1000 ₴' }
-                        ].map((c) => (
-                          <button
-                            type="button"
-                            key={c.id}
-                            onClick={() => setCashChange(c.id)}
-                            className={`py-2 px-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer text-center ${
-                              cashChange === c.id
-                                ? 'bg-amber-400 text-zinc-950 border-amber-400 font-black shadow-xs'
-                                : 'bg-zinc-50 dark:bg-[#1A1A22] border-zinc-200 dark:border-[#23232E] text-zinc-600 dark:text-zinc-400'
-                            }`}
-                          >
-                            {c.label}
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
                 </div>
 
                 {/* Comment & Cutlery */}
