@@ -122,7 +122,6 @@ export function AdminPage() {
     exportMenuBackup,
     importMenuBackup,
     ordersHistory,
-    createTestOrder,
     updateOrderStatus,
     clearOrdersHistory,
     deleteOrder,
@@ -479,25 +478,11 @@ export function AdminPage() {
 
               {/* Error / Lockout alert */}
               {lockoutSec > 0 ? (
-                <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-800 text-rose-300 text-xs flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 shrink-0 text-rose-400" />
-                    <span>
-                      Захисне блокування: зачекайте <strong>{lockoutSec} сек.</strong>
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      resetAdminLockout();
-                      setLockoutSec(0);
-                      setAuthError('');
-                      showToast('Блокування скинуто');
-                    }}
-                    className="px-2 py-1 rounded-lg bg-rose-900/80 hover:bg-rose-800 text-rose-200 text-[10px] font-bold cursor-pointer transition-colors shrink-0"
-                  >
-                    Скинути
-                  </button>
+                <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 shrink-0 text-rose-400" />
+                  <span>
+                    Захисне блокування: зачекайте <strong>{lockoutSec} сек.</strong>
+                  </span>
                 </div>
               ) : authError ? (
                 <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/80 text-rose-300 text-xs flex items-center gap-2">
@@ -518,33 +503,15 @@ export function AdminPage() {
               </motion.button>
             </form>
 
-            <div className="pt-3 border-t border-zinc-800/80 text-center space-y-2">
-              {authError && (
-                <div className="pt-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      resetAdminLockout();
-                      setLockoutSec(0);
-                      setAuthError('');
-                      showToast('Блокування скинуто, спробуйте ще раз');
-                    }}
-                    className="text-[11px] text-amber-400 hover:text-amber-300 underline cursor-pointer"
-                  >
-                    🔄 Скинути захисне блокування
-                  </button>
-                </div>
-              )}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => navigateTo('menu')}
-                  className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer pt-1"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Повернутися на сайт ресторану</span>
-                </button>
-              </div>
+            <div className="pt-3 border-t border-zinc-800/80 text-center">
+              <button
+                type="button"
+                onClick={() => navigateTo('menu')}
+                className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer pt-1"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Повернутися на сайт ресторану</span>
+              </button>
             </div>
           </motion.div>
         </div>
@@ -938,17 +905,7 @@ export function AdminPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => createTestOrder()}
-                  className="px-3.5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all"
-                  title="Згенерувати тестове замовлення клієнта"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>⚡ Тестове замовлення</span>
-                </button>
-
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -958,7 +915,7 @@ export function AdminPage() {
                   className="px-3.5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-zinc-700 active:scale-95 transition-colors"
                   title="Перевірити звук дзвінка замовлення"
                 >
-                  <span>🔔 Перевірити звук</span>
+                  <span>🔔 Перевірити звук кухні</span>
                 </button>
 
                 {ordersHistory.length > 0 && (
@@ -969,7 +926,7 @@ export function AdminPage() {
                         clearOrdersHistory();
                       }
                     }}
-                    className="col-span-2 sm:col-span-1 px-3.5 py-2.5 rounded-xl bg-zinc-800/80 hover:bg-rose-950 hover:text-rose-400 text-xs font-bold text-zinc-400 transition-colors cursor-pointer border border-zinc-800 flex items-center justify-center gap-1.5 active:scale-95"
+                    className="px-3.5 py-2.5 rounded-xl bg-zinc-800/80 hover:bg-rose-950 hover:text-rose-400 text-xs font-bold text-zinc-400 transition-colors cursor-pointer border border-zinc-800 flex items-center justify-center gap-1.5 active:scale-95"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Очистити всю історію</span>
@@ -985,16 +942,12 @@ export function AdminPage() {
                   Нових замовлень поки немає
                 </h3>
                 <p className="text-xs text-zinc-500 max-w-sm mx-auto mb-5">
-                  Як тільки клієнт оформить замовлення на сайті, воно миттєво з'явиться тут із контактами, складом та звуковим сигналом.
+                  Як тільки клієнт оформить замовлення на сайті, воно миттєво з'явиться тут із контактами, складом та звуковим сигналом кухні.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => createTestOrder()}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-zinc-950 text-xs font-black shadow-lg shadow-amber-400/20 cursor-pointer active:scale-98 transition-all"
-                >
-                  <Sparkles className="w-4 h-4 text-zinc-950" />
-                  <span>Створити тестове замовлення для перевірки</span>
-                </button>
+                <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Система активна • Очікуємо замовлень від гостей ресторану</span>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1230,18 +1183,6 @@ export function AdminPage() {
                     <RefreshCw className="w-4 h-4" />
                   )}
                   <span>{isTestingFirebase ? 'Перевірка...' : '⚡ Перевірити зв\'язок з хмарою'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    createTestOrder();
-                    showToast('Тестове замовлення надіслано в хмару!');
-                  }}
-                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-zinc-700 active:scale-98 transition-all min-h-[42px]"
-                >
-                  <Plus className="w-3.5 h-3.5 text-amber-400" />
-                  <span>🔔 Надіслати тестове замовлення</span>
                 </button>
 
                 <button

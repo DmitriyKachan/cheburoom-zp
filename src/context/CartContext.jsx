@@ -697,81 +697,6 @@ export function CartProvider({ children }) {
     }
   };
 
-  const createTestOrder = () => {
-    const testId = 'CR-' + Math.floor(100000 + Math.random() * 900000);
-    const testNames = ['Олександр (Тест)', 'Марія (Тест)', 'Дмитро (Тест)', 'Катерина (Тест)', 'Богдан (Тест)'];
-    const randomName = testNames[Math.floor(Math.random() * testNames.length)];
-    const randomPhone = '+380 ' + Math.floor(500000000 + Math.random() * 499999999);
-
-    const dish1 = menuItems[0] || { id: 'ch1', name: 'Чебурек з телятиною', price: 90 };
-    const dish2 = menuItems[1] || { id: 'df1', name: 'Картопля фрі', price: 65 };
-
-    const testItems = [
-      {
-        cartItemId: `${dish1.id}_std_`,
-        id: dish1.id,
-        name: dish1.name,
-        price: dish1.price,
-        unitPrice: dish1.price,
-        basePrice: dish1.price,
-        quantity: 2,
-        crust: 'Класичний фритюр (пухирці, хрускіт)',
-        extras: [],
-        image: dish1.image,
-        category: dish1.category
-      },
-      {
-        cartItemId: `${dish2.id}_std_`,
-        id: dish2.id,
-        name: dish2.name,
-        price: dish2.price,
-        unitPrice: dish2.price,
-        basePrice: dish2.price,
-        quantity: 1,
-        crust: null,
-        extras: [],
-        image: dish2.image,
-        category: dish2.category
-      }
-    ];
-
-    const testTotal = (dish1.price * 2) + dish2.price;
-
-    const testOrder = {
-      orderId: testId,
-      name: randomName,
-      phone: randomPhone,
-      total: testTotal,
-      subtotal: testTotal,
-      discount: 0,
-      orderType: 'pickup',
-      address: 'вулиця Олександрівська, 75, Запоріжжя',
-      timing: '🔥 Якнайшвидше (7-10 хв)',
-      payment: 'Готівка',
-      cutleryCount: 2,
-      comment: 'Тестове замовлення для перевірки адмінки',
-      items: testItems,
-      status: 'new',
-      createdAt: new Date().toISOString()
-    };
-
-    setOrdersHistory(prev => {
-      const updated = [testOrder, ...prev.filter(o => o.orderId !== testId)];
-      try {
-        localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
-      } catch (e) {
-        console.warn('LocalStorage error', e);
-      }
-      return updated;
-    });
-
-    broadcastNewOrder(testOrder);
-    sendOrderToCloud(testOrder);
-    playKitchenChime();
-    showToast(`⚡ Створено тестове замовлення #${testId}!`);
-    return testOrder;
-  };
-
   const updateOrderStatus = (orderId, status) => {
     setOrdersHistory(prev => {
       const updated = prev.map(o => {
@@ -974,7 +899,6 @@ export function CartProvider({ children }) {
         importMenuBackup,
         // Orders logging & management
         ordersHistory,
-        createTestOrder,
         updateOrderStatus,
         clearOrdersHistory,
         deleteOrder,
