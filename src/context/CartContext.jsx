@@ -469,11 +469,11 @@ export function CartProvider({ children }) {
       });
     }
 
-    // 5. Active Cloud Safety Poller (every 6s): guarantees fast delivery across devices even if mobile sleep blocks SSE
+    // 5. Active Real-Time Cloud Poller (every 3s): guarantees rapid synchronization across any phones & PCs
     const cloudPollTimer = setInterval(() => {
       syncOrdersWithCloud();
       syncMenuWithCloud();
-    }, 6000);
+    }, 3000);
 
     // 6. Mobile Wake-up / Tab Switch instant re-sync (throttled to at most once per 2s)
     let lastWakeSync = 0;
