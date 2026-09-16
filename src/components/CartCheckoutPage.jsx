@@ -111,7 +111,9 @@ export function CartCheckoutPage() {
   };
 
   const processOrderSubmission = () => {
-    const addressStr = `м. Запоріжжя, ${MENU_DATA.info.address}`;
+    const addressStr = MENU_DATA.info.address.includes('Запоріжжя')
+      ? MENU_DATA.info.address
+      : `м. Запоріжжя, ${MENU_DATA.info.address}`;
     setIsSubmitting(true);
 
     const orderId = 'CR-' + Math.floor(100000 + Math.random() * 900000);
@@ -326,7 +328,7 @@ ${itemsText}
                       Швидкий самовивіз без черги
                     </h3>
                     <p className="text-[11px] sm:text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-                      Готуємо з-під ножа за 7–10 хвилин до вашого приходу • пр. Соборний, 142
+                      Готуємо з-під ножа за 7–10 хвилин до вашого приходу • вул. Олександрівська, 75
                     </p>
                   </div>
                 </div>
@@ -552,7 +554,7 @@ ${itemsText}
                     <span>Точка видачі замовлення:</span>
                   </div>
                   <p className="font-bold text-zinc-800 dark:text-zinc-200">
-                    м. Запоріжжя, {MENU_DATA.info.address}
+                    {MENU_DATA.info.address}
                   </p>
                   <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 font-semibold flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />

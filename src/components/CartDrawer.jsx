@@ -72,7 +72,7 @@ export function CartDrawer() {
         <div className="px-5 py-3 bg-amber-500/10 border-b border-amber-500/20">
           <div className="flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-300">
             <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>Самовивіз: пр. Соборний, 142 • Свіже з-під ножа</span>
+            <span>Самовивіз: вул. Олександрівська, 75 • Свіже з-під ножа</span>
           </div>
         </div>
 
@@ -174,7 +174,7 @@ export function CartDrawer() {
             </div>
 
             <p className="text-[11px] text-zinc-400 mb-4">
-              Швидкий самовивіз без черги • пр. Соборний, 142
+              Швидкий самовивіз без черги • вул. Олександрівська, 75
             </p>
 
             <button

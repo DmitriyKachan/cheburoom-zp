@@ -37,7 +37,7 @@ export function MarqueeRibbon() {
     },
     {
       icon: "📍",
-      title: "пр. Соборний, 142 (Запоріжжя)"
+      title: "вул. Олександрівська, 75 (Запоріжжя)"
     },
     {
       icon: "☕",

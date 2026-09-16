@@ -32,7 +32,7 @@ export function Header() {
           <motion.a 
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.97 }}
-            href="https://www.google.com/maps/search/?api=1&query=пр.+Соборний+142,+Запоріжжя"
+            href="https://www.google.com/maps/search/?api=1&query=вулиця+Олександрівська+75,+Запоріжжя"
             target="_blank"
             rel="noopener noreferrer"
             title="Відкрити адресу закладу в Google Картах"
@@ -40,7 +40,7 @@ export function Header() {
           >
             <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0 group-hover:scale-110 transition-transform" />
             <span className="font-bold text-zinc-900 dark:text-white text-xs whitespace-nowrap">
-              Запоріжжя, <span className="font-normal text-zinc-500 dark:text-zinc-400">пр. Соборний, 142</span>
+              Запоріжжя, <span className="font-normal text-zinc-500 dark:text-zinc-400">вул. Олександрівська, 75</span>
             </span>
           </motion.a>
         </div>

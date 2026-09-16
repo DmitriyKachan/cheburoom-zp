@@ -66,7 +66,7 @@ export function LocationInfo() {
               <div className="relative rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-rnr-border shadow-xs">
                 <iframe
                   title="ЧЕБУROOM на карті Google"
-                  src="https://maps.google.com/maps?q=47.8388,35.1395+(%D0%A7%D0%95%D0%91%D0%A3ROOM%20%D0%BF%D1%80.%20%D0%A1%D0%BE%D0%B1%D0%BE%D1%80%D0%BD%D0%B8%D0%B9%20142)&t=&z=16&ie=UTF8&iwloc=B&output=embed"
+                  src="https://maps.google.com/maps?q=%D0%B2%D1%83%D0%BB%D0%B8%D1%86%D1%8F+%D0%9E%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80%D1%96%D0%B2%D1%81%D1%8C%D0%BA%D0%B0+75,+%D0%97%D0%B0%D0%BF%D0%BE%D1%80%D1%96%D0%B6%D0%B6%D1%8F+(%D0%A7%D0%95%D0%91%D0%A3ROOM)&t=&z=16&ie=UTF8&iwloc=B&output=embed"
                   width="100%"
                   height="220"
                   style={{ border: 0 }}
@@ -81,10 +81,10 @@ export function LocationInfo() {
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
                   <div>
                     <span className="font-bold text-zinc-900 dark:text-white block text-[11px] leading-tight">
-                      ЧЕБУROOM • пр. Соборний, 142
+                      ЧЕБУROOM • вул. Олександрівська, 75
                     </span>
                     <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block leading-tight">
-                      Центр Запоріжжя
+                      Запоріжжя
                     </span>
                   </div>
                 </div>
@@ -94,7 +94,7 @@ export function LocationInfo() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  href="https://www.google.com/maps/search/?api=1&query=пр.+Соборний+142,+Запоріжжя"
+                  href="https://www.google.com/maps/search/?api=1&query=вулиця+Олександрівська+75,+Запоріжжя"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="absolute bottom-2.5 right-2.5 bg-white/90 dark:bg-zinc-900/90 hover:bg-white dark:hover:bg-zinc-800 text-zinc-900 dark:text-white text-[11px] font-bold px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-md backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer"

@@ -745,7 +745,7 @@ export function CartProvider({ children }) {
       subtotal: testTotal,
       discount: 0,
       orderType: 'pickup',
-      address: 'м. Запоріжжя, пр. Соборний, 142 (центр)',
+      address: 'вулиця Олександрівська, 75, Запоріжжя',
       timing: '🔥 Якнайшвидше (7-10 хв)',
       payment: 'Готівка',
       cutleryCount: 2,

@@ -185,7 +185,7 @@ export function SuccessModal() {
                   <span>Самовивіз:</span>
                 </span>
                 <span className="font-bold text-right text-zinc-950 dark:text-white">
-                  {successOrder.address || "м. Запоріжжя, пр. Соборний, 142"}
+                  {successOrder.address || "вулиця Олександрівська, 75, Запоріжжя"}
                 </span>
               </div>
 
