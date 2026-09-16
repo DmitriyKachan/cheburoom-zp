@@ -76,6 +76,11 @@ export function getPendingOutboxCount() {
   return outboxQueue.length;
 }
 
+export function clearOutboxQueue() {
+  outboxQueue = [];
+  persistOutbox();
+}
+
 // Status Observers
 const statusListeners = new Set();
 

@@ -17,6 +17,7 @@ import {
   sendOrderAck,
   getPendingOutboxCount,
   flushOutboxQueue,
+  clearOutboxQueue,
   subscribeToSyncStatus,
   requestNotificationPermission
 } from '../services/orderSyncService';
@@ -424,6 +425,7 @@ export function CartProvider({ children }) {
 
     if (isFirebaseConfigured()) {
       setCloudMode('firebase');
+      clearOutboxQueue();
 
       unsubscribeCloudMenu = subscribeToCloudMenu((cloudItems) => {
         if (Array.isArray(cloudItems) && cloudItems.length > 0) {
