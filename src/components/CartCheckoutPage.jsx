@@ -14,6 +14,7 @@ import {
   CreditCard,
   Banknote,
   CheckCircle,
+  Check,
   AlertCircle,
   Sparkles,
   Clock,
@@ -84,20 +85,19 @@ export function CartCheckoutPage() {
   // Takeaway calculations (no discount)
   const total = getTotal();
 
-  // Cross-sell items (replaces added dishes dynamically with next candidates)
+  // Cross-sell items: stable top complementary recommendations (snacks, wok, drinks)
   const crossSellItems = useMemo(() => {
-    const candidatePool = MENU_DATA.items.filter(
-      item => (
-        item.category === 'deepfry' ||
-        item.category === 'coffee' ||
-        item.category === 'desserts' ||
-        item.category === 'salads' ||
-        item.category === 'wok'
-      )
-    );
-    const cartDishIds = new Set(items.map(i => i.id));
-    return candidatePool.filter(item => !cartDishIds.has(item.id)).slice(0, 4);
-  }, [items]);
+    const preferredIds = ['wok-chicken-cream', 'wok-pulled-beef', 'fry-fries', 'fry-mozzarella'];
+    const candidates = preferredIds
+      .map(id => MENU_DATA.items.find(item => item.id === id))
+      .filter(Boolean);
+
+    if (candidates.length === 4) return candidates;
+
+    return MENU_DATA.items
+      .filter(item => item.category === 'wok' || item.category === 'deepfry' || item.category === 'coffee')
+      .slice(0, 4);
+  }, []);
 
   const handlePhoneChange = (e) => {
     let val = e.target.value.replace(/\D/g, '');
@@ -472,59 +472,84 @@ ${itemsText}
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <AnimatePresence mode="popLayout">
-                      {crossSellItems.map((dish) => {
-                        const hasExtras = dish.customizable || (dish.options && dish.options.extras && dish.options.extras.length > 0);
-                        return (
-                          <motion.div
-                            layout
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            transition={{ duration: 0.2 }}
-                            key={dish.id}
-                            onClick={() => setSelectedDishForModal(dish)}
-                            className="p-3 rounded-2xl bg-zinc-50 dark:bg-[#1A1A22]/50 border border-zinc-200/70 dark:border-[#23232E] flex flex-col justify-between group card-interactive cursor-pointer hover:border-amber-400/60 transition-colors"
-                          >
-                            <div className="overflow-hidden rounded-xl mb-2 h-20">
-                              <img
-                                src={dish.image}
-                                alt={dish.name}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                              />
+                    {crossSellItems.map((dish) => {
+                      const hasExtras = dish.customizable || (dish.options && dish.options.extras && dish.options.extras.length > 0);
+                      const inCartItem = items.find((i) => i.id === dish.id);
+                      const inCartQty = inCartItem ? inCartItem.quantity : 0;
+
+                      return (
+                        <motion.div
+                          whileHover={{ y: -3, scale: 1.01 }}
+                          whileTap={{ scale: 0.98 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                          key={dish.id}
+                          onClick={() => setSelectedDishForModal(dish)}
+                          className={`p-3 rounded-2xl bg-zinc-50 dark:bg-[#1A1A22]/50 border transition-all flex flex-col justify-between group card-interactive cursor-pointer relative ${
+                            inCartQty > 0
+                              ? 'border-emerald-500/40 dark:border-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/10'
+                              : 'border-zinc-200/70 dark:border-[#23232E] hover:border-amber-400/60'
+                          }`}
+                        >
+                          {/* In-cart badge indicator */}
+                          {inCartQty > 0 && (
+                            <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-lg bg-emerald-500 text-white text-[10px] font-black shadow-xs flex items-center gap-0.5">
+                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                              <span>{inCartQty}</span>
                             </div>
-                            <div>
-                              <p className="font-bold text-xs text-zinc-900 dark:text-white line-clamp-1 leading-snug group-hover:text-amber-500 transition-colors">
-                                {dish.name}
-                              </p>
-                              <span className="text-[11px] text-zinc-400 block mb-2">{dish.weight}</span>
-                            </div>
-                            <div className="flex items-center justify-between mt-1 pt-1 border-t border-zinc-200/40 dark:border-[#23232E]">
-                              <span className="font-display font-black text-xs text-zinc-900 dark:text-white">
-                                {dish.price} ₴
-                              </span>
-                              <motion.button
-                                type="button"
-                                whileHover={{ scale: 1.15 }}
-                                whileTap={{ scale: 0.85 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (hasExtras) {
-                                    setSelectedDishForModal(dish);
-                                  } else {
-                                    addItem(dish);
-                                  }
-                                }}
-                                className="w-7 h-7 rounded-xl bg-glovo-yellow text-zinc-950 flex items-center justify-center font-bold hover:bg-glovo-yellow-hover transition-all shadow-xs cursor-pointer group/plus"
-                                title={hasExtras ? "Обрати додатки та соуси" : "Додати до кошика"}
-                              >
-                                <Plus className="w-3.5 h-3.5 group-hover/plus:rotate-90 transition-transform duration-200" />
-                              </motion.button>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </AnimatePresence>
+                          )}
+
+                          <div className="overflow-hidden rounded-xl mb-2 h-20 relative">
+                            <img
+                              src={dish.image}
+                              alt={dish.name}
+                              className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-300"
+                            />
+                          </div>
+
+                          <div>
+                            <p className="font-bold text-xs text-zinc-900 dark:text-white line-clamp-1 leading-snug group-hover:text-amber-500 transition-colors">
+                              {dish.name}
+                            </p>
+                            <span className="text-[11px] text-zinc-400 block mb-2">{dish.weight}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between mt-1 pt-1 border-t border-zinc-200/40 dark:border-[#23232E]">
+                            <span className="font-display font-black text-xs text-zinc-900 dark:text-white">
+                              {dish.price} ₴
+                            </span>
+
+                            <motion.button
+                              type="button"
+                              whileHover={{ scale: 1.15 }}
+                              whileTap={{ scale: 0.85 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (hasExtras) {
+                                  setSelectedDishForModal(dish);
+                                } else {
+                                  addItem(dish);
+                                }
+                              }}
+                              className={`h-7 rounded-xl flex items-center justify-center font-black text-xs transition-all shadow-xs cursor-pointer ${
+                                inCartQty > 0
+                                  ? 'px-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
+                                  : 'w-7 bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950'
+                              }`}
+                              title={inCartQty > 0 ? `Вже у кошику (${inCartQty} шт). Натисніть, щоб додати ще` : (hasExtras ? "Обрати додатки та соуси" : "Додати до кошика")}
+                            >
+                              {inCartQty > 0 ? (
+                                <span className="flex items-center gap-1">
+                                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                  <span className="text-[11px] font-bold">+{inCartQty}</span>
+                                </span>
+                              ) : (
+                                <Plus className="w-3.5 h-3.5" />
+                              )}
+                            </motion.button>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
