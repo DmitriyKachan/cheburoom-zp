@@ -12,7 +12,13 @@ import {
   fetchHistoricalMenuActions,
   diagnoseDatabaseHealth,
   testCloudRelay,
-  playKitchenChime
+  playKitchenChime,
+  triggerKitchenAlert,
+  sendOrderAck,
+  getPendingOutboxCount,
+  flushOutboxQueue,
+  subscribeToSyncStatus,
+  requestNotificationPermission
 } from '../services/orderSyncService';
 import { syncCurrentPasswordToCloud } from '../services/adminAuthService';
 import {
@@ -98,6 +104,19 @@ export function CartProvider({ children }) {
   const [cloudVersion, setCloudVersion] = useState(0);
   const [isCloudConnected, setIsCloudConnected] = useState(true);
   const [cloudMode, setCloudMode] = useState(() => isFirebaseConfigured() ? 'firebase' : 'autocloud');
+  const [syncStatus, setSyncStatus] = useState(() => ({
+    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+    isOrdersSSEConnected: false,
+    pendingOutboxCount: getPendingOutboxCount(),
+    lastOrdersFetchTime: 0
+  }));
+
+  useEffect(() => {
+    const unsub = subscribeToSyncStatus((status) => {
+      setSyncStatus(status);
+    });
+    return unsub;
+  }, []);
 
   const refreshCloudConnection = () => {
     const hasFb = isFirebaseConfigured();
@@ -247,7 +266,7 @@ export function CartProvider({ children }) {
     syncOrdersWithCloud();
     syncMenuWithCloud();
 
-    // 2. Subscribe to Orders (live push events)
+    // 2. Subscribe to Orders (live push events & ACKs)
     const unsubscribeOrders = subscribeToOrders(
       (incomingOrder) => {
         const localCleared = parseInt(localStorage.getItem('cheburoom_orders_cleared_at') || '0', 10);
@@ -255,6 +274,16 @@ export function CartProvider({ children }) {
         if (localDeleted.has(incomingOrder.orderId)) return;
         const orderTime = new Date(incomingOrder.createdAt || 0).getTime();
         if (localCleared > 0 && orderTime <= localCleared) return;
+
+        // Trigger audio chime, vibration, browser notification, and tab flash
+        triggerKitchenAlert(incomingOrder);
+
+        // Auto-ACK from kitchen/admin if session is authenticated
+        try {
+          if (localStorage.getItem('cheburoom_admin_auth_v1') === 'true') {
+            sendOrderAck(incomingOrder.orderId);
+          }
+        } catch {}
 
         setOrdersHistory((prev) => {
           if (prev.some((o) => o.orderId === incomingOrder.orderId)) {
@@ -266,7 +295,6 @@ export function CartProvider({ children }) {
           } catch (e) {
             console.warn('LocalStorage error', e);
           }
-          playKitchenChime();
           return updated;
         });
       },
@@ -294,11 +322,11 @@ export function CartProvider({ children }) {
             if (newTime >= prevTime) {
               const updated = { ...cur, status: newStatus, statusUpdatedAt: updatedAt };
               if (newStatus === 'completed' || newStatus === 'cancelled') {
+                // Keep visible for at least 60s so customer can see it, with manual close button
                 setTimeout(() => {
-                  setSuccessOrderState(null);
-                  setIsSuccessModalOpen(false);
+                  setSuccessOrderState(latest => (latest?.orderId === orderId ? null : latest));
                   try { localStorage.removeItem('cheburoom_active_order'); } catch {}
-                }, 3500);
+                }, 60000);
               }
               try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
               return updated;
@@ -333,6 +361,18 @@ export function CartProvider({ children }) {
         setSuccessOrderState((cur) => {
           if (cur && cur.orderId === deletedOrderId) {
             const updated = { ...cur, status: 'cancelled', isDeleted: true };
+            try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
+            return updated;
+          }
+          return cur;
+        });
+      },
+      // onAck callback: kitchen has confirmed receipt
+      (ackedOrderId) => {
+        setOrdersHistory((prev) => prev.map(o => o.orderId === ackedOrderId ? { ...o, isKitchenConfirmed: true } : o));
+        setSuccessOrderState((cur) => {
+          if (cur && cur.orderId === ackedOrderId) {
+            const updated = { ...cur, isKitchenConfirmed: true };
             try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
             return updated;
           }
@@ -712,7 +752,8 @@ export function CartProvider({ children }) {
         ...order,
         status: order.status || 'new',
         createdAt: new Date().toISOString(),
-        timing: order.timing || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timing: order.timing || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isKitchenConfirmed: false
       };
 
       setOrdersHistory(prev => {
@@ -730,6 +771,16 @@ export function CartProvider({ children }) {
       broadcastNewOrder(newEntry);
       sendOrderToCloud(newEntry);
       playKitchenChime();
+
+      // Auto-retry safety: if no ACK from kitchen within 4s, re-broadcast
+      setTimeout(() => {
+        setSuccessOrderState(latest => {
+          if (latest && latest.orderId === newEntry.orderId && !latest.isKitchenConfirmed) {
+            broadcastNewOrder(latest);
+          }
+          return latest;
+        });
+      }, 4000);
     }
   };
 
@@ -755,10 +806,9 @@ export function CartProvider({ children }) {
         const updated = { ...cur, status, statusUpdatedAt: updatedAt };
         if (status === 'completed' || status === 'cancelled') {
           setTimeout(() => {
-            setSuccessOrderState(null);
-            setIsSuccessModalOpen(false);
+            setSuccessOrderState(latest => (latest?.orderId === orderId ? null : latest));
             try { localStorage.removeItem('cheburoom_active_order'); } catch {}
-          }, 3500);
+          }, 60000);
         }
         try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
         return updated;
@@ -939,12 +989,16 @@ export function CartProvider({ children }) {
         updateOrderStatus,
         clearOrdersHistory,
         deleteOrder,
-        // Cloud Database
+        // Cloud Database & Realtime Sync Engine 2.0
         isCloudConnected,
         cloudMode,
         refreshCloudConnection,
         syncMenuToCloud,
-        diagnoseDatabaseHealth
+        diagnoseDatabaseHealth,
+        syncStatus,
+        flushOutboxQueue,
+        sendOrderAck,
+        requestNotificationPermission
       }}
     >
       {children}

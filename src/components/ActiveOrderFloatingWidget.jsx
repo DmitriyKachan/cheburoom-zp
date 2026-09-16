@@ -12,17 +12,18 @@ export function ActiveOrderFloatingWidget() {
     currentPage,
     itemCount,
     updateOrderStatus,
-    showToast
+    showToast,
+    syncStatus
   } = useCart();
 
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
-  // Auto-dismiss floating widget 3.5s after order was marked as completed (issued)
+  // Auto-dismiss floating widget 60s after order was marked as completed (issued) so user has plenty of time
   useEffect(() => {
     if (successOrder?.status === 'completed') {
       const timer = setTimeout(() => {
         setSuccessOrder(null);
-      }, 3500);
+      }, 60000);
       return () => clearTimeout(timer);
     }
   }, [successOrder?.status, setSuccessOrder]);
@@ -34,18 +35,19 @@ export function ActiveOrderFloatingWidget() {
 
   const isCancelled = successOrder.status === 'cancelled' || successOrder.isDeleted;
   const currentStatus = isCancelled ? 'cancelled' : (successOrder.status || 'new');
+  const isAcked = Boolean(successOrder.isKitchenConfirmed || currentStatus !== 'new');
 
   const statusMap = {
     new: {
-      label: 'Прийнято рестораном',
-      shortLabel: 'Прийнято',
-      badgeColor: 'bg-amber-500 text-zinc-950',
+      label: isAcked ? 'Прийнято кухнею ресторану' : 'Передаємо на кухню...',
+      shortLabel: isAcked ? 'Прийнято' : 'Відправка',
+      badgeColor: isAcked ? 'bg-amber-500 text-zinc-950 font-black' : 'bg-amber-400/90 text-zinc-950 animate-pulse font-bold',
       textColor: 'text-amber-500 dark:text-amber-400',
       iconBg: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
       borderColor: 'border-amber-500/40 dark:border-amber-500/30',
       stepIndex: 0,
       icon: Clock,
-      pulse: false
+      pulse: !isAcked
     },
     preparing: {
       label: 'Кухар смажить чебуреки',
@@ -161,12 +163,16 @@ export function ActiveOrderFloatingWidget() {
                 </div>
 
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className={`text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md ${activeStatus.badgeColor}`}>
                       {activeStatus.shortLabel}
                     </span>
                     <span className="font-mono text-[11px] font-black text-zinc-900 dark:text-zinc-100 truncate">
                       #{successOrder.orderId}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[9px] text-zinc-500 dark:text-zinc-400 font-semibold bg-zinc-100 dark:bg-zinc-800/80 px-1.5 py-0.5 rounded-md">
+                      <span className={`w-1.5 h-1.5 rounded-full ${isAcked ? 'bg-emerald-500 ring-2 ring-emerald-500/20' : (syncStatus?.isOnline ? 'bg-amber-400 animate-pulse' : 'bg-rose-500')}`} />
+                      <span>{isAcked ? 'Кухня підтвердила' : (syncStatus?.isOnline ? 'Синхронізація' : 'Офлайн')}</span>
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">

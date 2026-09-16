@@ -130,7 +130,11 @@ export function AdminPage() {
     isCloudConnected,
     cloudMode,
     refreshCloudConnection,
-    syncMenuToCloud
+    syncMenuToCloud,
+    syncStatus,
+    flushOutboxQueue,
+    sendOrderAck,
+    requestNotificationPermission
   } = useCart();
 
   // Auth State
@@ -174,12 +178,36 @@ export function AdminPage() {
     return () => clearInterval(timer);
   }, [lockoutSec]);
 
+  const [notificationState, setNotificationState] = useState(() => {
+    return typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'denied';
+  });
+
   // When authenticated, ensure current password hash is synced to cloud for mobile devices
   useEffect(() => {
     if (isAuthenticated) {
       syncCurrentPasswordToCloud();
     }
   }, [isAuthenticated]);
+
+  // When admin is active and authenticated, auto-ACK all incoming new orders to confirm receipt to clients
+  useEffect(() => {
+    if (!isAuthenticated || !ordersHistory || ordersHistory.length === 0) return;
+    ordersHistory.forEach(order => {
+      if (order.status === 'new' && !order.isKitchenConfirmed) {
+        sendOrderAck(order.orderId);
+      }
+    });
+  }, [isAuthenticated, ordersHistory, sendOrderAck]);
+
+  const handleEnableNotifications = async () => {
+    const res = await requestNotificationPermission();
+    setNotificationState(res);
+    if (res === 'granted') {
+      showToast('🔔 Системні сповіщення кухні активовано!');
+    } else {
+      showToast('⚠️ Сповіщення відхилено або заблоковано браузером');
+    }
+  };
 
   // Login handler
   const handleLogin = async (e) => {
@@ -891,21 +919,61 @@ export function AdminPage() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 flex-wrap">
                   <h1 className="font-display font-black text-xl sm:text-2xl text-white">
                     Журнал онлайн-замовлень
                   </h1>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-emerald-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span>Live Sync</span>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    syncStatus?.isOnline
+                      ? (syncStatus?.pendingOutboxCount > 0 
+                          ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400' 
+                          : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400')
+                      : 'bg-rose-500/15 border border-rose-500/30 text-rose-400'
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${
+                      syncStatus?.isOnline
+                        ? (syncStatus?.pendingOutboxCount > 0 ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400 animate-ping')
+                        : 'bg-rose-500'
+                    }`} />
+                    <span>
+                      {syncStatus?.isOnline
+                        ? (syncStatus?.pendingOutboxCount > 0 
+                            ? `Синхронізація: ${syncStatus.pendingOutboxCount} в черзі` 
+                            : 'Синхронізація 100% (Live)')
+                        : 'Офлайн (локальний буфер)'}
+                    </span>
                   </span>
                 </div>
                 <p className="text-xs text-zinc-400 mt-1">
-                  Замовлення надходять миттєво з сайту в реальному часі зі звуковим сигналом
+                  Замовлення надходять миттєво з сайту в реальному часі зі звуковим сигналом та автоматичним підтвердженням
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
+                {notificationState !== 'granted' && (
+                  <button
+                    type="button"
+                    onClick={handleEnableNotifications}
+                    className="px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-amber-500/30 active:scale-95 transition-all"
+                    title="Отримувати сповіщення на екран при нових замовленнях"
+                  >
+                    <span>🔔 Увімкнути Push</span>
+                  </button>
+                )}
+
+                {syncStatus?.pendingOutboxCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      flushOutboxQueue();
+                      showToast('🔄 Відправка накопичених оновлень...');
+                    }}
+                    className="px-3 py-2 rounded-xl bg-amber-500 text-zinc-950 text-xs font-black flex items-center gap-1 cursor-pointer animate-pulse"
+                  >
+                    <span>Відправити ({syncStatus.pendingOutboxCount})</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
@@ -915,7 +983,7 @@ export function AdminPage() {
                   className="px-3.5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-zinc-700 active:scale-95 transition-colors"
                   title="Перевірити звук дзвінка замовлення"
                 >
-                  <span>🔔 Перевірити звук кухні</span>
+                  <span>🔔 Перевірити звук</span>
                 </button>
 
                 {ordersHistory.length > 0 && (
@@ -987,8 +1055,43 @@ export function AdminPage() {
                           )}
                         </div>
 
-                        {/* Status dropdown & delete button */}
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                        {/* Status dropdown & quick actions & delete button */}
+                        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                          {!isCancelled && (
+                            <>
+                              {order.status === 'new' && (
+                                <button
+                                  type="button"
+                                  onClick={() => updateOrderStatus(order.orderId, 'preparing')}
+                                  className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs transition-transform active:scale-95 shadow-xs flex items-center gap-1 cursor-pointer"
+                                  title="Почати готувати"
+                                >
+                                  <span>👨‍🍳 В роботу</span>
+                                </button>
+                              )}
+                              {order.status === 'preparing' && (
+                                <button
+                                  type="button"
+                                  onClick={() => updateOrderStatus(order.orderId, 'ready')}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-transform active:scale-95 shadow-xs flex items-center gap-1 cursor-pointer animate-pulse"
+                                  title="Замовлення готове, повідомити гостя"
+                                >
+                                  <span>✨ Готово!</span>
+                                </button>
+                              )}
+                              {order.status === 'ready' && (
+                                <button
+                                  type="button"
+                                  onClick={() => updateOrderStatus(order.orderId, 'completed')}
+                                  className="px-3 py-1.5 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-white font-black text-xs transition-transform active:scale-95 shadow-xs flex items-center gap-1 cursor-pointer"
+                                  title="Видати гостю та закрити"
+                                >
+                                  <span>✅ Видано</span>
+                                </button>
+                              )}
+                            </>
+                          )}
+
                           <select
                             value={order.status || 'new'}
                             onChange={(e) => updateOrderStatus(order.orderId, e.target.value)}

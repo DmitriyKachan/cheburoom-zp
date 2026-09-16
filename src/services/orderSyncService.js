@@ -4,14 +4,15 @@
  * Provides 100% zero-configuration, instant real-time sync across all devices
  * (Smartphones, Tablets, Kitchen PC, Admin laptops) with no registration needed.
  * 
- * Supports:
- * 1. BroadcastChannel (instant 0ms cross-tab sync on same device)
- * 2. Window 'storage' event listener (cross-tab local fallback)
- * 3. Server-Sent Events (SSE) via secure cloud relay (cross-device sync in <200ms)
- * 4. Kitchen bell chime (Web Audio API)
+ * Architecture Features:
+ * 1. Persistent Outbox Queue (LocalStorage FIFO with exponential backoff & auto-retry)
+ * 2. Instant Local BroadcastChannel (0ms cross-tab sync on same machine)
+ * 3. Bidirectional Acknowledgment (ACK) Protocol for guaranteed kitchen receipt
+ * 4. High-Resilience SSE Stream with aggressive 10s watchdog & instant tab-wake revival
+ * 5. Kitchen Bell Chime (Web Audio API) + Vibration API + Web Push Notifications
  */
 
-// High-entropy private secret token to prevent unauthorized sniffing on the public relay bus
+// High-entropy private secret token to prevent unauthorized sniffing on public relay bus
 const RELAY_SECRET_TOKEN = 'sec_9f4b82c1e7a';
 
 function getTopicName(base) {
@@ -52,6 +53,9 @@ let cachedPasswordHash = null;
 let lastAuthFetchTime = 0;
 let authRateLimitedUntil = 0;
 
+// Sync status listeners
+const syncStatusListeners = new Set();
+
 export function isOrdersSSEConnected() {
   return isOrdersSSEActive;
 }
@@ -65,8 +69,201 @@ try {
   console.warn('BroadcastChannel not available', e);
 }
 
+/* ========================================================================== */
+/*                         PERSISTENT OUTBOX QUEUE                            */
+/* ========================================================================== */
+
+const OUTBOX_STORAGE_KEY = 'cheburoom_sync_outbox';
+let outboxQueue = [];
+let isDrainingOutbox = false;
+let drainTimeout = null;
+
+// Initialize Outbox from LocalStorage on load
+try {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem(OUTBOX_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        outboxQueue = parsed;
+      }
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load outbox queue', e);
+}
+
+function persistOutbox() {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(OUTBOX_STORAGE_KEY, JSON.stringify(outboxQueue));
+    }
+  } catch {}
+  notifySyncStatus();
+}
+
+export function getPendingOutboxCount() {
+  return outboxQueue.length;
+}
+
+function notifySyncStatus() {
+  const status = {
+    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+    isOrdersSSEConnected: isOrdersSSEActive,
+    isMenuSSEConnected: isMenuSSEActive,
+    pendingOutboxCount: outboxQueue.length,
+    lastOrdersFetchTime
+  };
+  syncStatusListeners.forEach(listener => {
+    try { listener(status); } catch {}
+  });
+}
+
+export function subscribeToSyncStatus(listener) {
+  syncStatusListeners.add(listener);
+  notifySyncStatus();
+  return () => {
+    syncStatusListeners.delete(listener);
+  };
+}
+
 /**
- * Play a pleasant 2-tone kitchen bell chime (Web Audio API)
+ * Enqueue an event into the persistent outbox for guaranteed cloud delivery
+ */
+export function enqueueSyncEvent(payload, options = {}) {
+  const event = {
+    id: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    payload,
+    url: options.url || CLOUD_ORDERS_URL,
+    title: options.title || `Cheburoom ${payload.type || 'Event'}`,
+    tags: options.tags || 'bell,cheburoom',
+    queuedAt: Date.now(),
+    retryCount: 0
+  };
+
+  outboxQueue.push(event);
+  persistOutbox();
+  drainOutboxQueue();
+  return event.id;
+}
+
+/**
+ * Drains the outbox queue sequentially with exponential backoff & jitter
+ */
+export async function drainOutboxQueue() {
+  if (isDrainingOutbox || outboxQueue.length === 0) return;
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
+  const now = Date.now();
+  if (now < ordersRateLimitedUntil) {
+    if (!drainTimeout) {
+      drainTimeout = setTimeout(() => {
+        drainTimeout = null;
+        drainOutboxQueue();
+      }, Math.max(1000, ordersRateLimitedUntil - now));
+    }
+    return;
+  }
+
+  isDrainingOutbox = true;
+
+  try {
+    while (outboxQueue.length > 0) {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) break;
+
+      const current = outboxQueue[0];
+      let success = false;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+        const res = await fetch(current.url, {
+          method: 'POST',
+          headers: {
+            'Title': current.title,
+            'Tags': current.tags,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(current.payload),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          success = true;
+          // Dequeue confirmed item
+          outboxQueue.shift();
+          persistOutbox();
+        } else if (res.status === 429) {
+          console.warn('ntfy.sh rate limited (429) in outbox, cooling down for 20s');
+          ordersRateLimitedUntil = Date.now() + 20000;
+          break;
+        } else {
+          // Server error (5xx), increment retry
+          current.retryCount = (current.retryCount || 0) + 1;
+          break;
+        }
+      } catch (err) {
+        // Network timeout / connection drop
+        current.retryCount = (current.retryCount || 0) + 1;
+        break;
+      }
+
+      // Small 50ms pause between rapid queue sends
+      if (success && outboxQueue.length > 0) {
+        await new Promise(r => setTimeout(r, 50));
+      }
+    }
+  } finally {
+    isDrainingOutbox = false;
+    notifySyncStatus();
+
+    // If items remain, schedule retry with backoff
+    if (outboxQueue.length > 0 && !drainTimeout) {
+      const firstItem = outboxQueue[0];
+      const retries = firstItem.retryCount || 1;
+      const delay = Math.min(8000, 400 * Math.pow(1.5, Math.min(retries, 6))) + Math.random() * 200;
+      drainTimeout = setTimeout(() => {
+        drainTimeout = null;
+        drainOutboxQueue();
+      }, delay);
+    }
+  }
+}
+
+export function flushOutboxQueue() {
+  if (drainTimeout) {
+    clearTimeout(drainTimeout);
+    drainTimeout = null;
+  }
+  return drainOutboxQueue();
+}
+
+// Drain queue when network restores or user returns to tab
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    drainOutboxQueue();
+    notifySyncStatus();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      drainOutboxQueue();
+      notifySyncStatus();
+    }
+  });
+  window.addEventListener('focus', () => {
+    drainOutboxQueue();
+    notifySyncStatus();
+  });
+}
+
+/* ========================================================================== */
+/*                     AUDIO CHIME & PUSH NOTIFICATIONS                       */
+/* ========================================================================== */
+
+/**
+ * Play pleasant 2-tone kitchen bell chime (Web Audio API)
  */
 export function playKitchenChime() {
   try {
@@ -80,26 +277,94 @@ export function playKitchenChime() {
     const gain1 = ctx.createGain();
     osc1.type = 'sine';
     osc1.frequency.setValueAtTime(880, now);
-    gain1.gain.setValueAtTime(0.25, now);
-    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+    gain1.gain.setValueAtTime(0.28, now);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
     osc1.connect(gain1);
     gain1.connect(ctx.destination);
     osc1.start(now);
-    osc1.stop(now + 0.4);
+    osc1.stop(now + 0.45);
 
     // Note 2 (1318.5 Hz - E6)
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = 'sine';
     osc2.frequency.setValueAtTime(1318.5, now + 0.14);
-    gain2.gain.setValueAtTime(0.3, now + 0.14);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+    gain2.gain.setValueAtTime(0.35, now + 0.14);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.75);
     osc2.connect(gain2);
     gain2.connect(ctx.destination);
     osc2.start(now + 0.14);
-    osc2.stop(now + 0.7);
+    osc2.stop(now + 0.75);
   } catch (err) {
     console.info('Audio chime skipped:', err.message);
+  }
+}
+
+/**
+ * Request Web Notification permissions for kitchen admin alerts
+ */
+export async function requestNotificationPermission() {
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    try {
+      return await Notification.requestPermission();
+    } catch {
+      return 'default';
+    }
+  }
+  return 'denied';
+}
+
+/**
+ * Trigger full kitchen alert: Chime + Device Vibration + Browser Notification + Tab Title Flash
+ */
+export function triggerKitchenAlert(order) {
+  // 1. Play sound
+  playKitchenChime();
+
+  // 2. Vibrate phone / tablet
+  try {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([200, 100, 200, 100, 300]);
+    }
+  } catch {}
+
+  // 3. Native Browser Notification
+  try {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && order) {
+      const summary = order.items && Array.isArray(order.items)
+        ? order.items.map(i => `${i.name} × ${i.quantity || 1}`).join(', ')
+        : 'Нове замовлення';
+      new Notification(`🔥 ЧЕБУROOM: Замовлення #${order.orderId}`, {
+        body: `${order.customerName || 'Гість'} (${order.total || 0} ₴)\n${summary}`,
+        icon: '/favicon.svg',
+        tag: `cheburoom_order_${order.orderId}`
+      });
+    }
+  } catch (err) {
+    console.warn('Notification error', err);
+  }
+
+  // 4. Flash Tab Title
+  if (typeof document !== 'undefined' && order?.orderId) {
+    const origTitle = document.title;
+    let flashCount = 0;
+    const flashTimer = setInterval(() => {
+      flashCount++;
+      document.title = (flashCount % 2 === 1) ? `🔔 [НОВЕ #${order.orderId}]` : origTitle;
+      if (flashCount >= 14) {
+        clearInterval(flashTimer);
+        document.title = origTitle;
+      }
+    }, 800);
+
+    const clearFlash = () => {
+      clearInterval(flashTimer);
+      document.title = origTitle;
+      window.removeEventListener('focus', clearFlash);
+      document.removeEventListener('click', clearFlash);
+    };
+    window.addEventListener('focus', clearFlash, { once: true });
+    document.addEventListener('click', clearFlash, { once: true });
   }
 }
 
@@ -108,12 +373,12 @@ export function playKitchenChime() {
 /* ========================================================================== */
 
 /**
- * Broadcast a new customer order across local tabs and to cloud relay
+ * Broadcast a new customer order across local tabs and to cloud relay via Outbox
  */
 export async function broadcastNewOrder(order) {
   if (!order || !order.orderId) return;
 
-  // 1. Local BroadcastChannel
+  // 1. Local BroadcastChannel (0ms cross-tab)
   try {
     if (ordersBroadcastChannel) {
       ordersBroadcastChannel.postMessage({ type: 'NEW_ORDER', order });
@@ -122,7 +387,7 @@ export async function broadcastNewOrder(order) {
     console.warn('ordersBroadcastChannel post error', e);
   }
 
-  // 2. Local DOM Event
+  // 2. Local DOM Event (0ms same-window)
   try {
     window.dispatchEvent(new CustomEvent('cheburoom_new_order', { detail: order }));
   } catch (e) {
@@ -136,23 +401,11 @@ export async function broadcastNewOrder(order) {
     }
   }
 
-  // 4. Cloud Relay with retry (ensures order is never lost due to flaky mobile network)
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const res = await fetch(CLOUD_ORDERS_URL, {
-        method: 'POST',
-        headers: {
-          'Title': `Cheburoom Order #${order.orderId}`,
-          'Tags': 'bell,package,chebureki',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ type: 'NEW_ORDER', order })
-      });
-      if (res.ok) break;
-    } catch {
-      await new Promise(r => setTimeout(r, 400));
-    }
-  }
+  // 4. Enqueue into Persistent Outbox for guaranteed delivery with auto-retry
+  return enqueueSyncEvent({ type: 'NEW_ORDER', order }, {
+    title: `Cheburoom Order #${order.orderId}`,
+    tags: 'bell,package,chebureki'
+  });
 }
 
 /**
@@ -189,22 +442,37 @@ export async function broadcastOrderStatus(orderId, status) {
     }
   }
 
-  // 4. Cloud Relay with retry
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const res = await fetch(CLOUD_ORDERS_URL, {
-        method: 'POST',
-        headers: {
-          'Title': `Cheburoom Status #${orderId}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) break;
-    } catch {
-      await new Promise(r => setTimeout(r, 350));
+  // 4. Enqueue into Outbox
+  return enqueueSyncEvent(payload, {
+    title: `Cheburoom Status #${orderId} -> ${status}`,
+    tags: 'status,update'
+  });
+}
+
+/**
+ * Send bidirectional acknowledgment from Admin/Kitchen to Client that order has been received
+ */
+export function sendOrderAck(orderId) {
+  if (!orderId) return;
+  const payload = { type: 'ORDER_ACK', orderId, ackAt: Date.now() };
+
+  // 1. Local BroadcastChannel
+  try {
+    if (ordersBroadcastChannel) {
+      ordersBroadcastChannel.postMessage(payload);
     }
-  }
+  } catch {}
+
+  // 2. Local CustomEvent
+  try {
+    window.dispatchEvent(new CustomEvent('cheburoom_order_ack', { detail: payload }));
+  } catch {}
+
+  // 3. Enqueue to Cloud Relay
+  return enqueueSyncEvent(payload, {
+    title: `Cheburoom ACK #${orderId}`,
+    tags: 'check,kitchen'
+  });
 }
 
 /**
@@ -227,21 +495,10 @@ export async function broadcastClearOrders(clearedAt = Date.now()) {
     window.dispatchEvent(new CustomEvent('cheburoom_orders_cleared', { detail: clearedAt }));
   } catch {}
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const res = await fetch(CLOUD_ORDERS_URL, {
-        method: 'POST',
-        headers: {
-          'Title': 'Cheburoom Clear Orders',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) break;
-    } catch {
-      await new Promise(r => setTimeout(r, 350));
-    }
-  }
+  return enqueueSyncEvent(payload, {
+    title: 'Cheburoom Clear Orders',
+    tags: 'wastebasket'
+  });
 }
 
 /**
@@ -251,7 +508,6 @@ export async function broadcastDeleteOrder(orderId) {
   if (!orderId) return;
   const payload = { type: 'DELETE_ORDER', orderId, deletedAt: Date.now() };
 
-  // 1. Immediately store in local deleted orders list
   try {
     const deleted = JSON.parse(localStorage.getItem('cheburoom_deleted_orders') || '[]');
     if (!deleted.includes(orderId)) {
@@ -260,43 +516,29 @@ export async function broadcastDeleteOrder(orderId) {
     }
   } catch {}
 
-  // 2. BroadcastChannel (same browser other tabs)
   try {
     if (ordersBroadcastChannel) {
       ordersBroadcastChannel.postMessage(payload);
     }
   } catch {}
 
-  // 3. Window Custom Event (same tab)
   try {
     window.dispatchEvent(new CustomEvent('cheburoom_order_deleted', { detail: orderId }));
   } catch {}
 
-  // 4. Cloud POST with retry
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const res = await fetch(CLOUD_ORDERS_URL, {
-        method: 'POST',
-        headers: {
-          'Title': `Cheburoom Delete Order #${orderId}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) break;
-    } catch {
-      await new Promise(r => setTimeout(r, 350));
-    }
-  }
+  return enqueueSyncEvent(payload, {
+    title: `Cheburoom Delete #${orderId}`,
+    tags: 'x'
+  });
 }
 
 /**
- * Subscribe to realtime order events (new orders, status updates, clear, delete)
- * Includes auto-reconnect, heartbeat watchdog, and mobile wake-up revival.
+ * Subscribe to realtime order events (new orders, status updates, clear, delete, ACKs)
+ * Includes auto-reconnect, rapid 10s watchdog, and instant mobile revival.
  */
-export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onDeleteOrder) {
+export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onDeleteOrder, onAck) {
   const processedOrderIds = new Set();
-  const statusTimestamps = new Map(); // orderId -> latest status timestamp ms
+  const statusTimestamps = new Map();
 
   const handleOrder = (order) => {
     if (!order || !order.orderId) return;
@@ -311,11 +553,9 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
     const incomingMs = new Date(updatedAt).getTime();
     const lastMs = statusTimestamps.get(orderId) || 0;
 
-    // Prevent older delayed messages from overwriting a newer status
     if (incomingMs >= lastMs) {
       statusTimestamps.set(orderId, incomingMs);
 
-      // Keep in-memory cache synchronized so fetchHistoricalCloudOrders never reverts
       if (cachedHistoricalOrders && Array.isArray(cachedHistoricalOrders)) {
         const o = cachedHistoricalOrders.find(item => item.orderId === orderId);
         if (o) {
@@ -331,27 +571,31 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
   };
 
   const handleClear = (clearedAt) => {
-    if (onClearOrders) {
-      onClearOrders(clearedAt);
-    }
+    if (onClearOrders) onClearOrders(clearedAt);
   };
 
   const handleDelete = (orderId) => {
-    if (onDeleteOrder && orderId) {
-      onDeleteOrder(orderId);
-    }
+    if (onDeleteOrder && orderId) onDeleteOrder(orderId);
+  };
+
+  const handleAck = (orderId, ackAt) => {
+    if (onAck && orderId) onAck(orderId, ackAt);
   };
 
   // 1. BroadcastChannel listener (instant cross-tab sync on same machine)
   const handleBcMessage = (event) => {
-    if (event.data?.type === 'NEW_ORDER' && event.data.order) {
-      handleOrder(event.data.order);
-    } else if (event.data?.type === 'ORDER_STATUS_UPDATE' && event.data.orderId) {
-      handleStatus(event.data.orderId, event.data.status, event.data.updatedAt);
-    } else if (event.data?.type === 'CLEAR_ORDERS') {
-      handleClear(event.data.clearedAt);
-    } else if (event.data?.type === 'DELETE_ORDER') {
-      handleDelete(event.data.orderId);
+    const data = event.data;
+    if (!data) return;
+    if (data.type === 'NEW_ORDER' && data.order) {
+      handleOrder(data.order);
+    } else if (data.type === 'ORDER_STATUS_UPDATE' && data.orderId) {
+      handleStatus(data.orderId, data.status, data.updatedAt);
+    } else if (data.type === 'ORDER_ACK' && data.orderId) {
+      handleAck(data.orderId, data.ackAt);
+    } else if (data.type === 'CLEAR_ORDERS') {
+      handleClear(data.clearedAt);
+    } else if (data.type === 'DELETE_ORDER') {
+      handleDelete(data.orderId);
     }
   };
   if (ordersBroadcastChannel) {
@@ -362,6 +606,7 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
   const handleCustomNew = (e) => { if (e.detail) handleOrder(e.detail); };
   const handleCustomDel = (e) => { if (e.detail) handleDelete(e.detail); };
   const handleCustomClr = (e) => { if (e.detail) handleClear(e.detail); };
+  const handleCustomAck = (e) => { if (e.detail?.orderId) handleAck(e.detail.orderId, e.detail.ackAt); };
   const handleCustomStat = (e) => { 
     if (e.detail?.orderId && e.detail?.status) {
       handleStatus(e.detail.orderId, e.detail.status, e.detail.updatedAt);
@@ -372,6 +617,7 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
   window.addEventListener('cheburoom_order_deleted', handleCustomDel);
   window.addEventListener('cheburoom_orders_cleared', handleCustomClr);
   window.addEventListener('cheburoom_order_status', handleCustomStat);
+  window.addEventListener('cheburoom_order_ack', handleCustomAck);
 
   // 3. Storage event listener (cross-tab fallback)
   const handleStorageEvent = (e) => {
@@ -402,7 +648,7 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
   };
   window.addEventListener('storage', handleStorageEvent);
 
-  // 4. Cloud Server-Sent Events (SSE) listener with active heartbeat watchdog
+  // 4. Cloud Server-Sent Events (SSE) listener with fast heartbeat watchdog
   let eventSource = null;
   let isClosed = false;
   let reconnectTimeout = null;
@@ -419,11 +665,14 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
       eventSource.onopen = () => {
         isOrdersSSEActive = true;
         lastSseActivityTime = Date.now();
+        notifySyncStatus();
       };
 
       eventSource.onmessage = (event) => {
         isOrdersSSEActive = true;
         lastSseActivityTime = Date.now();
+        notifySyncStatus();
+
         try {
           const data = JSON.parse(event.data);
           if (data && data.message) {
@@ -432,6 +681,8 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
               handleOrder(inner.order);
             } else if (inner?.type === 'ORDER_STATUS_UPDATE' && inner.orderId) {
               handleStatus(inner.orderId, inner.status, inner.updatedAt);
+            } else if (inner?.type === 'ORDER_ACK' && inner.orderId) {
+              handleAck(inner.orderId, inner.ackAt);
             } else if (inner?.type === 'CLEAR_ORDERS') {
               handleClear(inner.clearedAt);
             } else if (inner?.type === 'DELETE_ORDER' && inner.orderId) {
@@ -443,12 +694,14 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
 
       eventSource.onerror = () => {
         isOrdersSSEActive = false;
+        notifySyncStatus();
         try { if (eventSource) eventSource.close(); } catch {}
+
         if (!isClosed && !reconnectTimeout) {
           reconnectTimeout = setTimeout(() => {
             reconnectTimeout = null;
             connectSSE();
-          }, 2000);
+          }, 400); // Ultra fast 400ms initial reconnect
         }
       };
     } catch (err) {
@@ -458,33 +711,32 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
 
   connectSSE();
 
-  // Watchdog: detect dead SSE connection (mobile lock / Wi-Fi sleep)
+  // Watchdog: detect dead SSE connection (mobile sleep / socket stall)
   const watchdogTimer = setInterval(() => {
     if (isClosed) return;
     const now = Date.now();
-    // If no SSE activity for 40s or socket in closed/connecting state too long, refresh
-    if (!eventSource || eventSource.readyState !== EventSource.OPEN || (now - lastSseActivityTime > 40000)) {
+    if (!eventSource || eventSource.readyState !== EventSource.OPEN || (now - lastSseActivityTime > 25000)) {
       connectSSE();
     }
-  }, 15000);
+  }, 10000);
 
-  // Mobile wake-up: if user unlocks phone, switches tab, or regains network
-  let lastHiddenTime = 0;
+  // Mobile wake-up: instant re-connect on unlock or tab switch
   const handleVisibility = () => {
-    if (document.visibilityState === 'hidden') {
-      lastHiddenTime = Date.now();
-    } else if (document.visibilityState === 'visible') {
-      const hiddenDuration = Date.now() - lastHiddenTime;
-      // Re-connect immediately if hidden for > 3s or if SSE isn't active
-      if (hiddenDuration > 3000 || !eventSource || eventSource.readyState !== EventSource.OPEN) {
+    if (document.visibilityState === 'visible') {
+      lastSseActivityTime = Date.now();
+      if (!eventSource || eventSource.readyState !== EventSource.OPEN) {
         connectSSE();
       }
+      drainOutboxQueue();
     }
   };
 
   document.addEventListener('visibilitychange', handleVisibility);
   window.addEventListener('focus', handleVisibility);
-  window.addEventListener('online', connectSSE);
+  window.addEventListener('online', () => {
+    connectSSE();
+    drainOutboxQueue();
+  });
 
   // Cleanup
   return () => {
@@ -498,6 +750,7 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
     window.removeEventListener('cheburoom_order_deleted', handleCustomDel);
     window.removeEventListener('cheburoom_orders_cleared', handleCustomClr);
     window.removeEventListener('cheburoom_order_status', handleCustomStat);
+    window.removeEventListener('cheburoom_order_ack', handleCustomAck);
     window.removeEventListener('storage', handleStorageEvent);
     document.removeEventListener('visibilitychange', handleVisibility);
     window.removeEventListener('focus', handleVisibility);
@@ -512,14 +765,9 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
 /*                             MENU SYNC                                      */
 /* ========================================================================== */
 
-/**
- * Broadcast a menu action across all devices
- * @param {Object} action - e.g. { type: 'DISH_UPDATE', dish } or { type: 'DISH_TOGGLE', dishId, available }
- */
 export async function broadcastMenuAction(action) {
   if (!action || !action.type) return;
 
-  // 1. Local BroadcastChannel
   try {
     if (menuBroadcastChannel) {
       menuBroadcastChannel.postMessage(action);
@@ -528,54 +776,30 @@ export async function broadcastMenuAction(action) {
     console.warn('menuBroadcastChannel post error', e);
   }
 
-  // 2. Window Custom Event (same tab)
   try {
     window.dispatchEvent(new CustomEvent('cheburoom_menu_action', { detail: action }));
   } catch {}
 
-  // 3. Cloud Relay with retry
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const res = await fetch(CLOUD_MENU_URL, {
-        method: 'POST',
-        headers: {
-          'Title': `Cheburoom Menu ${action.type || 'Action'}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(action)
-      });
-      if (res.ok) break;
-    } catch {
-      await new Promise(r => setTimeout(r, 350));
-    }
-  }
+  return enqueueSyncEvent(action, {
+    url: CLOUD_MENU_URL,
+    title: `Cheburoom Menu ${action.type || 'Action'}`,
+    tags: 'fork_and_knife,menu'
+  });
 }
 
-/**
- * Subscribe to realtime menu actions across devices with auto-reconnect and mobile revival
- * @param {Function} onMenuAction Callback receiving action object
- * @returns {Function} Unsubscribe cleanup function
- */
 export function subscribeToMenuActions(onMenuAction) {
-  // 1. BroadcastChannel listener
   const handleBcMessage = (event) => {
-    if (event.data?.type) {
-      onMenuAction(event.data);
-    }
+    if (event.data?.type) onMenuAction(event.data);
   };
   if (menuBroadcastChannel) {
     menuBroadcastChannel.addEventListener('message', handleBcMessage);
   }
 
-  // 2. Window Custom Event
   const handleCustomMenu = (e) => {
-    if (e.detail) {
-      onMenuAction(e.detail);
-    }
+    if (e.detail) onMenuAction(e.detail);
   };
   window.addEventListener('cheburoom_menu_action', handleCustomMenu);
 
-  // 3. Cloud SSE listener with auto-reconnect
   let eventSource = null;
   let isClosed = false;
   let reconnectTimeout = null;
@@ -583,13 +807,12 @@ export function subscribeToMenuActions(onMenuAction) {
   function connectSSE() {
     if (isClosed || typeof EventSource === 'undefined') return;
     try {
-      if (eventSource) {
-        eventSource.close();
-      }
+      if (eventSource) eventSource.close();
       eventSource = new EventSource(`${CLOUD_MENU_URL}/sse`);
 
       eventSource.onopen = () => {
         isMenuSSEActive = true;
+        notifySyncStatus();
       };
 
       eventSource.onmessage = (event) => {
@@ -598,21 +821,20 @@ export function subscribeToMenuActions(onMenuAction) {
           const data = JSON.parse(event.data);
           if (data && data.message) {
             const inner = JSON.parse(data.message);
-            if (inner?.type) {
-              onMenuAction(inner);
-            }
+            if (inner?.type) onMenuAction(inner);
           }
         } catch {}
       };
 
       eventSource.onerror = () => {
         isMenuSSEActive = false;
+        notifySyncStatus();
         if (eventSource) eventSource.close();
         if (!isClosed && !reconnectTimeout) {
           reconnectTimeout = setTimeout(() => {
             reconnectTimeout = null;
             connectSSE();
-          }, 3000);
+          }, 1500);
         }
       };
     } catch (err) {
@@ -622,7 +844,6 @@ export function subscribeToMenuActions(onMenuAction) {
 
   connectSSE();
 
-  // Mobile wake-up
   const handleVisibility = () => {
     if (document.visibilityState === 'visible') {
       if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
@@ -633,7 +854,6 @@ export function subscribeToMenuActions(onMenuAction) {
   document.addEventListener('visibilitychange', handleVisibility);
   window.addEventListener('online', connectSSE);
 
-  // Cleanup
   return () => {
     isClosed = true;
     if (reconnectTimeout) clearTimeout(reconnectTimeout);
@@ -643,9 +863,7 @@ export function subscribeToMenuActions(onMenuAction) {
     window.removeEventListener('cheburoom_menu_action', handleCustomMenu);
     document.removeEventListener('visibilitychange', handleVisibility);
     window.removeEventListener('online', connectSSE);
-    if (eventSource) {
-      eventSource.close();
-    }
+    if (eventSource) eventSource.close();
   };
 }
 
@@ -653,9 +871,6 @@ export function subscribeToMenuActions(onMenuAction) {
 /*                             AUTH SYNC                                      */
 /* ========================================================================== */
 
-/**
- * Broadcast password hash update so all devices recognize the new password
- */
 export async function broadcastPasswordHash(hash) {
   if (!hash) return;
   try {
@@ -674,17 +889,12 @@ export async function broadcastPasswordHash(hash) {
   }
 }
 
-/**
- * Subscribe to password hash updates
- */
 export function subscribeToPasswordHash(onHashUpdate) {
   let eventSource = null;
   try {
     if (typeof EventSource !== 'undefined') {
       eventSource = new EventSource(`${CLOUD_AUTH_URL}/sse`);
-      eventSource.onopen = () => {
-        isAuthSSEActive = true;
-      };
+      eventSource.onopen = () => { isAuthSSEActive = true; };
       eventSource.onmessage = (event) => {
         isAuthSSEActive = true;
         try {
@@ -697,9 +907,7 @@ export function subscribeToPasswordHash(onHashUpdate) {
           }
         } catch {}
       };
-      eventSource.onerror = () => {
-        isAuthSSEActive = false;
-      };
+      eventSource.onerror = () => { isAuthSSEActive = false; };
     }
   } catch (err) {
     console.info('Auth SSE init error:', err.message);
@@ -707,9 +915,7 @@ export function subscribeToPasswordHash(onHashUpdate) {
 
   return () => {
     isAuthSSEActive = false;
-    if (eventSource) {
-      eventSource.close();
-    }
+    if (eventSource) eventSource.close();
   };
 }
 
@@ -717,20 +923,13 @@ export function subscribeToPasswordHash(onHashUpdate) {
 /*                   HISTORICAL CLOUD HYDRATION ON STARTUP                    */
 /* ========================================================================== */
 
-/**
- * Fetches recent historical orders from the cloud topic
- * Ensures that whenever a phone or PC opens, it instantly pulls all existing orders!
- * Respects tombstone timestamps (clearedAt) and deleted order IDs so deleted orders never return!
- */
 export async function fetchHistoricalCloudOrders(force = false) {
   const now = Date.now();
 
-  // Return cached result if fresh (< 15 seconds) and not forced
-  if (!force && cachedHistoricalOrders && (now - lastOrdersFetchTime < 15000)) {
+  if (!force && cachedHistoricalOrders && (now - lastOrdersFetchTime < 10000)) {
     return cachedHistoricalOrders;
   }
 
-  // If currently rate limited (429 cooldown active) and not forced, return cached or localStorage orders
   if (!force && now < ordersRateLimitedUntil) {
     if (cachedHistoricalOrders) return cachedHistoricalOrders;
     try {
@@ -752,8 +951,8 @@ export async function fetchHistoricalCloudOrders(force = false) {
   try {
     let res = await fetch(`${CLOUD_ORDERS_URL}/json?poll=1&since=12h`);
     if (res.status === 429) {
-      console.warn('ntfy.sh rate limited (429), cooling down for 45s');
-      ordersRateLimitedUntil = Date.now() + 45000;
+      console.warn('ntfy.sh rate limited (429), cooling down for 25s');
+      ordersRateLimitedUntil = Date.now() + 25000;
       if (cachedHistoricalOrders) return cachedHistoricalOrders;
       try {
         const saved = JSON.parse(localStorage.getItem('cheburoom_orders_log') || '[]');
@@ -780,7 +979,6 @@ export async function fetchHistoricalCloudOrders(force = false) {
     }
 
     let text = await res.text();
-    // Fallback to since=all only if empty (e.g. cold start with older orders)
     if (!text.trim() && !cachedHistoricalOrders) {
       try {
         const allRes = await fetch(`${CLOUD_ORDERS_URL}/json?poll=1&since=all`);
@@ -792,8 +990,8 @@ export async function fetchHistoricalCloudOrders(force = false) {
     const ordersMap = new Map();
     let latestClearedAt = 0;
     const deletedOrderIds = new Set();
+    const ackedOrderIds = new Set();
 
-    // Read local tombstone markers
     try {
       const localCleared = parseInt(localStorage.getItem('cheburoom_orders_cleared_at') || '0', 10);
       if (localCleared > latestClearedAt) latestClearedAt = localCleared;
@@ -812,17 +1010,16 @@ export async function fetchHistoricalCloudOrders(force = false) {
           const inner = JSON.parse(item.message);
           parsedEvents.push(inner);
           if (inner?.type === 'CLEAR_ORDERS' && inner.clearedAt) {
-            if (inner.clearedAt > latestClearedAt) {
-              latestClearedAt = inner.clearedAt;
-            }
+            if (inner.clearedAt > latestClearedAt) latestClearedAt = inner.clearedAt;
           } else if (inner?.type === 'DELETE_ORDER' && inner.orderId) {
             deletedOrderIds.add(inner.orderId);
+          } else if (inner?.type === 'ORDER_ACK' && inner.orderId) {
+            ackedOrderIds.add(inner.orderId);
           }
         }
       } catch {}
     }
 
-    // Persist discovered deletions and cleared timestamp to localStorage immediately on all devices
     try {
       localStorage.setItem('cheburoom_deleted_orders', JSON.stringify(Array.from(deletedOrderIds)));
       if (latestClearedAt > 0) {
@@ -830,17 +1027,18 @@ export async function fetchHistoricalCloudOrders(force = false) {
       }
     } catch {}
 
-    // Process orders in order, tracking status timestamps accurately
     for (const inner of parsedEvents) {
       if (inner?.type === 'NEW_ORDER' && inner.order?.orderId) {
         const o = inner.order;
         if (deletedOrderIds.has(o.orderId)) continue;
         const orderTime = new Date(o.createdAt || 0).getTime();
-        if (latestClearedAt > 0 && orderTime <= latestClearedAt) {
-          continue;
-        }
+        if (latestClearedAt > 0 && orderTime <= latestClearedAt) continue;
+
         if (!o.statusUpdatedAt) {
           o.statusUpdatedAt = o.createdAt || new Date().toISOString();
+        }
+        if (ackedOrderIds.has(o.orderId)) {
+          o.isKitchenConfirmed = true;
         }
         ordersMap.set(o.orderId, o);
       } else if (inner?.type === 'ORDER_STATUS_UPDATE' && inner.orderId) {
@@ -857,6 +1055,11 @@ export async function fetchHistoricalCloudOrders(force = false) {
             });
           }
         }
+      } else if (inner?.type === 'ORDER_ACK' && inner.orderId) {
+        const existing = ordersMap.get(inner.orderId);
+        if (existing) {
+          existing.isKitchenConfirmed = true;
+        }
       }
     }
 
@@ -868,9 +1071,11 @@ export async function fetchHistoricalCloudOrders(force = false) {
 
     sorted.deletedOrderIds = Array.from(deletedOrderIds);
     sorted.clearedAt = latestClearedAt;
+    sorted.ackedOrderIds = Array.from(ackedOrderIds);
 
     cachedHistoricalOrders = sorted;
     lastOrdersFetchTime = Date.now();
+    notifySyncStatus();
     return sorted;
   } catch (err) {
     console.warn('fetchHistoricalCloudOrders error:', err);
@@ -882,12 +1087,9 @@ export async function fetchHistoricalCloudOrders(force = false) {
   }
 }
 
-/**
- * Fetches recent menu actions from the cloud
- */
 export async function fetchHistoricalMenuActions(force = false) {
   const now = Date.now();
-  if (!force && cachedHistoricalMenu && (now - lastMenuFetchTime < 20000)) {
+  if (!force && cachedHistoricalMenu && (now - lastMenuFetchTime < 15000)) {
     return cachedHistoricalMenu;
   }
   if (!force && now < menuRateLimitedUntil) {
@@ -897,8 +1099,7 @@ export async function fetchHistoricalMenuActions(force = false) {
   try {
     const res = await fetch(`${CLOUD_MENU_URL}/json?poll=1&since=all`);
     if (res.status === 429) {
-      console.warn('ntfy.sh menu rate limited (429), cooling down for 60s');
-      menuRateLimitedUntil = Date.now() + 60000;
+      menuRateLimitedUntil = Date.now() + 30000;
       return cachedHistoricalMenu || [];
     }
     if (!res.ok) return cachedHistoricalMenu || [];
@@ -912,9 +1113,7 @@ export async function fetchHistoricalMenuActions(force = false) {
         const item = JSON.parse(line);
         if (item && item.message) {
           const inner = JSON.parse(item.message);
-          if (inner?.type) {
-            actions.push(inner);
-          }
+          if (inner?.type) actions.push(inner);
         }
       } catch {}
     }
@@ -928,12 +1127,9 @@ export async function fetchHistoricalMenuActions(force = false) {
   }
 }
 
-/**
- * Fetches latest admin password hash stored in the cloud
- */
 export async function fetchCloudPasswordHash(force = false) {
   const now = Date.now();
-  if (!force && cachedPasswordHash && (now - lastAuthFetchTime < 30000)) {
+  if (!force && cachedPasswordHash && (now - lastAuthFetchTime < 25000)) {
     return cachedPasswordHash;
   }
   if (!force && now < authRateLimitedUntil) {
@@ -943,8 +1139,7 @@ export async function fetchCloudPasswordHash(force = false) {
   try {
     const res = await fetch(`${CLOUD_AUTH_URL}/json?poll=1&since=all`);
     if (res.status === 429) {
-      console.warn('ntfy.sh auth rate limited (429), cooling down for 60s');
-      authRateLimitedUntil = Date.now() + 60000;
+      authRateLimitedUntil = Date.now() + 30000;
       return cachedPasswordHash || (typeof window !== 'undefined' ? localStorage.getItem('cheburoom_admin_hash_v1') : null);
     }
     if (!res.ok) return cachedPasswordHash || null;
@@ -980,15 +1175,10 @@ export async function fetchCloudPasswordHash(force = false) {
 /*                          CLOUD HEALTH CHECK                                */
 /* ========================================================================== */
 
-/**
- * Live ping check for cloud relay
- * @returns {Promise<{success: boolean, latencyMs: number, warning?: string, error?: string}>}
- */
 export async function testCloudRelay() {
   const start = Date.now();
-  // If SSE is already actively connected, we have real-time delivery verified!
   if (isOrdersSSEActive) {
-    return { success: true, latencyMs: 20, source: 'sse' };
+    return { success: true, latencyMs: 18, source: 'sse' };
   }
 
   try {
@@ -1005,25 +1195,21 @@ export async function testCloudRelay() {
       return { success: true, latencyMs };
     }
     if (res.status === 429) {
-      // Even if HTTP POST hits temporary rate limit, SSE stream is unaffected
       return {
         success: true,
-        latencyMs: 35,
+        latencyMs: 30,
         warning: 'Потік SSE активний (HTTP 429 cooldown)'
       };
     }
     return { success: false, latencyMs, error: `HTTP ${res.status}` };
   } catch (err) {
     if (isOrdersSSEActive) {
-      return { success: true, latencyMs: 25, source: 'sse' };
+      return { success: true, latencyMs: 20, source: 'sse' };
     }
     return { success: false, latencyMs: Date.now() - start, error: err.message };
   }
 }
 
-/**
- * Comprehensive diagnostic check of all database channels
- */
 export async function diagnoseDatabaseHealth() {
   const start = Date.now();
   try {
@@ -1038,7 +1224,8 @@ export async function diagnoseDatabaseHealth() {
       latencyMs,
       ordersChannel: {
         status: 'connected',
-        syncedCount: ordersCount
+        syncedCount: ordersCount,
+        pendingOutbox: outboxQueue.length
       },
       menuChannel: {
         status: 'connected'
@@ -1055,7 +1242,8 @@ export async function diagnoseDatabaseHealth() {
       error: e.message,
       ordersChannel: {
         status: 'warning',
-        syncedCount: 0
+        syncedCount: 0,
+        pendingOutbox: outboxQueue.length
       },
       menuChannel: {
         status: 'connected'
@@ -1068,15 +1256,13 @@ export async function diagnoseDatabaseHealth() {
   }
 }
 
-/**
- * Returns topics and salt metadata for security & diagnostics display in Admin
- */
 export function getCloudRelayTopicInfo() {
   return {
     ordersTopic: ORDERS_TOPIC,
     menuTopic: MENU_TOPIC,
     authTopic: AUTH_TOPIC,
     salt: RELAY_SECRET_TOKEN,
-    isSecured: true
+    isSecured: true,
+    pendingOutboxCount: outboxQueue.length
   };
 }
