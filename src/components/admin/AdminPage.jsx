@@ -446,12 +446,15 @@ export function AdminPage() {
           >
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-2">
+                <label htmlFor="admin-login-password" className="block text-xs font-bold text-zinc-300 mb-2">
                   Пароль адміністратора:
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3.5" />
                   <input
+                    id="admin-login-password"
+                    name="password"
+                    autoComplete="current-password"
                     type={showPassword ? 'text' : 'password'}
                     required
                     autoCapitalize="none"
@@ -787,10 +790,13 @@ export function AdminPage() {
               <div className="relative w-full md:w-64">
                 <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
+                  id="admin-dish-search"
+                  name="adminDishSearch"
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Швидкий пошук страви..."
+                  aria-label="Швидкий пошук страви"
                   className="w-full pl-8 pr-3 py-2 sm:py-1.5 text-xs rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder:text-zinc-500 focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>

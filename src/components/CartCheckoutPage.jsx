@@ -603,6 +603,8 @@ ${itemsText}
                   {pickupTiming === 'preorder' && (
                     <div className="mt-2.5">
                       <input
+                        id="checkout-preorder-time"
+                        name="preorderTime"
                         type="time"
                         value={preorderTime}
                         onChange={(e) => setPreorderTime(e.target.value)}
@@ -615,12 +617,15 @@ ${itemsText}
                 {/* Recipient Details */}
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
+                    <label htmlFor="checkout-customer-name" className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
                       Ваше ім'я *
                     </label>
                     <div className="relative">
                       <User className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
                       <input
+                        id="checkout-customer-name"
+                        name="customerName"
+                        autoComplete="name"
                         type="text"
                         required
                         value={name}
@@ -632,12 +637,15 @@ ${itemsText}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
+                    <label htmlFor="checkout-customer-phone" className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
                       Номер телефону *
                     </label>
                     <div className="relative">
                       <Phone className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
                       <input
+                        id="checkout-customer-phone"
+                        name="customerPhone"
+                        autoComplete="tel"
                         type="tel"
                         required
                         value={phone}
@@ -715,10 +723,12 @@ ${itemsText}
                 {/* Comment & Cutlery */}
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
+                    <label htmlFor="checkout-order-comment" className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
                       Коментар до замовлення:
                     </label>
                     <input
+                      id="checkout-order-comment"
+                      name="orderComment"
                       type="text"
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}

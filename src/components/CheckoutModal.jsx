@@ -148,10 +148,13 @@ ${itemsText}
           {/* Contact Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
+              <label htmlFor="modal-customer-name" className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
                 Ваше ім'я *
               </label>
               <input
+                id="modal-customer-name"
+                name="customerName"
+                autoComplete="name"
                 type="text"
                 required
                 value={name}
@@ -162,10 +165,13 @@ ${itemsText}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
+              <label htmlFor="modal-customer-phone" className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
                 Телефон *
               </label>
               <input
+                id="modal-customer-phone"
+                name="customerPhone"
+                autoComplete="tel"
                 type="tel"
                 required
                 value={phone}
@@ -206,15 +212,17 @@ ${itemsText}
 
           {/* Comment */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
+            <label htmlFor="modal-order-comment" className="block text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
               Коментар до замовлення:
             </label>
             <input
+              id="modal-order-comment"
+              name="orderComment"
               type="text"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Наприклад: без цибулі, додати серветки"
-              className="w-full px-3 py-2.5 text-xs rounded-xl bg-zinc-50 dark:bg-rnr-dark border border-zinc-200 dark:border-rnr-border text-zinc-900 dark:text-white focus:ring-2 focus:ring-glovo-yellow focus:outline-none"
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-zinc-50 dark:bg-rnr-dark border border-zinc-200 dark:border-rnr-border text-zinc-900 dark:text-white focus:ring-2 focus:ring-glovo-yellow focus:outline-none"
             />
           </div>
 

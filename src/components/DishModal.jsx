@@ -183,6 +183,7 @@ export function DishModal() {
                         }`}
                       >
                         <input
+                          id={`crust-${dish.id}-${idx}`}
                           type="radio"
                           name="crust"
                           checked={isSelected}
@@ -227,6 +228,8 @@ export function DishModal() {
                       >
                         <div className="flex items-center gap-2.5">
                           <input
+                            id={`extra-${extra.id}`}
+                            name={`extra_${extra.id}`}
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleExtraToggle(extra)}

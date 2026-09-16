@@ -93,10 +93,13 @@ export function CategoryNav({
         <div className="relative w-36 sm:w-48 md:w-56 lg:w-64 shrink-0 group/search">
           <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none group-focus-within/search:text-amber-500 transition-colors" />
           <input
+            id="dish-search-input"
+            name="searchQuery"
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Знайти страву..."
+            aria-label="Пошук страв у меню"
             className="w-full pl-8 sm:pl-9 pr-7 h-8 rounded-full text-xs bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] text-zinc-950 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-glovo-yellow transition-all shadow-xs"
           />
           {searchQuery && (
