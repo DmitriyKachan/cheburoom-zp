@@ -51,6 +51,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { CheburoomLogo } from '../CheburoomLogo';
+import { useBrand, toggleBrandMode } from '../../config/brandingConfig';
 
 const CATEGORIES = [
   { id: 'all', name: 'Всі категорії' },
@@ -112,6 +113,7 @@ function getBadgeColorClass(badgeText, badgeColor) {
 }
 
 export function AdminPage() {
+  const brand = useBrand();
   const {
     menuItems,
     addDish,
@@ -543,6 +545,20 @@ export function AdminPage() {
               <Cloud className="w-3.5 h-3.5 text-emerald-400" />
               <span>{cloudMode === 'firebase' ? 'Google Firestore Live' : 'Хмара Live (Авто)'}</span>
             </div>
+
+            {/* Brand Mode Pill & Quick Switcher */}
+            <button
+              type="button"
+              onClick={() => toggleBrandMode()}
+              title="Натисніть для миттєвого перемикання бренду (Демо-версія / Чебуroom)"
+              className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all cursor-pointer ${
+                brand.isDemo
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 hover:bg-amber-500/25'
+                  : 'bg-blue-500/15 border-blue-500/40 text-blue-400 hover:bg-blue-500/25'
+              }`}
+            >
+              <span>🏷️ {brand.isDemo ? 'Демо-бренд' : 'Чебуroom'}</span>
+            </button>
           </div>
 
           {/* Desktop Nav Tabs */}
