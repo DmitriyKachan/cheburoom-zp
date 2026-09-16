@@ -129,18 +129,30 @@ export async function broadcastNewOrder(order) {
     console.warn('CustomEvent dispatch error', e);
   }
 
-  // 3. Cloud Relay (async background)
-  try {
-    fetch(CLOUD_ORDERS_URL, {
-      method: 'POST',
-      headers: {
-        'Title': `Cheburoom Order #${order.orderId}`,
-        'Tags': 'bell,package,chebureki',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ type: 'NEW_ORDER', order })
-    }).catch(() => {});
-  } catch {}
+  // 3. Immediately insert into in-memory cached historical orders
+  if (cachedHistoricalOrders && Array.isArray(cachedHistoricalOrders)) {
+    if (!cachedHistoricalOrders.some(o => o.orderId === order.orderId)) {
+      cachedHistoricalOrders.unshift(order);
+    }
+  }
+
+  // 4. Cloud Relay with retry (ensures order is never lost due to flaky mobile network)
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(CLOUD_ORDERS_URL, {
+        method: 'POST',
+        headers: {
+          'Title': `Cheburoom Order #${order.orderId}`,
+          'Tags': 'bell,package,chebureki',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ type: 'NEW_ORDER', order })
+      });
+      if (res.ok) break;
+    } catch {
+      await new Promise(r => setTimeout(r, 400));
+    }
+  }
 }
 
 /**
@@ -149,7 +161,8 @@ export async function broadcastNewOrder(order) {
 export async function broadcastOrderStatus(orderId, status) {
   if (!orderId || !status) return;
 
-  const payload = { type: 'ORDER_STATUS_UPDATE', orderId, status, updatedAt: new Date().toISOString() };
+  const updatedAt = new Date().toISOString();
+  const payload = { type: 'ORDER_STATUS_UPDATE', orderId, status, updatedAt };
 
   // 1. Local BroadcastChannel
   try {
@@ -160,17 +173,38 @@ export async function broadcastOrderStatus(orderId, status) {
     console.warn('ordersBroadcastChannel post status error', e);
   }
 
-  // 2. Cloud Relay
+  // 2. Local DOM Custom Event (same tab / components)
   try {
-    fetch(CLOUD_ORDERS_URL, {
-      method: 'POST',
-      headers: {
-        'Title': `Cheburoom Status #${orderId}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
-  } catch {}
+    window.dispatchEvent(new CustomEvent('cheburoom_order_status', { detail: { orderId, status, updatedAt } }));
+  } catch (e) {
+    console.warn('CustomEvent dispatch status error', e);
+  }
+
+  // 3. Update in-memory cache immediately so fast re-syncs never revert to stale status
+  if (cachedHistoricalOrders && Array.isArray(cachedHistoricalOrders)) {
+    const o = cachedHistoricalOrders.find(item => item.orderId === orderId);
+    if (o) {
+      o.status = status;
+      o.statusUpdatedAt = updatedAt;
+    }
+  }
+
+  // 4. Cloud Relay with retry
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(CLOUD_ORDERS_URL, {
+        method: 'POST',
+        headers: {
+          'Title': `Cheburoom Status #${orderId}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) break;
+    } catch {
+      await new Promise(r => setTimeout(r, 350));
+    }
+  }
 }
 
 /**
@@ -258,10 +292,11 @@ export async function broadcastDeleteOrder(orderId) {
 
 /**
  * Subscribe to realtime order events (new orders, status updates, clear, delete)
- * Includes auto-reconnect and visibility change revival for mobile Safari/Chrome.
+ * Includes auto-reconnect, heartbeat watchdog, and mobile wake-up revival.
  */
 export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onDeleteOrder) {
   const processedOrderIds = new Set();
+  const statusTimestamps = new Map(); // orderId -> latest status timestamp ms
 
   const handleOrder = (order) => {
     if (!order || !order.orderId) return;
@@ -270,9 +305,28 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
     onNewOrder(order);
   };
 
-  const handleStatus = (orderId, status) => {
-    if (onStatusUpdate && orderId && status) {
-      onStatusUpdate(orderId, status);
+  const handleStatus = (orderId, status, updatedAt = new Date().toISOString()) => {
+    if (!orderId || !status) return;
+
+    const incomingMs = new Date(updatedAt).getTime();
+    const lastMs = statusTimestamps.get(orderId) || 0;
+
+    // Prevent older delayed messages from overwriting a newer status
+    if (incomingMs >= lastMs) {
+      statusTimestamps.set(orderId, incomingMs);
+
+      // Keep in-memory cache synchronized so fetchHistoricalCloudOrders never reverts
+      if (cachedHistoricalOrders && Array.isArray(cachedHistoricalOrders)) {
+        const o = cachedHistoricalOrders.find(item => item.orderId === orderId);
+        if (o) {
+          o.status = status;
+          o.statusUpdatedAt = updatedAt;
+        }
+      }
+
+      if (onStatusUpdate) {
+        onStatusUpdate(orderId, status, updatedAt);
+      }
     }
   };
 
@@ -288,12 +342,12 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
     }
   };
 
-  // 1. BroadcastChannel listener
+  // 1. BroadcastChannel listener (instant cross-tab sync on same machine)
   const handleBcMessage = (event) => {
     if (event.data?.type === 'NEW_ORDER' && event.data.order) {
       handleOrder(event.data.order);
-    } else if (event.data?.type === 'ORDER_STATUS_UPDATE') {
-      handleStatus(event.data.orderId, event.data.status);
+    } else if (event.data?.type === 'ORDER_STATUS_UPDATE' && event.data.orderId) {
+      handleStatus(event.data.orderId, event.data.status, event.data.updatedAt);
     } else if (event.data?.type === 'CLEAR_ORDERS') {
       handleClear(event.data.clearedAt);
     } else if (event.data?.type === 'DELETE_ORDER') {
@@ -304,24 +358,35 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
     ordersBroadcastChannel.addEventListener('message', handleBcMessage);
   }
 
-  // 2. Window Custom Events
+  // 2. Window Custom Events (same window / component communication)
   const handleCustomNew = (e) => { if (e.detail) handleOrder(e.detail); };
   const handleCustomDel = (e) => { if (e.detail) handleDelete(e.detail); };
   const handleCustomClr = (e) => { if (e.detail) handleClear(e.detail); };
-  const handleCustomStat = (e) => { if (e.detail) handleStatus(e.detail.orderId, e.detail.status); };
+  const handleCustomStat = (e) => { 
+    if (e.detail?.orderId && e.detail?.status) {
+      handleStatus(e.detail.orderId, e.detail.status, e.detail.updatedAt);
+    } 
+  };
 
   window.addEventListener('cheburoom_new_order', handleCustomNew);
   window.addEventListener('cheburoom_order_deleted', handleCustomDel);
   window.addEventListener('cheburoom_orders_cleared', handleCustomClr);
   window.addEventListener('cheburoom_order_status', handleCustomStat);
 
-  // 3. Storage event listener (cross-tab)
+  // 3. Storage event listener (cross-tab fallback)
   const handleStorageEvent = (e) => {
     if (e.key === 'cheburoom_orders_log' && e.newValue) {
       try {
         const orders = JSON.parse(e.newValue);
-        if (Array.isArray(orders) && orders.length > 0) {
-          handleOrder(orders[0]);
+        if (Array.isArray(orders)) {
+          orders.forEach(o => {
+            if (o && o.orderId) {
+              handleOrder(o);
+              if (o.status) {
+                handleStatus(o.orderId, o.status, o.statusUpdatedAt || o.createdAt);
+              }
+            }
+          });
         }
       } catch {}
     } else if (e.key === 'cheburoom_orders_cleared_at' && e.newValue) {
@@ -337,25 +402,28 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
   };
   window.addEventListener('storage', handleStorageEvent);
 
-  // 4. Cloud Server-Sent Events (SSE) listener with auto-reconnect and mobile revival
+  // 4. Cloud Server-Sent Events (SSE) listener with active heartbeat watchdog
   let eventSource = null;
   let isClosed = false;
   let reconnectTimeout = null;
+  let lastSseActivityTime = Date.now();
 
   function connectSSE() {
     if (isClosed || typeof EventSource === 'undefined') return;
     try {
       if (eventSource) {
-        eventSource.close();
+        try { eventSource.close(); } catch {}
       }
       eventSource = new EventSource(`${CLOUD_ORDERS_URL}/sse`);
 
       eventSource.onopen = () => {
         isOrdersSSEActive = true;
+        lastSseActivityTime = Date.now();
       };
 
       eventSource.onmessage = (event) => {
         isOrdersSSEActive = true;
+        lastSseActivityTime = Date.now();
         try {
           const data = JSON.parse(event.data);
           if (data && data.message) {
@@ -363,7 +431,7 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
             if (inner?.type === 'NEW_ORDER' && inner.order) {
               handleOrder(inner.order);
             } else if (inner?.type === 'ORDER_STATUS_UPDATE' && inner.orderId) {
-              handleStatus(inner.orderId, inner.status);
+              handleStatus(inner.orderId, inner.status, inner.updatedAt);
             } else if (inner?.type === 'CLEAR_ORDERS') {
               handleClear(inner.clearedAt);
             } else if (inner?.type === 'DELETE_ORDER' && inner.orderId) {
@@ -375,12 +443,12 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
 
       eventSource.onerror = () => {
         isOrdersSSEActive = false;
-        if (eventSource) eventSource.close();
+        try { if (eventSource) eventSource.close(); } catch {}
         if (!isClosed && !reconnectTimeout) {
           reconnectTimeout = setTimeout(() => {
             reconnectTimeout = null;
             connectSSE();
-          }, 3000);
+          }, 2000);
         }
       };
     } catch (err) {
@@ -390,21 +458,39 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
 
   connectSSE();
 
-  // Mobile wake-up: if user unlocks phone or switches back to browser tab
+  // Watchdog: detect dead SSE connection (mobile lock / Wi-Fi sleep)
+  const watchdogTimer = setInterval(() => {
+    if (isClosed) return;
+    const now = Date.now();
+    // If no SSE activity for 40s or socket in closed/connecting state too long, refresh
+    if (!eventSource || eventSource.readyState !== EventSource.OPEN || (now - lastSseActivityTime > 40000)) {
+      connectSSE();
+    }
+  }, 15000);
+
+  // Mobile wake-up: if user unlocks phone, switches tab, or regains network
+  let lastHiddenTime = 0;
   const handleVisibility = () => {
-    if (document.visibilityState === 'visible') {
-      if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
+    if (document.visibilityState === 'hidden') {
+      lastHiddenTime = Date.now();
+    } else if (document.visibilityState === 'visible') {
+      const hiddenDuration = Date.now() - lastHiddenTime;
+      // Re-connect immediately if hidden for > 3s or if SSE isn't active
+      if (hiddenDuration > 3000 || !eventSource || eventSource.readyState !== EventSource.OPEN) {
         connectSSE();
       }
     }
   };
+
   document.addEventListener('visibilitychange', handleVisibility);
+  window.addEventListener('focus', handleVisibility);
   window.addEventListener('online', connectSSE);
 
   // Cleanup
   return () => {
     isClosed = true;
     if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    if (watchdogTimer) clearInterval(watchdogTimer);
     if (ordersBroadcastChannel) {
       ordersBroadcastChannel.removeEventListener('message', handleBcMessage);
     }
@@ -414,9 +500,10 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
     window.removeEventListener('cheburoom_order_status', handleCustomStat);
     window.removeEventListener('storage', handleStorageEvent);
     document.removeEventListener('visibilitychange', handleVisibility);
+    window.removeEventListener('focus', handleVisibility);
     window.removeEventListener('online', connectSSE);
     if (eventSource) {
-      eventSource.close();
+      try { eventSource.close(); } catch {}
     }
   };
 }
@@ -663,10 +750,10 @@ export async function fetchHistoricalCloudOrders(force = false) {
   }
 
   try {
-    const res = await fetch(`${CLOUD_ORDERS_URL}/json?poll=1&since=all`);
+    let res = await fetch(`${CLOUD_ORDERS_URL}/json?poll=1&since=12h`);
     if (res.status === 429) {
-      console.warn('ntfy.sh rate limited (429), cooling down for 60s');
-      ordersRateLimitedUntil = Date.now() + 60000;
+      console.warn('ntfy.sh rate limited (429), cooling down for 45s');
+      ordersRateLimitedUntil = Date.now() + 45000;
       if (cachedHistoricalOrders) return cachedHistoricalOrders;
       try {
         const saved = JSON.parse(localStorage.getItem('cheburoom_orders_log') || '[]');
@@ -692,7 +779,15 @@ export async function fetchHistoricalCloudOrders(force = false) {
       return fallback;
     }
 
-    const text = await res.text();
+    let text = await res.text();
+    // Fallback to since=all only if empty (e.g. cold start with older orders)
+    if (!text.trim() && !cachedHistoricalOrders) {
+      try {
+        const allRes = await fetch(`${CLOUD_ORDERS_URL}/json?poll=1&since=all`);
+        if (allRes.ok) text = await allRes.text();
+      } catch {}
+    }
+
     const lines = text.trim().split('\n');
     const ordersMap = new Map();
     let latestClearedAt = 0;
@@ -735,7 +830,7 @@ export async function fetchHistoricalCloudOrders(force = false) {
       }
     } catch {}
 
-    // Process orders in order, ignoring any cleared or deleted orders
+    // Process orders in order, tracking status timestamps accurately
     for (const inner of parsedEvents) {
       if (inner?.type === 'NEW_ORDER' && inner.order?.orderId) {
         const o = inner.order;
@@ -744,12 +839,23 @@ export async function fetchHistoricalCloudOrders(force = false) {
         if (latestClearedAt > 0 && orderTime <= latestClearedAt) {
           continue;
         }
+        if (!o.statusUpdatedAt) {
+          o.statusUpdatedAt = o.createdAt || new Date().toISOString();
+        }
         ordersMap.set(o.orderId, o);
       } else if (inner?.type === 'ORDER_STATUS_UPDATE' && inner.orderId) {
         if (deletedOrderIds.has(inner.orderId)) continue;
         const existing = ordersMap.get(inner.orderId);
         if (existing) {
-          ordersMap.set(inner.orderId, { ...existing, status: inner.status });
+          const prevTime = new Date(existing.statusUpdatedAt || existing.createdAt || 0).getTime();
+          const newTime = new Date(inner.updatedAt || 0).getTime();
+          if (newTime >= prevTime || !existing.statusUpdatedAt) {
+            ordersMap.set(inner.orderId, {
+              ...existing,
+              status: inner.status,
+              statusUpdatedAt: inner.updatedAt || new Date().toISOString()
+            });
+          }
         }
       }
     }

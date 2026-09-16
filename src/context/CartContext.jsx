@@ -131,8 +131,8 @@ export function CartProvider({ children }) {
         setOrdersHistory((prev) => {
           const map = new Map();
 
-          // 1. Add all valid cloud orders (not deleted and after clearedAt)
-          cloudOrders.forEach(o => {
+          // 1. Preserve all existing local orders first
+          prev.forEach(o => {
             if (o && o.orderId && !deletedIds.has(o.orderId)) {
               const orderTime = new Date(o.createdAt || 0).getTime();
               if (clearedAt === 0 || orderTime > clearedAt) {
@@ -141,15 +141,25 @@ export function CartProvider({ children }) {
             }
           });
 
-          // 2. Keep local orders only if created recently (< 45s) and not deleted
-          const now = Date.now();
-          prev.forEach(o => {
-            if (o && o.orderId && !deletedIds.has(o.orderId)) {
-              const orderTime = new Date(o.createdAt || 0).getTime();
-              if ((clearedAt === 0 || orderTime > clearedAt) && (now - orderTime < 45000)) {
-                if (!map.has(o.orderId)) {
-                  map.set(o.orderId, o);
-                }
+          // 2. Intelligently merge cloud orders based on status timestamps
+          cloudOrders.forEach(co => {
+            if (!co || !co.orderId || deletedIds.has(co.orderId)) return;
+            const orderTime = new Date(co.createdAt || 0).getTime();
+            if (clearedAt > 0 && orderTime <= clearedAt) return;
+
+            if (!map.has(co.orderId)) {
+              map.set(co.orderId, co);
+            } else {
+              const local = map.get(co.orderId);
+              const localTime = new Date(local.statusUpdatedAt || local.createdAt || 0).getTime();
+              const cloudTime = new Date(co.statusUpdatedAt || co.createdAt || 0).getTime();
+
+              // Only overwrite local status if cloud status is strictly newer
+              if (cloudTime > localTime) {
+                map.set(co.orderId, { ...local, ...co });
+              } else {
+                // Keep local status, merge any new server metadata
+                map.set(co.orderId, { ...co, ...local });
               }
             }
           });
@@ -166,7 +176,7 @@ export function CartProvider({ children }) {
           return merged;
         });
 
-        // 3. Keep customer's active order tracking in sync
+        // 3. Keep customer's active order tracking in sync without status regression
         setSuccessOrderState((cur) => {
           if (!cur || !cur.orderId) return cur;
           if (deletedIds.has(cur.orderId)) {
@@ -176,23 +186,22 @@ export function CartProvider({ children }) {
           }
           const matching = cloudOrders.find(o => o.orderId === cur.orderId);
           if (matching && matching.status && matching.status !== cur.status) {
-            const updated = { ...cur, status: matching.status };
-            if (matching.status === 'completed') {
-              setTimeout(() => {
-                setSuccessOrderState(null);
-                setIsSuccessModalOpen(false);
-                try { localStorage.removeItem('cheburoom_active_order'); } catch {}
-              }, 3500);
+            const curTime = new Date(cur.statusUpdatedAt || cur.createdAt || 0).getTime();
+            const matchingTime = new Date(matching.statusUpdatedAt || matching.createdAt || 0).getTime();
+
+            // Only update if matching status is newer or equal
+            if (matchingTime >= curTime) {
+              const updated = { ...cur, ...matching, status: matching.status, statusUpdatedAt: matching.statusUpdatedAt };
+              if (matching.status === 'completed' || matching.status === 'cancelled') {
+                setTimeout(() => {
+                  setSuccessOrderState(null);
+                  setIsSuccessModalOpen(false);
+                  try { localStorage.removeItem('cheburoom_active_order'); } catch {}
+                }, 3500);
+              }
+              try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
+              return updated;
             }
-            try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
-            return updated;
-          }
-          if (matching && matching.status === 'completed') {
-            setTimeout(() => {
-              setSuccessOrderState(null);
-              setIsSuccessModalOpen(false);
-              try { localStorage.removeItem('cheburoom_active_order'); } catch {}
-            }, 3500);
           }
           return cur;
         });
@@ -261,9 +270,18 @@ export function CartProvider({ children }) {
           return updated;
         });
       },
-      (orderId, newStatus) => {
+      (orderId, newStatus, updatedAt = new Date().toISOString()) => {
         setOrdersHistory((prev) => {
-          const updated = prev.map((o) => o.orderId === orderId ? { ...o, status: newStatus } : o);
+          const updated = prev.map((o) => {
+            if (o.orderId === orderId) {
+              const prevTime = new Date(o.statusUpdatedAt || o.createdAt || 0).getTime();
+              const newTime = new Date(updatedAt).getTime();
+              if (newTime >= prevTime) {
+                return { ...o, status: newStatus, statusUpdatedAt: updatedAt };
+              }
+            }
+            return o;
+          });
           try {
             localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(updated));
           } catch {}
@@ -271,16 +289,20 @@ export function CartProvider({ children }) {
         });
         setSuccessOrderState((cur) => {
           if (cur && cur.orderId === orderId) {
-            const updated = { ...cur, status: newStatus };
-            if (newStatus === 'completed' || newStatus === 'cancelled') {
-              setTimeout(() => {
-                setSuccessOrderState(null);
-                setIsSuccessModalOpen(false);
-                try { localStorage.removeItem('cheburoom_active_order'); } catch {}
-              }, 3500);
+            const prevTime = new Date(cur.statusUpdatedAt || cur.createdAt || 0).getTime();
+            const newTime = new Date(updatedAt).getTime();
+            if (newTime >= prevTime) {
+              const updated = { ...cur, status: newStatus, statusUpdatedAt: updatedAt };
+              if (newStatus === 'completed' || newStatus === 'cancelled') {
+                setTimeout(() => {
+                  setSuccessOrderState(null);
+                  setIsSuccessModalOpen(false);
+                  try { localStorage.removeItem('cheburoom_active_order'); } catch {}
+                }, 3500);
+              }
+              try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
+              return updated;
             }
-            try { localStorage.setItem('cheburoom_active_order', JSON.stringify(updated)); } catch {}
-            return updated;
           }
           return cur;
         });
@@ -376,8 +398,22 @@ export function CartProvider({ children }) {
         if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
           setOrdersHistory((prev) => {
             const map = new Map();
-            cloudOrders.forEach(o => { if (o.orderId) map.set(o.orderId, o); });
-            prev.forEach(o => { if (o.orderId && !map.has(o.orderId)) map.set(o.orderId, o); });
+            prev.forEach(o => { if (o && o.orderId) map.set(o.orderId, o); });
+            cloudOrders.forEach(co => {
+              if (!co || !co.orderId) return;
+              if (!map.has(co.orderId)) {
+                map.set(co.orderId, co);
+              } else {
+                const local = map.get(co.orderId);
+                const localTime = new Date(local.statusUpdatedAt || local.createdAt || 0).getTime();
+                const cloudTime = new Date(co.statusUpdatedAt || co.createdAt || 0).getTime();
+                if (cloudTime > localTime) {
+                  map.set(co.orderId, { ...local, ...co });
+                } else {
+                  map.set(co.orderId, { ...co, ...local });
+                }
+              }
+            });
             const merged = Array.from(map.values()).sort((a, b) => {
               const tA = new Date(a.createdAt || 0).getTime();
               const tB = new Date(b.createdAt || 0).getTime();
@@ -698,10 +734,11 @@ export function CartProvider({ children }) {
   };
 
   const updateOrderStatus = (orderId, status) => {
+    const updatedAt = new Date().toISOString();
     setOrdersHistory(prev => {
       const updated = prev.map(o => {
         if (o.orderId === orderId) {
-          return { ...o, status };
+          return { ...o, status, statusUpdatedAt: updatedAt };
         }
         return o;
       });
@@ -715,7 +752,7 @@ export function CartProvider({ children }) {
 
     setSuccessOrderState((cur) => {
       if (cur && cur.orderId === orderId) {
-        const updated = { ...cur, status };
+        const updated = { ...cur, status, statusUpdatedAt: updatedAt };
         if (status === 'completed' || status === 'cancelled') {
           setTimeout(() => {
             setSuccessOrderState(null);
