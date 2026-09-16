@@ -14,6 +14,7 @@ import {
   CreditCard,
   Banknote,
   CheckCircle,
+  AlertCircle,
   Sparkles,
   Clock,
   ShieldCheck,
@@ -22,6 +23,7 @@ import {
   Utensils
 } from 'lucide-react';
 import { MENU_DATA } from '../data/menuData';
+import { getUkrainianPhoneInfo } from '../services/phoneValidation';
 
 export function CartCheckoutPage() {
   const {
@@ -49,6 +51,9 @@ export function CartCheckoutPage() {
   const [comment, setComment] = useState('');
   const [cutleryCount, setCutleryCount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Phone validation with operator verification
+  const phoneValidation = useMemo(() => getUkrainianPhoneInfo(phone), [phone]);
 
   // Anti-Spam state
   const [honeypot, setHoneypot] = useState('');
@@ -206,15 +211,17 @@ ${itemsText}
       return;
     }
 
-    // 3. Strict Phone validation
-    const digitsOnly = phone.replace(/\D/g, '');
-    if (digitsOnly.length < 9) {
-      showToast('Вкажіть номер телефону (мінімум 9-10 цифр)');
-      return;
-    }
-    const last9 = digitsOnly.substring(digitsOnly.length - 9);
-    if (/^(\d)\1+$/.test(last9) || last9 === '123456789' || last9 === '987654321') {
-      showToast('Будь ласка, вкажіть дійсний контактний номер телефону');
+    // 3. Strict Phone & Ukrainian Operator Code validation
+    if (!phoneValidation.isValid) {
+      if (phoneValidation.reason === 'invalid_operator') {
+        showToast(`❌ Неіснуючий код оператора (${phoneValidation.fullCode}). Оформлення замовлення неможливе.`);
+      } else if (phoneValidation.reason === 'incomplete_number' || phoneValidation.reason === 'incomplete_code') {
+        showToast('Вкажіть повний номер телефону: +380 (XX) XXX XX XX');
+      } else if (phoneValidation.reason === 'repetitive_digits') {
+        showToast('Будь ласка, вкажіть реальний контактний номер телефону');
+      } else {
+        showToast(phoneValidation.message || 'Будь ласка, вкажіть дійсний номер телефону');
+      }
       return;
     }
 
@@ -634,11 +641,22 @@ ${itemsText}
                   </div>
 
                   <div>
-                    <label htmlFor="checkout-customer-phone" className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
-                      Номер телефону *
+                    <label htmlFor="checkout-customer-phone" className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1 flex items-center justify-between">
+                      <span>Номер телефону *</span>
+                      {phoneValidation.operator && (
+                        <span className={`text-[10px] font-semibold ${phoneValidation.operator.color}`}>
+                          {phoneValidation.operator.name}
+                        </span>
+                      )}
                     </label>
                     <div className="relative">
-                      <Phone className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
+                      <Phone className={`w-4 h-4 absolute left-3 top-3 transition-colors ${
+                        phoneValidation.reason === 'invalid_operator'
+                          ? 'text-rose-500'
+                          : phoneValidation.isValid
+                          ? 'text-emerald-500'
+                          : 'text-zinc-400'
+                      }`} />
                       <input
                         id="checkout-customer-phone"
                         name="customerPhone"
@@ -648,9 +666,52 @@ ${itemsText}
                         value={phone}
                         onChange={handlePhoneChange}
                         placeholder="+380 (95) 123 45 67"
-                        className="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl bg-zinc-50 dark:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white focus:ring-2 focus:ring-glovo-yellow focus:outline-none transition-colors font-mono"
+                        className={`w-full pl-9 pr-9 py-2.5 text-xs rounded-xl border transition-all font-mono ${
+                          phoneValidation.reason === 'invalid_operator'
+                            ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-500 text-rose-700 dark:text-rose-300 focus:ring-2 focus:ring-rose-500/30 focus:outline-none'
+                            : phoneValidation.isValid
+                            ? 'bg-emerald-50/30 dark:bg-emerald-950/10 border-emerald-500/60 dark:border-emerald-500/40 text-zinc-900 dark:text-white focus:ring-2 focus:ring-emerald-500/30 focus:outline-none'
+                            : 'bg-zinc-50 dark:bg-[#1A1A22] border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white focus:ring-2 focus:ring-glovo-yellow focus:outline-none'
+                        }`}
                       />
+                      {phoneValidation.isValid && (
+                        <CheckCircle className="w-4 h-4 text-emerald-500 absolute right-3 top-3 shrink-0 pointer-events-none" />
+                      )}
+                      {phoneValidation.reason === 'invalid_operator' && (
+                        <AlertCircle className="w-4 h-4 text-rose-500 absolute right-3 top-3 shrink-0 pointer-events-none" />
+                      )}
                     </div>
+
+                    {/* Operator Status Feedback */}
+                    {phoneValidation.reason === 'invalid_operator' && (
+                      <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-rose-500 dark:text-rose-400">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>Неіснуючий код оператора ({phoneValidation.fullCode}). Оформлення заблоковано</span>
+                      </div>
+                    )}
+                    {phoneValidation.reason === 'incomplete_number' && phoneValidation.operator && (
+                      <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                        <span>{phoneValidation.operator.name} • введіть ще {9 - phoneValidation.digits.length} цифр</span>
+                      </div>
+                    )}
+                    {phoneValidation.reason === 'repetitive_digits' && (
+                      <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-amber-500">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>Вкажіть реальний номер телефону для зв'язку</span>
+                      </div>
+                    )}
+                    {phoneValidation.isValid && (
+                      <div className="mt-1.5 flex items-center justify-between text-[11px]">
+                        <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          Мережа: {phoneValidation.operator.name}
+                        </span>
+                        <span className="font-semibold text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                          ✓ Номер дійсний
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
