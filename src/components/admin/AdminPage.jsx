@@ -619,11 +619,8 @@ export function AdminPage() {
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
-              <Database className="w-3.5 h-3.5" />
-              <span>Хмара та Безпека</span>
-              {isCloudConnected && (
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              )}
+              <Lock className="w-3.5 h-3.5" />
+              <span>Пароль та Доступ</span>
             </button>
           </div>
 
@@ -702,11 +699,8 @@ export function AdminPage() {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <Database className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-[11px] truncate">Хмара / БД</span>
-              {isCloudConnected && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-              )}
+              <Lock className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[11px] truncate">Пароль</span>
             </button>
           </div>
         </div>
@@ -1189,296 +1183,38 @@ export function AdminPage() {
         )}
 
         {/* ========================================== */}
-        {/* TAB 3: CLOUD DATABASE & SECURITY */}
+        {/* TAB 3: SECURITY & PASSWORD */}
         {/* ========================================== */}
         {activeTab === 'security' && (
-          <div className="max-w-2xl space-y-6">
+          <div className="max-w-xl space-y-6">
             <div>
               <h1 className="font-display font-black text-xl sm:text-2xl text-white">
-                Хмарна база даних та безпека
+                Безпека та доступ
               </h1>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Підключення Google Firebase Firestore, синхронізація меню і замовлень та налаштування пароля
+                Керування паролем адміністратора та статус сервера синхронізації
               </p>
             </div>
 
-            {/* Cloud Synchronization Card */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-[#13131A] border border-zinc-800 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-zinc-800/80">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center border bg-emerald-950/60 border-emerald-700/80 text-emerald-400">
-                    <Cloud className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="font-display font-bold text-base text-white flex items-center gap-2">
-                      <span>Хмарна синхронізація в реальному часі</span>
-                    </h2>
-                    <p className="text-[11px] text-zinc-400">
-                      {cloudMode === 'firebase'
-                        ? 'Google Firebase Firestore (Корпоративна база)'
-                        : 'Вбудована онлайн-хмара ЧЕБУROOM (Безкоштовно та автоматично)'}
-                    </p>
-                  </div>
+            {/* Compact Server Status Widget */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#13131A] border border-zinc-800 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-950/60 border border-emerald-700/80 text-emerald-400">
+                  <Cloud className="w-4 h-4" />
                 </div>
-
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-emerald-950/80 border-emerald-700 text-emerald-300 self-start sm:self-auto">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>{cloudMode === 'firebase' ? 'Firestore Live' : 'Хмара активна наживо'}</span>
-                </div>
-              </div>
-
-              {/* Status Message */}
-              {cloudStatusMsg.text && (
-                <div className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
-                  cloudStatusMsg.type === 'success'
-                    ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800'
-                    : cloudStatusMsg.type === 'error'
-                    ? 'bg-rose-950/60 text-rose-300 border border-rose-800'
-                    : 'bg-blue-950/60 text-blue-300 border border-blue-800'
-                }`}>
-                  {cloudStatusMsg.type === 'success' ? (
-                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                  ) : cloudStatusMsg.type === 'error' ? (
-                    <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
-                  ) : (
-                    <Cloud className="w-4 h-4 shrink-0 text-blue-400" />
-                  )}
-                  <span>{cloudStatusMsg.text}</span>
-                </div>
-              )}
-
-              {/* Live Status Description */}
-              <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-xs text-zinc-300 space-y-2">
-                <p className="flex items-center gap-2 text-emerald-400 font-bold">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>
-                    {cloudMode === 'firebase'
-                      ? 'Підключено до Google Firebase. Замовлення та меню зберігаються у хмарі Google.'
-                      : 'База даних працює автоматично. Всі замовлення з телефонів гостей та зміни в меню синхронізуються наживо між усіма пристроями!'}
-                  </span>
-                </p>
-                <p className="text-zinc-400">
-                  Будь-яке замовлення, зроблене гостем з телефону, миттєво з'явиться у вкладці «Замовлення» з фірмовим звуковим дзвінком, а зміна цін чи стоп-листа оновиться на смартфонах гостей без перезавантаження.
-                </p>
-              </div>
-
-              {/* Cloud Security & Salted Private Channel Details */}
-              <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 shrink-0" />
-                    <span>Приватні зашифровані канали (Захист персональних даних)</span>
-                  </span>
-                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300 font-mono font-bold self-start sm:self-auto">
-                    Сіль: {relayTopicInfo.salt}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
-                  <div className="p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80">
-                    <div className="text-zinc-500 text-[10px] font-sans uppercase font-bold">Канал замовлень</div>
-                    <div className="text-zinc-200 truncate mt-0.5">{relayTopicInfo.ordersTopic}</div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80">
-                    <div className="text-zinc-500 text-[10px] font-sans uppercase font-bold">Канал меню</div>
-                    <div className="text-zinc-200 truncate mt-0.5">{relayTopicInfo.menuTopic}</div>
-                  </div>
-                </div>
-
-                <p className="text-[11px] text-zinc-400 leading-relaxed">
-                  🔒 Публічний доступ закритий: топіки ретранслятора захищені секретним криптографічним хешем. Сторонні користувачі або сніфери мережі не можуть перехопити номери телефонів та імена замовників ресторану.
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                <button
-                  type="button"
-                  disabled={isTestingFirebase}
-                  onClick={handleTestCurrentCloud}
-                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-display font-black text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-50 active:scale-98 transition-all min-h-[42px]"
-                >
-                  {isTestingFirebase ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4" />
-                  )}
-                  <span>{isTestingFirebase ? 'Перевірка...' : '⚡ Перевірити зв\'язок з хмарою'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isUploadingToCloud}
-                  onClick={handleUploadMenuToCloud}
-                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-zinc-700 disabled:opacity-50 active:scale-98 transition-all min-h-[42px]"
-                >
-                  {isUploadingToCloud ? (
-                    <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
-                  ) : (
-                    <Upload className="w-4 h-4 text-emerald-400" />
-                  )}
-                  <span>{isUploadingToCloud ? 'Синхронізація...' : '☁️ Синхронізувати меню'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isDiagnosing}
-                  onClick={handleRunDbDiagnostics}
-                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer border border-zinc-700 disabled:opacity-50 active:scale-98 transition-all min-h-[42px]"
-                >
-                  {isDiagnosing ? (
-                    <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
-                  ) : (
-                    <ShieldCheck className="w-4 h-4 text-amber-400" />
-                  )}
-                  <span>{isDiagnosing ? 'Діагностика...' : '🔬 Повна діагностика БД'}</span>
-                </button>
-
-                {cloudMode === 'firebase' && (
-                  <button
-                    type="button"
-                    onClick={handleDisconnectCloud}
-                    className="sm:col-span-2 w-full px-4 py-3 sm:py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-bold border border-rose-800/60 cursor-pointer transition-colors text-center"
-                  >
-                    Відключити Firebase
-                  </button>
-                )}
-              </div>
-
-              {/* Database Diagnostics Result Card */}
-              {dbDiagnostics && (
-                <div className="p-4 rounded-2xl bg-zinc-900/90 border border-amber-500/30 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4" /> Результати діагностики бази даних
-                    </span>
-                    <span className="text-[11px] text-zinc-400 font-mono">
-                      Пінг: <span className="text-emerald-400 font-bold">{dbDiagnostics.latencyMs} мс</span>
-                    </span>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                    <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 space-y-1">
-                      <div className="text-zinc-400 text-[10px] uppercase font-bold">Канал замовлень</div>
-                      <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                        <span>Активний ({dbDiagnostics.ordersChannel.syncedCount} в базі)</span>
-                      </div>
-                    </div>
-                    
-                    <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 space-y-1">
-                      <div className="text-zinc-400 text-[10px] uppercase font-bold">Канал меню</div>
-                      <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                        <span>Активний (Двосторонній)</span>
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-zinc-950/60 border border-zinc-800 space-y-1">
-                      <div className="text-zinc-400 text-[10px] uppercase font-bold">Синхронізація пароля</div>
-                      <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                        <span>{dbDiagnostics.authChannel.passwordSynced ? 'Синхронізовано' : 'Готовий'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    ℹ️ База даних працює у повному обсязі: замовлення зберігаються у захищеній хмарі, автоматично підвантажуються при відкритті сайту з будь-якого пристрою, а пароль адміністратора синхронізується між ПК та смартфонами.
+                <div>
+                  <h3 className="font-display font-bold text-sm text-white flex items-center gap-2">
+                    <span>Сервер замовлень</span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">
+                    Google Cloud Firestore • Онлайн-синхронізація
                   </p>
                 </div>
-              )}
+              </div>
 
-              {/* Optional Firebase Configuration Accordion */}
-              <div className="pt-2 border-t border-zinc-800/80">
-                <button
-                  type="button"
-                  onClick={() => setShowCustomFirebase(!showCustomFirebase)}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-zinc-900/40 hover:bg-zinc-900/80 border border-zinc-800 text-xs text-zinc-300 font-bold transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-amber-400" />
-                    <span>
-                      {cloudMode === 'firebase'
-                        ? 'Оновити конфігурацію Google Firebase Firestore'
-                        : '⚙️ Підключити корпоративний Google Firebase Firestore (За бажанням)'}
-                    </span>
-                  </span>
-                  <span className="text-zinc-500 text-[11px]">
-                    {showCustomFirebase ? 'Згорнути ▲' : 'Розгорнути ▼'}
-                  </span>
-                </button>
-
-                {showCustomFirebase && (
-                  <div className="mt-3 p-4 rounded-2xl bg-zinc-900/80 border border-zinc-700 space-y-4">
-                    <p className="text-xs text-zinc-300 leading-relaxed">
-                      За замовчуванням система вже працює в хмарі автоматично. Якщо ви хочете підключити <strong>особистий Google Cloud проект ресторану</strong>, вставте конфігурацію нижче:
-                    </p>
-
-                    <form onSubmit={handleSaveFirebaseConfig} className="space-y-3">
-                      <div>
-                        <textarea
-                          rows={4}
-                          value={firebaseConfigInput}
-                          onChange={(e) => setFirebaseConfigInput(e.target.value)}
-                          placeholder={`const firebaseConfig = {\n  apiKey: "AIzaSy...",\n  projectId: "cheburoom-xxxx",\n  ...\n};`}
-                          className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl bg-zinc-950 border border-zinc-700 text-zinc-200 placeholder-zinc-600 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                        />
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        <button
-                          type="submit"
-                          disabled={isTestingFirebase || !firebaseConfigInput.trim()}
-                          className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-display font-black text-xs flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50 transition-colors"
-                        >
-                          {isTestingFirebase ? (
-                            <>
-                              <RefreshCw className="w-4 h-4 animate-spin" />
-                              <span>Перевірка та підключення...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Cloud className="w-4 h-4" />
-                              <span>Зберегти та активувати Firestore</span>
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setShowConfigGuide(!showConfigGuide)}
-                          className="px-3.5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer border border-zinc-700 transition-colors"
-                        >
-                          <span>{showConfigGuide ? 'Приховати інструкцію' : '📖 Інструкція отримання ключів'}</span>
-                        </button>
-                      </div>
-                    </form>
-
-                    {showConfigGuide && (
-                      <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 space-y-2">
-                        <div className="flex items-center justify-between font-bold text-amber-400 text-xs">
-                          <span>Інструкція отримання ключів Firebase</span>
-                          <a
-                            href="https://console.firebase.google.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-amber-400 hover:underline"
-                          >
-                            <span>console.firebase.google.com</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                        <ol className="list-decimal list-inside space-y-1.5 text-zinc-400 leading-relaxed text-[11px]">
-                          <li>Створіть проєкт на <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" className="text-amber-400 underline">console.firebase.google.com</a>.</li>
-                          <li>У меню <strong>Build &rarr; Firestore Database</strong> створіть базу в режимі <em>test mode</em>.</li>
-                          <li>У <strong>Project settings</strong> внизу натисніть іконку <strong>&lt;/&gt;</strong> (веб) і зареєструйте застосунок.</li>
-                          <li>Скопіюйте об'єкт <code>firebaseConfig</code> і вставте в поле вище.</li>
-                        </ol>
-                      </div>
-                    )}
-                  </div>
-                )}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-emerald-950/80 border-emerald-700 text-emerald-300 shrink-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Працює наживо</span>
               </div>
             </div>
 
