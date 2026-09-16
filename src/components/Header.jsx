@@ -32,7 +32,7 @@ export function Header() {
           <motion.a 
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.97 }}
-            href="https://www.google.com/maps/search/?api=1&query=вулиця+Олександрівська+75,+Запоріжжя"
+            href="https://maps.app.goo.gl/9LYDJF5hJfDkPg2dA"
             target="_blank"
             rel="noopener noreferrer"
             title="Відкрити адресу закладу в Google Картах"
