@@ -10,10 +10,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-md border-b border-zinc-200 dark:border-[#23232E] transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 h-15 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4">
         
         {/* Left Section: Logo & Address */}
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <motion.button
             type="button"
             whileHover={{ scale: 1.02 }}
@@ -46,7 +46,7 @@ export function Header() {
         </div>
 
         {/* Right Section: Hours, Phone, Instagram, Theme, Cart */}
-        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           
           {/* Working Hours Pill */}
           <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/50 text-xs text-emerald-800 dark:text-emerald-300 font-semibold select-none">
@@ -88,11 +88,11 @@ export function Header() {
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
             onClick={toggleTheme}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/80 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-zinc-700 dark:text-zinc-300 transition-colors flex items-center justify-center cursor-pointer shadow-xs shrink-0"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-100/80 hover:bg-zinc-200/80 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-zinc-700 dark:text-zinc-300 transition-colors flex items-center justify-center cursor-pointer shadow-xs shrink-0"
             aria-label="Перемкнути тему"
             title={darkMode ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
           >
-            {darkMode ? <Sun className="w-4 h-4 text-amber-400 fill-amber-400/20" /> : <Moon className="w-4 h-4 text-zinc-700" />}
+            {darkMode ? <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 fill-amber-400/20" /> : <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-700" />}
           </motion.button>
 
           {/* Active Order Live Tracker Pill */}
@@ -102,7 +102,7 @@ export function Header() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => openSuccessModal ? openSuccessModal() : setSuccessOrder({ ...successOrder })}
-              className={`h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl border flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0 text-xs font-bold transition-all ${
+              className={`h-8 sm:h-10 px-2 sm:px-3 rounded-xl border flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-xs shrink-0 text-xs font-bold transition-all ${
                 successOrder.status === 'ready'
                   ? 'bg-emerald-500 text-white border-emerald-400 animate-pulse'
                   : successOrder.status === 'preparing'
@@ -113,7 +113,7 @@ export function Header() {
               }`}
               title="Переглянути статус замовлення"
             >
-              <span className="text-[11px] sm:text-xs whitespace-nowrap">
+              <span className="text-[10px] sm:text-xs whitespace-nowrap">
                 {successOrder.status === 'ready'
                   ? '🎁 Готово!'
                   : successOrder.status === 'preparing'
@@ -122,7 +122,7 @@ export function Header() {
                   ? '❌ Скасовано'
                   : '🟡 Замовлення'}
               </span>
-              <span className="hidden sm:inline text-[10px] font-mono opacity-80">
+              <span className="hidden md:inline text-[10px] font-mono opacity-80">
                 #{successOrder.orderId}
               </span>
             </motion.button>
@@ -135,11 +135,11 @@ export function Header() {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => navigateTo('checkout')}
-              className="h-9 sm:h-10 px-3.5 sm:px-4 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-xs sm:text-sm flex items-center gap-2.5 cursor-pointer select-none group shadow-xs shrink-0 whitespace-nowrap"
+              className="h-8 sm:h-10 px-2.5 sm:px-4 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none group shadow-xs shrink-0 whitespace-nowrap"
               aria-label="Відкрити кошик"
             >
               <div className="relative shrink-0">
-                <ShoppingBag className="w-4 h-4 text-zinc-950 group-hover:scale-110 transition-transform" />
+                <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-950 group-hover:scale-110 transition-transform" />
                 {itemCount > 0 && (
                   <span
                     key={itemCount}
@@ -149,8 +149,8 @@ export function Header() {
                   </span>
                 )}
               </div>
-              <span>Кошик</span>
-              <span className="font-extrabold text-xs px-1.5 py-0.5 rounded-md bg-black/10">
+              <span className="hidden min-[380px]:inline">Кошик</span>
+              <span className="font-extrabold text-[11px] sm:text-xs px-1.5 py-0.5 rounded-md bg-black/10">
                 {subtotal} ₴
               </span>
             </motion.button>

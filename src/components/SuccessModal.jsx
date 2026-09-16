@@ -95,17 +95,17 @@ export function SuccessModal() {
           <div className="w-12 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700 mx-auto mt-2.5 mb-1 block sm:hidden shrink-0" />
 
           {/* Header */}
-          <div className="p-5 sm:p-6 text-center border-b border-zinc-100 dark:border-[#23232E] relative shrink-0">
+          <div className="p-4 sm:p-6 text-center border-b border-zinc-100 dark:border-[#23232E] relative shrink-0">
             <button
               type="button"
               onClick={handleClose}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-zinc-100 dark:bg-[#1A1A22] text-zinc-500 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-zinc-100 dark:bg-[#1A1A22] text-zinc-500 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Закрити"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-xs border ${
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mx-auto mb-2.5 sm:mb-3 shadow-xs border ${
               isCancelled 
                 ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900' 
                 : currentStatus === 'ready'
@@ -114,20 +114,20 @@ export function SuccessModal() {
                 ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900 animate-bounce'
                 : 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900'
             }`}>
-              <StatusIcon className="w-7 h-7" strokeWidth={2.5} />
+              <StatusIcon className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.5} />
             </div>
 
-            <h3 className="font-display text-xl sm:text-2xl font-black text-zinc-950 dark:text-white mb-1">
+            <h3 className="font-display text-lg sm:text-2xl font-black text-zinc-950 dark:text-white mb-0.5 sm:mb-1">
               {activeConfig.title}
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">
               {activeConfig.subtitle}
             </p>
 
             {/* Live Progress Stepper */}
             {!isCancelled && (
-              <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
-                <div className="flex items-center justify-between gap-1 max-w-sm mx-auto">
+              <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
+                <div className="flex items-center justify-between gap-0.5 sm:gap-1 max-w-sm mx-auto">
                   {[
                     { key: 'new', label: 'Прийнято', idx: 0 },
                     { key: 'preparing', label: 'Готується', idx: 1 },
@@ -139,16 +139,16 @@ export function SuccessModal() {
                     return (
                       <React.Fragment key={step.key}>
                         <div className="flex flex-col items-center flex-1">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${
+                          <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black transition-all ${
                             isPassed 
                               ? 'bg-emerald-500 text-white' 
                               : isCurrent
-                              ? 'bg-amber-400 text-zinc-950 ring-4 ring-amber-400/20 font-black scale-110'
+                              ? 'bg-amber-400 text-zinc-950 ring-2 sm:ring-4 ring-amber-400/20 font-black scale-105'
                               : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400'
                           }`}>
                             {isPassed ? '✓' : (step.idx + 1)}
                           </div>
-                          <span className={`text-[10px] mt-1 font-bold truncate max-w-[65px] ${
+                          <span className={`text-[9px] sm:text-[10px] mt-1 font-bold truncate max-w-[55px] sm:max-w-[65px] ${
                             isCurrent ? 'text-amber-500 dark:text-amber-400 font-black' : 'text-zinc-400'
                           }`}>
                             {step.label}
@@ -302,7 +302,7 @@ export function SuccessModal() {
           </div>
 
           {/* Footer Action Button */}
-          <div className="p-4 sm:p-5 border-t border-zinc-100 dark:border-[#23232E] bg-[#F8F9FA] dark:bg-[#09090B] flex flex-col sm:flex-row gap-2.5 shrink-0">
+          <div className="p-3.5 sm:p-5 border-t border-zinc-100 dark:border-[#23232E] bg-[#F8F9FA] dark:bg-[#09090B] flex flex-col sm:flex-row gap-2 sm:gap-2.5 shrink-0">
             {isCancelled ? (
               <motion.button
                 type="button"
@@ -313,7 +313,7 @@ export function SuccessModal() {
                   closeSuccessModal();
                   if (navigateTo && currentPage !== 'menu') navigateTo('menu');
                 }}
-                className="w-full h-12 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-display font-black text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
+                className="w-full h-11 sm:h-12 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-display font-black text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
               >
                 <span>Зрозуміло, закрити сповіщення</span>
               </motion.button>
@@ -323,7 +323,7 @@ export function SuccessModal() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={handleClose}
-                className="w-full h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-display font-black text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
+                className="w-full h-11 sm:h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-display font-black text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
               >
                 <span>Дякую, замовлення отримано!</span>
                 <Check className="w-4 h-4" />
@@ -334,7 +334,7 @@ export function SuccessModal() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={handleClose}
-                className="w-full h-12 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-sm btn-glow-yellow flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
+                className="w-full h-11 sm:h-12 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-xs sm:text-sm btn-glow-yellow flex items-center justify-center gap-2 cursor-pointer shadow-sm select-none"
               >
                 <span>Повернутися до меню</span>
                 <ChevronRight className="w-4 h-4" />

@@ -76,7 +76,7 @@ export function App() {
               <MarqueeRibbon />
 
               {/* Menu Title Section */}
-              <div className="pt-6 sm:pt-8 pb-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="pt-6 sm:pt-8 pb-2 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
                 <span className="text-xs font-black text-amber-500 uppercase tracking-wider block mb-1">
                   Швидке замовлення їжі
                 </span>
@@ -93,7 +93,7 @@ export function App() {
                 onSearchChange={setSearchQuery}
               />
 
-              <section id="menu-catalog" className={`scroll-mt-28 sm:scroll-mt-32 pt-2 sm:pt-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${itemCount > 0 ? 'pb-24 lg:pb-12' : 'pb-12'}`}>
+              <section id="menu-catalog" className={`scroll-mt-28 sm:scroll-mt-32 pt-2 sm:pt-4 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 ${itemCount > 0 ? 'pb-24 lg:pb-12' : 'pb-12'}`}>
 
                 {filteredItems.length === 0 ? (
                   <div className="py-16 text-center">
@@ -115,7 +115,7 @@ export function App() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                     {filteredItems.map(dish => (
                       <DishCard key={dish.id} dish={dish} />
                     ))}

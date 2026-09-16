@@ -9,8 +9,8 @@ export function Hero() {
   const signatureDish = MENU_DATA.items.find(i => i.id === 'cheb-pulled-beef') || MENU_DATA.items[0];
 
   return (
-    <section className="relative pt-6 pb-10 sm:py-12 bg-[#F8F9FA] dark:bg-[#09090B] border-b border-zinc-200 dark:border-[#23232E] overflow-hidden transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <section className="relative pt-5 pb-9 sm:py-12 bg-[#F8F9FA] dark:bg-[#09090B] border-b border-zinc-200 dark:border-[#23232E] overflow-hidden transition-colors">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
@@ -22,14 +22,14 @@ export function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-zinc-950 dark:text-white leading-[1.12] mb-4 tracking-tight"
+              className="font-display text-2xl min-[360px]:text-3xl sm:text-5xl md:text-6xl font-black text-zinc-950 dark:text-white leading-[1.14] mb-3 sm:mb-4 tracking-tight"
             >
               Справжні соковиті{' '}
               <span className="text-amber-500">
                 чебуреки
               </span>
               <br />
-              <span className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-zinc-800 dark:text-zinc-200">
+              <span className="text-xl min-[360px]:text-2xl sm:text-4xl md:text-5xl font-extrabold text-zinc-800 dark:text-zinc-200">
                 у центрі Запоріжжя
               </span>
             </motion.h1>
@@ -39,44 +39,44 @@ export function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
-              className="text-base sm:text-lg text-zinc-600 dark:text-zinc-300 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed mb-6"
+              className="text-xs min-[360px]:text-sm sm:text-lg text-zinc-600 dark:text-zinc-300 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed mb-5 sm:mb-6"
             >
               Тонке пухирчасте тісто, багато соковитого рубаного м'яса та ароматного бульйону. Готуємо під ваше замовлення!
             </motion.p>
 
             {/* Info Chips (Preparation / Pickup / Quality) */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 text-left">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 text-left">
               <motion.div 
                 whileHover={{ y: -4, scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="bg-white dark:bg-[#121215] p-2.5 sm:p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-amber-400/50 transition-colors cursor-pointer select-none group"
+                className="bg-white dark:bg-[#121215] p-2 sm:p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-amber-400/50 transition-colors cursor-pointer select-none group"
               >
-                <Clock className="w-4 h-4 text-amber-500 mb-1 group-hover:scale-120 group-hover:rotate-12 transition-transform duration-300" />
-                <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium whitespace-nowrap">Приготування</div>
-                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">7-10 хв</div>
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 mb-1 group-hover:scale-120 group-hover:rotate-12 transition-transform duration-300" />
+                <div className="text-[9px] min-[360px]:text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate">Приготування</div>
+                <div className="text-[11px] sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">7-10 хв</div>
               </motion.div>
 
               <motion.div 
                 whileHover={{ y: -4, scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="bg-white dark:bg-[#121215] p-2.5 sm:p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-emerald-400/50 transition-colors cursor-pointer select-none group"
+                className="bg-white dark:bg-[#121215] p-2 sm:p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-emerald-400/50 transition-colors cursor-pointer select-none group"
               >
-                <ShoppingBag className="w-4 h-4 text-emerald-500 mb-1 group-hover:scale-120 group-hover:-rotate-12 transition-transform duration-300" />
-                <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium whitespace-nowrap">Самовивіз</div>
-                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">Без черги</div>
+                <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 mb-1 group-hover:scale-120 group-hover:-rotate-12 transition-transform duration-300" />
+                <div className="text-[9px] min-[360px]:text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate">Самовивіз</div>
+                <div className="text-[11px] sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">Без черги</div>
               </motion.div>
 
               <motion.div 
                 whileHover={{ y: -4, scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="bg-white dark:bg-[#121215] p-2.5 sm:p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-blue-400/50 transition-colors cursor-pointer select-none group"
+                className="bg-white dark:bg-[#121215] p-2 sm:p-3 rounded-2xl border border-zinc-200/80 dark:border-[#23232E] shadow-xs hover:shadow-md hover:border-blue-400/50 transition-colors cursor-pointer select-none group"
               >
-                <ShieldCheck className="w-4 h-4 text-blue-500 mb-1 group-hover:scale-120 group-hover:rotate-12 transition-transform duration-300" />
-                <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium whitespace-nowrap">Фермерське</div>
-                <div className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">100% м'ясо</div>
+                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 mb-1 group-hover:scale-120 group-hover:rotate-12 transition-transform duration-300" />
+                <div className="text-[9px] min-[360px]:text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate">Фермерське</div>
+                <div className="text-[11px] sm:text-sm font-bold text-zinc-950 dark:text-white whitespace-nowrap">100% м'ясо</div>
               </motion.div>
             </div>
 
@@ -85,14 +85,14 @@ export function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3"
+              className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-3"
             >
               <motion.a
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 href="#menu-catalog"
-                className="h-12 px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-extrabold text-sm btn-glow-yellow animate-shimmer flex items-center justify-center gap-2 w-full sm:w-auto group cursor-pointer shadow-sm whitespace-nowrap"
+                className="h-11 sm:h-12 px-5 sm:px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-extrabold text-xs sm:text-sm btn-glow-yellow animate-shimmer flex items-center justify-center gap-2 w-full sm:w-auto group cursor-pointer shadow-sm whitespace-nowrap"
               >
                 <span>Перейти до меню</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />

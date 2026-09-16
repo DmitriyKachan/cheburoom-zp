@@ -136,11 +136,8 @@ export function ActiveOrderFloatingWidget() {
     }
   };
 
-  // Adjust bottom offset on mobile if the floating cart button is visible
-  const hasCartFloating = itemCount > 0 && currentPage === 'menu';
-  const bottomPositionClass = hasCartFloating
-    ? 'bottom-[4.85rem] sm:bottom-6'
-    : 'bottom-4 sm:bottom-6';
+  // Bottom offset on mobile and desktop
+  const bottomPositionClass = 'bottom-3 sm:bottom-6';
 
   return (
     <>
@@ -152,9 +149,9 @@ export function ActiveOrderFloatingWidget() {
           exit={{ opacity: 0, y: 25, scale: 0.94 }}
           transition={{ type: 'spring', stiffness: 420, damping: 28 }}
           onClick={openSuccessModal}
-          className={`fixed ${bottomPositionClass} left-3.5 right-3.5 sm:left-auto sm:right-6 sm:w-96 z-40 isolate cursor-pointer select-none group bg-white dark:bg-[#15151B] rounded-2xl shadow-2xl`}
+          className={`fixed ${bottomPositionClass} left-2.5 right-2.5 sm:left-auto sm:right-6 sm:w-96 z-40 isolate cursor-pointer select-none group bg-white dark:bg-[#15151B] rounded-2xl shadow-2xl`}
         >
-          <div className={`p-3.5 rounded-2xl bg-white dark:bg-[#15151B] border-2 ${activeStatus.borderColor} transition-all duration-200 group-hover:scale-[1.01]`}>
+          <div className={`p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-[#15151B] border-2 ${activeStatus.borderColor} transition-all duration-200 group-hover:scale-[1.01]`}>
             
             {/* Top Line: Icon + Status + Order ID + Dismiss */}
             <div className="flex items-center justify-between gap-2">

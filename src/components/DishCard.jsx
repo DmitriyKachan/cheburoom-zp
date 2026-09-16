@@ -107,7 +107,7 @@ export function DishCard({ dish }) {
       </div>
 
       {/* Card Body */}
-      <div className="p-3.5 sm:p-5 flex-1 flex flex-col justify-between">
+      <div className="p-3 sm:p-5 flex-1 flex flex-col justify-between">
         <div>
           <h3
             className="font-display font-bold text-sm sm:text-base text-zinc-950 dark:text-white leading-snug hover:text-amber-500 transition-colors cursor-pointer mb-1 group-hover:translate-x-0.5 duration-200"
@@ -121,16 +121,16 @@ export function DishCard({ dish }) {
         </div>
 
         {/* Bottom Bar: Price and Interactive Quantity / Add Button */}
-        <div className="pt-2.5 sm:pt-3 border-t border-zinc-100 dark:border-[#23232E] flex items-center justify-between gap-2">
+        <div className="pt-2 sm:pt-3 border-t border-zinc-100 dark:border-[#23232E] flex items-center justify-between gap-1.5 sm:gap-2">
           <div>
-            <span className="font-display font-black text-lg sm:text-xl text-zinc-950 dark:text-white whitespace-nowrap">
+            <span className="font-display font-black text-base sm:text-xl text-zinc-950 dark:text-white whitespace-nowrap">
               {dish.price} ₴
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {!isAvailable ? (
-              <span className="h-9 px-3.5 rounded-xl bg-zinc-100 dark:bg-[#181820] text-zinc-400 dark:text-zinc-500 text-xs font-bold flex items-center select-none border border-zinc-200/80 dark:border-zinc-800">
+              <span className="h-8 sm:h-9 px-2.5 sm:px-3.5 rounded-xl bg-zinc-100 dark:bg-[#181820] text-zinc-400 dark:text-zinc-500 text-[11px] sm:text-xs font-bold flex items-center select-none border border-zinc-200/80 dark:border-zinc-800">
                 Закінчилось
               </span>
             ) : (
@@ -143,29 +143,29 @@ export function DishCard({ dish }) {
                     whileTap={{ scale: 0.85 }}
                     transition={{ type: "spring", stiffness: 400, damping: 20 }}
                     onClick={() => setSelectedDishForModal(dish)}
-                    className="w-9 h-9 rounded-xl border border-zinc-200 dark:border-[#23232E] bg-zinc-50 dark:bg-[#1A1A22] text-zinc-600 dark:text-zinc-300 hover:border-amber-400 hover:text-amber-500 hover:shadow-xs transition-colors flex items-center justify-center cursor-pointer"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-zinc-200 dark:border-[#23232E] bg-zinc-50 dark:bg-[#1A1A22] text-zinc-600 dark:text-zinc-300 hover:border-amber-400 hover:text-amber-500 hover:shadow-xs transition-colors flex items-center justify-center cursor-pointer"
                     title="Обрати начинку або спосіб смаження"
                     aria-label="Склад та опції"
                   >
-                    <SlidersHorizontal className="w-4 h-4" />
+                    <SlidersHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </motion.button>
                 )}
 
                 {/* Stepper if in cart, else Add Button (Like Glovo) */}
                 {inCartQty > 0 ? (
-                  <div className="flex items-center bg-glovo-yellow text-zinc-950 rounded-xl px-1.5 py-1 font-bold shadow-md shadow-amber-400/30 ring-1 ring-amber-400/50">
+                  <div className="flex items-center bg-glovo-yellow text-zinc-950 rounded-xl px-1 sm:px-1.5 py-0.5 sm:py-1 font-bold shadow-md shadow-amber-400/30 ring-1 ring-amber-400/50">
                     <motion.button
                       type="button"
                       whileHover={{ scale: 1.18 }}
                       whileTap={{ scale: 0.82 }}
                       transition={{ type: "spring", stiffness: 500, damping: 25 }}
                       onClick={() => updateQuantity(cartItem.cartItemId, inCartQty - 1)}
-                      className="w-7 h-7 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors cursor-pointer"
+                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors cursor-pointer"
                       aria-label="Зменшити кількість"
                     >
-                      <Minus className="w-3.5 h-3.5 text-zinc-950" />
+                      <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-950" />
                     </motion.button>
-                    <span key={inCartQty} className="animate-badge-pop px-2.5 text-xs font-black min-w-[20px] text-center inline-block">
+                    <span key={inCartQty} className="animate-badge-pop px-1.5 sm:px-2.5 text-xs font-black min-w-[18px] sm:min-w-[20px] text-center inline-block">
                       {inCartQty}
                     </span>
                     <motion.button
@@ -174,10 +174,10 @@ export function DishCard({ dish }) {
                       whileTap={{ scale: 0.82 }}
                       transition={{ type: "spring", stiffness: 500, damping: 25 }}
                       onClick={() => updateQuantity(cartItem.cartItemId, inCartQty + 1)}
-                      className="w-7 h-7 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors cursor-pointer"
+                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors cursor-pointer"
                       aria-label="Збільшити кількість"
                     >
-                      <Plus className="w-3.5 h-3.5 text-zinc-950" />
+                      <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-950" />
                     </motion.button>
                   </div>
                 ) : (
@@ -187,10 +187,10 @@ export function DishCard({ dish }) {
                     whileTap={{ scale: 0.93 }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
                     onClick={() => addItem(dish)}
-                    className="h-9 px-4 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs font-extrabold btn-glow-yellow flex items-center gap-1.5 cursor-pointer select-none group/add shadow-sm"
+                    className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs font-extrabold btn-glow-yellow flex items-center gap-1 sm:gap-1.5 cursor-pointer select-none group/add shadow-sm"
                     aria-label={`Додати ${dish.name}`}
                   >
-                    <Plus className="w-4 h-4 text-zinc-950 group-hover/add:rotate-90 group-hover/add:scale-125 transition-transform duration-200" />
+                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-950 group-hover/add:rotate-90 group-hover/add:scale-125 transition-transform duration-200" />
                     <span>В кошик</span>
                   </motion.button>
                 )}

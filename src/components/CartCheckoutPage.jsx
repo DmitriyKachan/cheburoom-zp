@@ -233,11 +233,11 @@ ${itemsText}
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#09090B] text-zinc-950 dark:text-zinc-50 py-6 sm:py-10 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#09090B] text-zinc-950 dark:text-zinc-50 py-5 sm:py-10 transition-colors">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         
         {/* Navigation Breadcrumb / Top Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 sm:mb-8 pb-4 border-b border-zinc-200 dark:border-[#23232E]">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-5 sm:mb-8 pb-3.5 sm:pb-4 border-b border-zinc-200 dark:border-[#23232E]">
           <div className="flex items-center gap-3">
             <motion.button
               type="button"
@@ -245,9 +245,9 @@ ${itemsText}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
               onClick={() => navigateTo('menu')}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#121215] hover:bg-zinc-100 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-800 dark:text-zinc-200 text-xs sm:text-sm font-bold shadow-xs transition-colors group cursor-pointer"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white dark:bg-[#121215] hover:bg-zinc-100 dark:hover:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-800 dark:text-zinc-200 text-xs sm:text-sm font-bold shadow-xs transition-colors group cursor-pointer"
             >
-              <ArrowLeft className="w-4 h-4 text-zinc-600 dark:text-zinc-300 group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-600 dark:text-zinc-300 group-hover:-translate-x-1 transition-transform" />
               <span>Повернутися до меню</span>
             </motion.button>
             
@@ -317,13 +317,13 @@ ${itemsText}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* LEFT COLUMN: Cart Review & Takeaway Benefit (7 cols) */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="lg:col-span-7 space-y-4 sm:space-y-6">
               
               {/* Fast Pickup Card */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] shadow-xs">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-black shrink-0 border border-amber-500/20">
-                    <Store className="w-5 h-5 text-amber-500" />
+              <div className="p-3.5 sm:p-5 rounded-3xl bg-white dark:bg-[#121215] border border-zinc-200 dark:border-[#23232E] shadow-xs">
+                <div className="flex items-center gap-3 sm:gap-3.5">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-black shrink-0 border border-amber-500/20">
+                    <Store className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
                   </div>
                   <div>
                     <h3 className="text-xs sm:text-sm font-extrabold text-zinc-950 dark:text-white">
@@ -337,13 +337,13 @@ ${itemsText}
               </div>
 
               {/* Cart Items List */}
-              <div className="bg-white dark:bg-[#121215] rounded-3xl border border-zinc-200 dark:border-[#23232E] p-4 sm:p-6 shadow-sm">
-                <div className="flex items-center justify-between pb-4 border-b border-zinc-100 dark:border-[#23232E] mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-glovo-yellow/20 text-amber-600 flex items-center justify-center font-bold">
-                      <ShoppingBag className="w-4 h-4" />
+              <div className="bg-white dark:bg-[#121215] rounded-3xl border border-zinc-200 dark:border-[#23232E] p-3.5 sm:p-6 shadow-sm">
+                <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-zinc-100 dark:border-[#23232E] mb-3 sm:mb-4">
+                  <div className="flex items-center gap-2 sm:gap-2.5">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-glovo-yellow/20 text-amber-600 flex items-center justify-center font-bold">
+                      <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
-                    <h2 className="font-display font-black text-base sm:text-lg text-zinc-900 dark:text-white">
+                    <h2 className="font-display font-black text-sm sm:text-lg text-zinc-900 dark:text-white">
                       Обрані страви
                     </h2>
                     <span className="text-xs font-black px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-[#1A1A22] text-zinc-800 dark:text-zinc-200">
@@ -375,16 +375,16 @@ ${itemsText}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="py-4 first:pt-0 last:pb-0 flex gap-3.5 sm:gap-4 items-center"
+                        className="py-3 sm:py-4 first:pt-0 last:pb-0 flex gap-2.5 sm:gap-4 items-center"
                       >
                         <img
                           src={item.image}
                           alt={item.name}
-                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover bg-zinc-100 dark:bg-[#1A1A22] shrink-0 border border-zinc-100 dark:border-[#23232E]"
+                          className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl object-cover bg-zinc-100 dark:bg-[#1A1A22] shrink-0 border border-zinc-100 dark:border-[#23232E]"
                         />
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start justify-between gap-1.5">
                             <h3 className="font-display font-bold text-xs sm:text-sm text-zinc-900 dark:text-white truncate">
                               {item.name}
                             </h3>
@@ -394,10 +394,10 @@ ${itemsText}
                               whileTap={{ scale: 0.85 }}
                               transition={{ type: "spring", stiffness: 400, damping: 20 }}
                               onClick={() => removeItem(item.cartItemId)}
-                              className="text-zinc-400 hover:text-rose-500 p-1.5 transition-colors rounded-lg cursor-pointer"
+                              className="text-zinc-400 hover:text-rose-500 p-1 sm:p-1.5 transition-colors rounded-lg cursor-pointer"
                               aria-label="Видалити"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </motion.button>
                           </div>
 
@@ -413,28 +413,28 @@ ${itemsText}
                             </p>
                           )}
 
-                          <div className="flex items-center justify-between mt-2.5">
-                            <div className="font-display font-black text-sm sm:text-base text-zinc-950 dark:text-white">
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="font-display font-black text-xs sm:text-base text-zinc-950 dark:text-white">
                               {item.unitPrice * item.quantity} ₴
-                              <span className="text-[11px] text-zinc-400 font-normal ml-1.5 hidden sm:inline">
+                              <span className="text-[10px] sm:text-[11px] text-zinc-400 font-normal ml-1 hidden sm:inline">
                                 ({item.unitPrice} ₴/шт)
                               </span>
                             </div>
 
                             {/* Stepper */}
-                            <div className="flex items-center bg-zinc-100 dark:bg-[#1A1A22] rounded-xl p-1 gap-1 border border-zinc-200/50 dark:border-[#23232E] shadow-2xs">
+                            <div className="flex items-center bg-zinc-100 dark:bg-[#1A1A22] rounded-xl p-0.5 sm:p-1 gap-0.5 sm:gap-1 border border-zinc-200/50 dark:border-[#23232E] shadow-2xs">
                               <motion.button
                                 type="button"
                                 whileHover={{ scale: 1.2 }}
                                 whileTap={{ scale: 0.8 }}
                                 transition={{ type: "spring", stiffness: 500, damping: 25 }}
                                 onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
+                                className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
                                 aria-label="Зменшити кількість"
                               >
                                 <Minus className="w-3 h-3" />
                               </motion.button>
-                              <span key={item.quantity} className="animate-badge-pop px-2.5 text-xs font-black text-zinc-950 dark:text-white min-w-[20px] text-center inline-block">
+                              <span key={item.quantity} className="animate-badge-pop px-1.5 sm:px-2.5 text-xs font-black text-zinc-950 dark:text-white min-w-[18px] sm:min-w-[20px] text-center inline-block">
                                 {item.quantity}
                               </span>
                               <motion.button
@@ -443,7 +443,7 @@ ${itemsText}
                                 whileTap={{ scale: 0.8 }}
                                 transition={{ type: "spring", stiffness: 500, damping: 25 }}
                                 onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                                className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
+                                className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
                                 aria-label="Збільшити кількість"
                               >
                                 <Plus className="w-3 h-3" />
@@ -459,19 +459,19 @@ ${itemsText}
 
               {/* Cross-Sell Block: Quick-Add Sauces & Drinks */}
               {crossSellItems.length > 0 && (
-                <div className="bg-white dark:bg-[#121215] rounded-3xl border border-zinc-200 dark:border-[#23232E] p-4 sm:p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-white dark:bg-[#121215] rounded-3xl border border-zinc-200 dark:border-[#23232E] p-3.5 sm:p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
                     <div>
-                      <h3 className="font-display font-bold text-sm sm:text-base text-zinc-900 dark:text-white">
+                      <h3 className="font-display font-bold text-xs sm:text-base text-zinc-900 dark:text-white">
                         Смакує разом із чебуреками
                       </h3>
-                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      <p className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400">
                         Додайте авторські соуси та освіжаючі напої до замовлення
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                     {crossSellItems.map((dish) => {
                       const hasExtras = dish.customizable || (dish.options && dish.options.extras && dish.options.extras.length > 0);
                       const inCartItem = items.find((i) => i.id === dish.id);
@@ -484,7 +484,7 @@ ${itemsText}
                           transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                           key={dish.id}
                           onClick={() => setSelectedDishForModal(dish)}
-                          className={`p-3 rounded-2xl bg-zinc-50 dark:bg-[#1A1A22]/50 border transition-all flex flex-col justify-between group card-interactive cursor-pointer relative ${
+                          className={`p-2 sm:p-3 rounded-2xl bg-zinc-50 dark:bg-[#1A1A22]/50 border transition-all flex flex-col justify-between group card-interactive cursor-pointer relative ${
                             inCartQty > 0
                               ? 'border-emerald-500/40 dark:border-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/10'
                               : 'border-zinc-200/70 dark:border-[#23232E] hover:border-amber-400/60'
@@ -492,13 +492,13 @@ ${itemsText}
                         >
                           {/* In-cart badge indicator */}
                           {inCartQty > 0 && (
-                            <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-lg bg-emerald-500 text-white text-[10px] font-black shadow-xs flex items-center gap-0.5">
+                            <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-lg bg-emerald-500 text-white text-[10px] font-black shadow-xs flex items-center gap-0.5">
                               <Check className="w-2.5 h-2.5 stroke-[3]" />
                               <span>{inCartQty}</span>
                             </div>
                           )}
 
-                          <div className="overflow-hidden rounded-xl mb-2 h-20 relative">
+                          <div className="overflow-hidden rounded-xl mb-1.5 sm:mb-2 h-16 sm:h-20 relative">
                             <img
                               src={dish.image}
                               alt={dish.name}
@@ -507,10 +507,10 @@ ${itemsText}
                           </div>
 
                           <div>
-                            <p className="font-bold text-xs text-zinc-900 dark:text-white line-clamp-1 leading-snug group-hover:text-amber-500 transition-colors">
+                            <p className="font-bold text-[11px] sm:text-xs text-zinc-900 dark:text-white line-clamp-1 leading-snug group-hover:text-amber-500 transition-colors">
                               {dish.name}
                             </p>
-                            <span className="text-[11px] text-zinc-400 block mb-2">{dish.weight}</span>
+                            <span className="text-[10px] sm:text-[11px] text-zinc-400 block mb-1.5 sm:mb-2">{dish.weight}</span>
                           </div>
 
                           <div className="flex items-center justify-between mt-1 pt-1 border-t border-zinc-200/40 dark:border-[#23232E]">
@@ -530,20 +530,20 @@ ${itemsText}
                                   addItem(dish);
                                 }
                               }}
-                              className={`h-7 rounded-xl flex items-center justify-center font-black text-xs transition-all shadow-xs cursor-pointer ${
+                              className={`h-6 sm:h-7 rounded-xl flex items-center justify-center font-black text-xs transition-all shadow-xs cursor-pointer ${
                                 inCartQty > 0
-                                  ? 'px-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
-                                  : 'w-7 bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950'
+                                  ? 'px-1.5 sm:px-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
+                                  : 'w-6 sm:w-7 bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950'
                               }`}
                               title={inCartQty > 0 ? `Вже у кошику (${inCartQty} шт). Натисніть, щоб додати ще` : (hasExtras ? "Обрати додатки та соуси" : "Додати до кошика")}
                             >
                               {inCartQty > 0 ? (
-                                <span className="flex items-center gap-1">
-                                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                                  <span className="text-[11px] font-bold">+{inCartQty}</span>
+                                <span className="flex items-center gap-0.5 sm:gap-1">
+                                  <Check className="w-3 h-3 stroke-[2.5]" />
+                                  <span className="text-[10px] sm:text-[11px] font-bold">+{inCartQty}</span>
                                 </span>
                               ) : (
-                                <Plus className="w-3.5 h-3.5" />
+                                <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                               )}
                             </motion.button>
                           </div>
@@ -561,54 +561,54 @@ ${itemsText}
               
               <form
                 onSubmit={handleSubmit}
-                className="bg-white dark:bg-[#121215] rounded-3xl border border-zinc-200 dark:border-[#23232E] p-5 sm:p-7 shadow-lg space-y-5"
+                className="bg-white dark:bg-[#121215] rounded-3xl border border-zinc-200 dark:border-[#23232E] p-3.5 sm:p-7 shadow-lg space-y-4 sm:space-y-5"
               >
                 
                 {/* Section Title */}
-                <div className="border-b border-zinc-100 dark:border-[#23232E] pb-3.5">
-                  <h2 className="font-display font-black text-lg text-zinc-950 dark:text-white">
+                <div className="border-b border-zinc-100 dark:border-[#23232E] pb-3 sm:pb-3.5">
+                  <h2 className="font-display font-black text-base sm:text-lg text-zinc-950 dark:text-white">
                     Оформлення замовлення
                   </h2>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                     Швидкий самовивіз без черги: приготуємо до вашого приходу
                   </p>
                 </div>
 
                 {/* Pickup Location Info */}
-                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs">
+                <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs">
                   <div className="font-black flex items-center gap-1.5 mb-1 text-zinc-950 dark:text-white">
-                    <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
+                    <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
                     <span>Точка видачі замовлення:</span>
                   </div>
                   <p className="font-bold text-zinc-800 dark:text-zinc-200">
                     {MENU_DATA.info.address}
                   </p>
-                  <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 font-semibold flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <p className="text-[10px] sm:text-[11px] text-amber-700 dark:text-amber-400 mt-1 font-semibold flex items-center gap-1">
+                    <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 shrink-0" />
                     <span>Готуємо свіже з-під ножа за 7–10 хвилин</span>
                   </p>
                 </div>
 
                 {/* Timing selector */}
                 <div>
-                  <label className="block text-xs font-bold text-zinc-900 dark:text-white mb-2">
+                  <label className="block text-xs font-bold text-zinc-900 dark:text-white mb-1.5 sm:mb-2">
                     Час готовності:
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                     <motion.button
                       type="button"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.96 }}
                       transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       onClick={() => setPickupTiming('asap')}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      className={`p-2 sm:p-2.5 rounded-xl border text-[10px] min-[360px]:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
                         pickupTiming === 'asap'
                           ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-1 ring-glovo-yellow shadow-xs'
                           : 'border-zinc-200 dark:border-[#23232E] text-zinc-500 bg-zinc-50 dark:bg-[#1A1A22]/40 hover:border-zinc-300'
                       }`}
                     >
-                      <Clock className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Якнайшвидше (~7-10 хв)</span>
+                      <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 shrink-0" />
+                      <span className="truncate">Якнайшвидше (~7-10 хв)</span>
                     </motion.button>
 
                     <motion.button
@@ -617,18 +617,18 @@ ${itemsText}
                       whileTap={{ scale: 0.96 }}
                       transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       onClick={() => setPickupTiming('preorder')}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      className={`p-2 sm:p-2.5 rounded-xl border text-[10px] min-[360px]:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
                         pickupTiming === 'preorder'
                           ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-1 ring-glovo-yellow shadow-xs'
                           : 'border-zinc-200 dark:border-[#23232E] text-zinc-500 bg-zinc-50 dark:bg-[#1A1A22]/40 hover:border-zinc-300'
                       }`}
                     >
-                      <span>На обраний час</span>
+                      <span className="truncate">На обраний час</span>
                     </motion.button>
                   </div>
 
                   {pickupTiming === 'preorder' && (
-                    <div className="mt-2.5">
+                    <div className="mt-2 sm:mt-2.5">
                       <input
                         id="checkout-preorder-time"
                         name="preorderTime"
@@ -642,7 +642,7 @@ ${itemsText}
                 </div>
 
                 {/* Recipient Details */}
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                   <div>
                     <label htmlFor="checkout-customer-name" className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
                       Ваше ім'я *
@@ -658,7 +658,7 @@ ${itemsText}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Олександр"
-                        className="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl bg-zinc-50 dark:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white focus:ring-2 focus:ring-glovo-yellow focus:outline-none transition-colors"
+                        className="w-full pl-9 pr-3.5 py-2 sm:py-2.5 text-xs rounded-xl bg-zinc-50 dark:bg-[#1A1A22] border border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white focus:ring-2 focus:ring-glovo-yellow focus:outline-none transition-colors"
                       />
                     </div>
                   </div>
@@ -682,7 +682,7 @@ ${itemsText}
                         value={phone}
                         onChange={handlePhoneChange}
                         placeholder="+380 (95) 123 45 67"
-                        className={`w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border transition-all font-mono ${
+                        className={`w-full pl-9 pr-3.5 py-2 sm:py-2.5 text-xs rounded-xl border transition-all font-mono ${
                           (phoneValidation.reason === 'invalid_operator' || phoneValidation.reason === 'repetitive_digits')
                             ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-500 text-rose-700 dark:text-rose-300 focus:ring-2 focus:ring-rose-500/30 focus:outline-none'
                             : 'bg-zinc-50 dark:bg-[#1A1A22] border-zinc-200 dark:border-[#23232E] text-zinc-900 dark:text-white focus:ring-2 focus:ring-glovo-yellow focus:outline-none'
@@ -701,10 +701,10 @@ ${itemsText}
 
                 {/* Payment Methods */}
                 <div>
-                  <label className="block text-xs font-bold text-zinc-900 dark:text-white mb-2">
+                  <label className="block text-xs font-bold text-zinc-900 dark:text-white mb-1.5 sm:mb-2">
                     Спосіб оплати:
                   </label>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                     {[
                       { id: 'Готівка', label: 'Готівка', Icon: Banknote },
                       { id: 'Карткою в закладі', label: 'Термінал', Icon: CreditCard }
@@ -715,7 +715,7 @@ ${itemsText}
                         whileHover={{ y: -2, scale: 1.02 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setPayment(item.id)}
-                        className={`flex flex-col items-center justify-center p-3 rounded-2xl border cursor-pointer text-center transition-all ${
+                        className={`flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border cursor-pointer text-center transition-all ${
                           payment === item.id
                             ? 'border-glovo-yellow bg-amber-500/10 dark:bg-amber-500/20 text-zinc-950 dark:text-white ring-2 ring-glovo-yellow shadow-xs'
                             : 'border-zinc-200 dark:border-[#23232E] bg-zinc-50 dark:bg-[#1A1A22]/40 text-zinc-500 hover:border-zinc-300'
@@ -810,10 +810,10 @@ ${itemsText}
                   whileHover={{ scale: (isSubmitting || cooldownSeconds > 0) ? 1 : 1.02, y: (isSubmitting || cooldownSeconds > 0) ? 0 : -2 }}
                   whileTap={{ scale: (isSubmitting || cooldownSeconds > 0) ? 1 : 0.96 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  className="w-full h-14 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-sm sm:text-base flex items-center justify-center gap-2.5 btn-glow-yellow animate-shimmer disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer group/submit select-none shadow-md shadow-amber-400/25"
+                  className="w-full h-12 sm:h-14 px-3 sm:px-6 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 font-display font-black text-xs min-[360px]:text-sm sm:text-base flex items-center justify-center gap-2 sm:gap-2.5 btn-glow-yellow animate-shimmer disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer group/submit select-none shadow-md shadow-amber-400/25"
                 >
-                  <CheckCircle className="w-5 h-5 text-zinc-950 group-hover/submit:scale-120 group-hover/submit:rotate-6 transition-transform duration-300" />
-                  <span>
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-950 group-hover/submit:scale-120 group-hover/submit:rotate-6 transition-transform duration-300 shrink-0" />
+                  <span className="truncate">
                     {isSubmitting
                       ? 'Оформлення...'
                       : cooldownSeconds > 0

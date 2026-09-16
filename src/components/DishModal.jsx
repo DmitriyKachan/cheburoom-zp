@@ -252,10 +252,10 @@ export function DishModal() {
           </div>
 
           {/* Footer */}
-          <div className="p-4 sm:p-5 border-t border-zinc-100 dark:border-[#23232E] bg-[#F8F9FA] dark:bg-[#09090B] flex items-center justify-between gap-3 shrink-0">
+          <div className="p-3 sm:p-5 border-t border-zinc-100 dark:border-[#23232E] bg-[#F8F9FA] dark:bg-[#09090B] flex items-center justify-between gap-2.5 sm:gap-3 shrink-0">
             <div>
               <div className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold whitespace-nowrap">Разом:</div>
-              <div className="font-display text-lg sm:text-xl font-black text-zinc-950 dark:text-white whitespace-nowrap">
+              <div className="font-display text-base sm:text-xl font-black text-zinc-950 dark:text-white whitespace-nowrap">
                 {totalPrice} ₴
               </div>
             </div>
@@ -266,9 +266,9 @@ export function DishModal() {
               whileTap={{ scale: 0.94 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
               onClick={handleAdd}
-              className="flex-1 sm:flex-initial h-12 sm:h-11 px-5 sm:px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs sm:text-sm font-extrabold btn-glow-yellow animate-shimmer flex items-center justify-center gap-2 cursor-pointer group select-none shadow-sm whitespace-nowrap"
+              className="flex-1 sm:flex-initial h-11 px-3.5 sm:px-7 rounded-2xl bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 text-xs sm:text-sm font-extrabold btn-glow-yellow animate-shimmer flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer group select-none shadow-sm whitespace-nowrap"
             >
-              <Plus className="w-4 h-4 text-zinc-950 group-hover:rotate-90 group-hover:scale-125 transition-transform duration-200" />
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-950 group-hover:rotate-90 group-hover:scale-125 transition-transform duration-200" />
               <span>Додати ({totalPrice} ₴)</span>
             </motion.button>
           </div>

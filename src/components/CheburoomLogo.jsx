@@ -9,9 +9,9 @@ import { NEON_SIGN } from './neonSignData';
  */
 export function CheburoomLogo({ size = 'md', className = '' }) {
   const heightClasses = {
-    sm: 'h-9 sm:h-10',
-    md: 'h-11 sm:h-13',
-    lg: 'h-14 sm:h-16'
+    sm: 'h-7 sm:h-9',
+    md: 'h-8 sm:h-11',
+    lg: 'h-10 sm:h-14'
   };
 
   const heightClass = heightClasses[size] || heightClasses.md;
