@@ -14,8 +14,7 @@ import { ActiveOrderFloatingWidget } from './components/ActiveOrderFloatingWidge
 import { LocationInfo } from './components/LocationInfo';
 import { Footer } from './components/Footer';
 import { AdminPage } from './components/admin/AdminPage';
-import { MENU_DATA } from './data/menuData';
-import { ShoppingBag, ChevronRight, Check, Search, X } from 'lucide-react';
+import { ShoppingBag, Check, Search, X } from 'lucide-react';
 
 import { PromoBanners } from './components/PromoBanners';
 
@@ -141,31 +140,6 @@ export function App() {
       </main>
 
       <Footer />
-
-      {/* Floating Mobile Cart Bar (Glovo style) - only shown on menu page */}
-      {itemCount > 0 && currentPage === 'menu' && (
-        <div className="fixed bottom-4 inset-x-3.5 z-30 lg:hidden">
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigateTo('checkout')}
-            className="w-full h-14 bg-glovo-yellow hover:bg-glovo-yellow-hover text-zinc-950 rounded-2xl shadow-xl flex items-center justify-between px-4 sm:px-5 font-bold cursor-pointer btn-glow-yellow select-none"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="w-7 h-7 rounded-xl bg-zinc-950 text-white text-xs font-black flex items-center justify-center shrink-0">
-                {itemCount}
-              </span>
-              <span className="font-display font-black text-sm whitespace-nowrap">Оформити замовлення</span>
-            </div>
-            
-            <div className="flex items-center gap-1 font-display font-black text-base shrink-0 whitespace-nowrap">
-              <span>{subtotal} ₴</span>
-              <ChevronRight className="w-5 h-5" />
-            </div>
-          </motion.button>
-        </div>
-      )}
 
       {/* Modals */}
       <DishModal />

@@ -159,7 +159,7 @@ export function DishCard({ dish }) {
                       whileHover={{ scale: 1.18 }}
                       whileTap={{ scale: 0.82 }}
                       transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                      onClick={() => updateQuantity(cartItem.cartItemId, -1)}
+                      onClick={() => updateQuantity(cartItem.cartItemId, inCartQty - 1)}
                       className="w-7 h-7 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors cursor-pointer"
                       aria-label="Зменшити кількість"
                     >
@@ -173,7 +173,7 @@ export function DishCard({ dish }) {
                       whileHover={{ scale: 1.18 }}
                       whileTap={{ scale: 0.82 }}
                       transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                      onClick={() => updateQuantity(cartItem.cartItemId, 1)}
+                      onClick={() => updateQuantity(cartItem.cartItemId, inCartQty + 1)}
                       className="w-7 h-7 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors cursor-pointer"
                       aria-label="Збільшити кількість"
                     >

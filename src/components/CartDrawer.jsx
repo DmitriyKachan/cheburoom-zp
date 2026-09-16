@@ -137,7 +137,7 @@ export function CartDrawer() {
                     <div className="flex items-center bg-zinc-100 dark:bg-rnr-surface rounded-xl px-1 py-0.5">
                       <button
                         type="button"
-                        onClick={() => updateQuantity(item.cartItemId, -1)}
+                        onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
                         className="w-6 h-6 rounded-lg hover:bg-white dark:hover:bg-rnr-card flex items-center justify-center text-zinc-600 dark:text-zinc-300 transition-colors"
                         aria-label="Менше"
                       >
@@ -148,7 +148,7 @@ export function CartDrawer() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => updateQuantity(item.cartItemId, 1)}
+                        onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
                         className="w-6 h-6 rounded-lg hover:bg-white dark:hover:bg-rnr-card flex items-center justify-center text-zinc-600 dark:text-zinc-300 transition-colors"
                         aria-label="Більше"
                       >

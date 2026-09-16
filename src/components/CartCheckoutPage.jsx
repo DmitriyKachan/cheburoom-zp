@@ -428,7 +428,7 @@ ${itemsText}
                                 whileHover={{ scale: 1.2 }}
                                 whileTap={{ scale: 0.8 }}
                                 transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                                onClick={() => updateQuantity(item.cartItemId, -1)}
+                                onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
                                 className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
                                 aria-label="Зменшити кількість"
                               >
@@ -442,7 +442,7 @@ ${itemsText}
                                 whileHover={{ scale: 1.2 }}
                                 whileTap={{ scale: 0.8 }}
                                 transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                                onClick={() => updateQuantity(item.cartItemId, 1)}
+                                onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
                                 className="w-7 h-7 rounded-lg bg-white dark:bg-[#121215] hover:bg-zinc-200 text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition-colors shadow-xs cursor-pointer"
                                 aria-label="Збільшити кількість"
                               >
