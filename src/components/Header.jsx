@@ -128,18 +128,8 @@ export function Header() {
             </motion.button>
           )}
 
-          {/* Cart Button */}
-          {currentPage === 'checkout' ? (
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => navigateTo('menu')}
-              className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-[#15151B] dark:hover:bg-[#1E1E26] border border-zinc-200/80 dark:border-[#23232E] text-zinc-900 dark:text-white font-display font-bold text-xs sm:text-sm transition-all flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0 whitespace-nowrap"
-            >
-              <span>← До меню</span>
-            </motion.button>
-          ) : (
+          {/* Cart Button (hidden on checkout page) */}
+          {currentPage !== 'checkout' && (
             <motion.button
               type="button"
               whileHover={{ scale: 1.03, y: -1 }}

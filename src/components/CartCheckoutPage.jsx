@@ -248,7 +248,13 @@ ${itemsText}
             </motion.button>
             
             <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-zinc-400">
-              <span>Головна</span>
+              <button
+                type="button"
+                onClick={() => navigateTo('menu')}
+                className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors cursor-pointer"
+              >
+                Головна
+              </button>
               <span>/</span>
               <span className="text-zinc-900 dark:text-white font-bold">Кошик та оформлення</span>
             </div>
