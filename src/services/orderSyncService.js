@@ -178,7 +178,14 @@ export async function drainOutboxQueue() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-        const res = await fetch(current.url, {
+        // Dynamically resolve target URL to current active relay server
+        const targetUrl = current.payload?.type?.includes('MENU') 
+          ? getRelayUrl(MENU_TOPIC)
+          : current.payload?.type?.includes('PASS')
+            ? getRelayUrl(AUTH_TOPIC)
+            : getRelayUrl(ORDERS_TOPIC);
+
+        const res = await fetch(targetUrl, {
           method: 'POST',
           headers: {
             'Title': current.title,
@@ -196,12 +203,13 @@ export async function drainOutboxQueue() {
           outboxQueue.shift();
           persistOutbox();
         } else if (res.status === 429) {
-          console.warn('ntfy.sh rate limited (429) in outbox, cooling down for 20s');
-          ordersRateLimitedUntil = Date.now() + 20000;
+          console.warn('Relay rate limited (429) in outbox, rotating server & cooling down');
+          rotateRelayServer();
+          ordersRateLimitedUntil = Date.now() + 10000;
           break;
         } else {
-          // Server error (5xx), increment retry
           current.retryCount = (current.retryCount || 0) + 1;
+          if (current.retryCount % 2 === 0) rotateRelayServer();
           break;
         }
       } catch (err) {
@@ -653,6 +661,7 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
   let isClosed = false;
   let reconnectTimeout = null;
   let lastSseActivityTime = Date.now();
+  let sseErrorCount = 0;
 
   function connectSSE() {
     if (isClosed || typeof EventSource === 'undefined') return;
@@ -664,12 +673,14 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
 
       eventSource.onopen = () => {
         isOrdersSSEActive = true;
+        sseErrorCount = 0;
         lastSseActivityTime = Date.now();
         notifySyncStatus();
       };
 
       eventSource.onmessage = (event) => {
         isOrdersSSEActive = true;
+        sseErrorCount = 0;
         lastSseActivityTime = Date.now();
         notifySyncStatus();
 
@@ -698,10 +709,16 @@ export function subscribeToOrders(onNewOrder, onStatusUpdate, onClearOrders, onD
         try { if (eventSource) eventSource.close(); } catch {}
 
         if (!isClosed && !reconnectTimeout) {
+          // If SSE connection fails repeatedly, automatically rotate to backup relay server
+          sseErrorCount = (sseErrorCount || 0) + 1;
+          if (sseErrorCount >= 3) {
+            rotateRelayServer();
+            sseErrorCount = 0;
+          }
           reconnectTimeout = setTimeout(() => {
             reconnectTimeout = null;
             connectSSE();
-          }, 400); // Ultra fast 400ms initial reconnect
+          }, 500);
         }
       };
     } catch (err) {
@@ -1182,7 +1199,7 @@ export async function testCloudRelay() {
   }
 
   try {
-    const res = await fetch(CLOUD_ORDERS_URL, {
+    const res = await fetch(getRelayUrl(ORDERS_TOPIC), {
       method: 'POST',
       headers: {
         'Title': 'Ping Check',
