@@ -956,22 +956,35 @@ export function AdminPage() {
                     new: 'bg-amber-500/20 text-amber-400 border-amber-500/40',
                     preparing: 'bg-blue-500/20 text-blue-400 border-blue-500/40',
                     ready: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
-                    completed: 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                    completed: 'bg-zinc-800 text-zinc-400 border-zinc-700',
+                    cancelled: 'bg-rose-500/20 text-rose-400 border-rose-500/40'
                   };
+
+                  const isCancelled = order.status === 'cancelled';
 
                   return (
                     <div
                       key={order.orderId}
-                      className="p-3.5 sm:p-5 rounded-2xl bg-[#13131A] border border-zinc-800 space-y-3"
+                      className={`p-3.5 sm:p-5 rounded-2xl bg-[#13131A] border space-y-3 transition-colors ${
+                        isCancelled ? 'border-rose-900/70 bg-rose-950/15 ring-1 ring-rose-500/20' : 'border-zinc-800'
+                      }`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-zinc-800">
-                        <div className="flex items-center justify-between sm:justify-start gap-2.5">
-                          <span className="font-mono font-black text-sm px-2.5 py-1 rounded-xl bg-zinc-900 border border-zinc-700 text-amber-400">
+                        <div className="flex items-center justify-between sm:justify-start gap-2.5 flex-wrap">
+                          <span className={`font-mono font-black text-sm px-2.5 py-1 rounded-xl bg-zinc-900 border ${
+                            isCancelled ? 'border-rose-700 text-rose-400' : 'border-zinc-700 text-amber-400'
+                          }`}>
                             #{order.orderId}
                           </span>
-                          <span className="text-xs font-bold text-zinc-400">
-                            {order.timing}
-                          </span>
+                          {isCancelled ? (
+                            <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center gap-1">
+                              ❌ Скасовано клієнтом
+                            </span>
+                          ) : (
+                            <span className="text-xs font-bold text-zinc-400">
+                              {order.timing}
+                            </span>
+                          )}
                         </div>
 
                         {/* Status dropdown & delete button */}
@@ -979,12 +992,13 @@ export function AdminPage() {
                           <select
                             value={order.status || 'new'}
                             onChange={(e) => updateOrderStatus(order.orderId, e.target.value)}
-                            className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold border focus:outline-none cursor-pointer min-h-[38px] ${statusColors[order.status || 'new']}`}
+                            className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold border focus:outline-none cursor-pointer min-h-[38px] ${statusColors[order.status || 'new'] || statusColors.new}`}
                           >
                             <option value="new">🟡 Нове замовлення</option>
                             <option value="preparing">🔵 Готується на кухні</option>
                             <option value="ready">🟢 Готове до видачі</option>
                             <option value="completed">⚪ Видано клієнту</option>
+                            <option value="cancelled">🔴 Скасовано</option>
                           </select>
                           <button
                             type="button"

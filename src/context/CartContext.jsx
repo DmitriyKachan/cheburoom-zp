@@ -272,7 +272,7 @@ export function CartProvider({ children }) {
         setSuccessOrderState((cur) => {
           if (cur && cur.orderId === orderId) {
             const updated = { ...cur, status: newStatus };
-            if (newStatus === 'completed') {
+            if (newStatus === 'completed' || newStatus === 'cancelled') {
               setTimeout(() => {
                 setSuccessOrderState(null);
                 setIsSuccessModalOpen(false);
@@ -716,7 +716,7 @@ export function CartProvider({ children }) {
     setSuccessOrderState((cur) => {
       if (cur && cur.orderId === orderId) {
         const updated = { ...cur, status };
-        if (status === 'completed') {
+        if (status === 'completed' || status === 'cancelled') {
           setTimeout(() => {
             setSuccessOrderState(null);
             setIsSuccessModalOpen(false);
