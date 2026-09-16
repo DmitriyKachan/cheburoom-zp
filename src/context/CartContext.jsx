@@ -469,17 +469,17 @@ export function CartProvider({ children }) {
       });
     }
 
-    // 5. Passive Cloud Safety Poller (every 45s): SSE handles instant real-time events, this acts purely as a safety net
+    // 5. Active Cloud Safety Poller (every 6s): guarantees fast delivery across devices even if mobile sleep blocks SSE
     const cloudPollTimer = setInterval(() => {
       syncOrdersWithCloud();
       syncMenuWithCloud();
-    }, 45000);
+    }, 6000);
 
-    // 6. Mobile Wake-up / Tab Switch instant re-sync (throttled to at most once per 15s)
+    // 6. Mobile Wake-up / Tab Switch instant re-sync (throttled to at most once per 2s)
     let lastWakeSync = 0;
     const handleSyncTrigger = () => {
       const now = Date.now();
-      if (document.visibilityState === 'visible' && now - lastWakeSync > 15000) {
+      if (document.visibilityState === 'visible' && now - lastWakeSync > 2000) {
         lastWakeSync = now;
         syncOrdersWithCloud();
         syncMenuWithCloud();

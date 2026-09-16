@@ -29,9 +29,44 @@ const ORDERS_TOPIC = getTopicName('orders');
 const MENU_TOPIC = getTopicName('menu');
 const AUTH_TOPIC = getTopicName('auth');
 
-const CLOUD_ORDERS_URL = `https://ntfy.sh/${ORDERS_TOPIC}`;
-const CLOUD_MENU_URL = `https://ntfy.sh/${MENU_TOPIC}`;
-const CLOUD_AUTH_URL = `https://ntfy.sh/${AUTH_TOPIC}`;
+export const RELAY_SERVERS = [
+  'https://ntfy.envs.net',
+  'https://ntfy.sh'
+];
+
+let currentServerIndex = 0;
+
+export function getActiveRelayServer() {
+  try {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cheburoom_relay_server');
+      if (saved && saved.trim()) return saved.trim();
+    }
+  } catch {}
+  return RELAY_SERVERS[currentServerIndex] || RELAY_SERVERS[0];
+}
+
+export function rotateRelayServer() {
+  currentServerIndex = (currentServerIndex + 1) % RELAY_SERVERS.length;
+  const next = RELAY_SERVERS[currentServerIndex];
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cheburoom_relay_server', next);
+    }
+  } catch {}
+  console.info('[Relay] Rotated server to:', next);
+  if (typeof notifySyncStatus === 'function') notifySyncStatus();
+  return next;
+}
+
+export function getRelayUrl(topic, path = '') {
+  return getActiveRelayServer() + '/' + topic + path;
+}
+
+
+const CLOUD_ORDERS_URL = `https://ntfy.envs.net/${ORDERS_TOPIC}`;
+const CLOUD_MENU_URL = `https://ntfy.envs.net/${MENU_TOPIC}`;
+const CLOUD_AUTH_URL = `https://ntfy.envs.net/${AUTH_TOPIC}`;
 
 let ordersBroadcastChannel = null;
 let menuBroadcastChannel = null;
@@ -152,7 +187,7 @@ export function enqueueSyncEvent(payload, options = {}) {
  */
 export async function drainOutboxQueue() {
   if (isDrainingOutbox || outboxQueue.length === 0) return;
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
 
   const now = Date.now();
   if (now < ordersRateLimitedUntil) {
@@ -169,7 +204,7 @@ export async function drainOutboxQueue() {
 
   try {
     while (outboxQueue.length > 0) {
-      if (typeof navigator !== 'undefined' && !navigator.onLine) break;
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) break;
 
       const current = outboxQueue[0];
       let success = false;
@@ -943,7 +978,7 @@ export function subscribeToPasswordHash(onHashUpdate) {
 export async function fetchHistoricalCloudOrders(force = false) {
   const now = Date.now();
 
-  if (!force && cachedHistoricalOrders && (now - lastOrdersFetchTime < 10000)) {
+  if (!force && cachedHistoricalOrders && (now - lastOrdersFetchTime < 4000)) {
     return cachedHistoricalOrders;
   }
 
